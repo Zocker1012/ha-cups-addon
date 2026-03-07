@@ -39,7 +39,7 @@ ports_description:
 
 # CUPS web UI – via HA dashboard (Ingress)
 ingress: true
-ingress_port: 631
+ingress_port: 8080
 ingress_stream: true
 panel_icon: mdi:printer
 panel_title: CUPS
