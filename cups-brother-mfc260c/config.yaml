@@ -15,14 +15,10 @@ arch:
 map:
   - addon_config:rw
 
-# USB printer access
+# USB printer access – nur usb: true, kein devices!
 usb: true
-devices:
-  - /dev/bus/usb
 
-# Required for udev (USB hotplug) and avahi
 init: false
-udev: true
 
 # Full network access needed for Avahi/mDNS
 host_network: true
