@@ -7,56 +7,17 @@ ulimit -n 524288
 # ---------------------------------------------------------------------------
 set_usb_quirks() {
     local quirk_file="/usr/share/cups/usb/org.cups.usb-quirks"
-    local quirk_line="0x04f9 0x01d6 no-reattach"
 
-    if [ -f "${quirk_file}" ] && ! grep -qF "${quirk_line}" "${quirk_file}"; then
-        bashio::log.info "Füge Brother MFC-260C USB-Quirk hinzu"
-        echo "${quirk_line}" >> "${quirk_file}"
+    if [ -f "${quirk_file}" ]; then
+        if ! grep -qF "0x04f9 0x01d6 no-reattach" "${quirk_file}"; then
+            bashio::log.info "Füge Brother MFC-260C no-reattach Quirk hinzu"
+            echo "0x04f9 0x01d6 no-reattach" >> "${quirk_file}"
+        fi
+        if ! grep -qF "0x04f9 0x01d6 usbfs" "${quirk_file}"; then
+            bashio::log.info "Füge Brother MFC-260C usbfs Quirk hinzu"
+            echo "0x04f9 0x01d6 usbfs" >> "${quirk_file}"
+        fi
     fi
-}
-
-# ---------------------------------------------------------------------------
-# usblp Kernelmodul vom Drucker lösen (sonst exklusiver Host-Zugriff)
-# ---------------------------------------------------------------------------
-detach_usblp() {
-    if [ ! -d /sys/bus/usb/drivers/usblp ]; then
-        bashio::log.info "usblp Treiberpfad nicht vorhanden – überspringe"
-        return
-    fi
-
-    bashio::log.info "Löse usblp vom Brother Drucker (falls verbunden)"
-    for dev in /sys/bus/usb/drivers/usblp/*; do
-        [ -e "${dev}" ] || continue
-        devname=$(basename "${dev}")
-        case "${devname}" in
-            *:*.*)
-                bashio::log.info "Trenne usblp von ${devname}"
-                echo "${devname}" > /sys/bus/usb/drivers/usblp/unbind 2>/dev/null || true
-                ;;
-        esac
-    done
-}
-
-# ---------------------------------------------------------------------------
-# udev starten für USB-Hotplug
-# ---------------------------------------------------------------------------
-start_udev() {
-    if command -v systemd-udevd >/dev/null 2>&1; then
-        bashio::log.info "Starte systemd-udevd für USB-Hotplug"
-        systemd-udevd --daemon >/dev/null 2>&1 || \
-            bashio::log.warning "systemd-udevd konnte nicht gestartet werden"
-    elif command -v udevd >/dev/null 2>&1; then
-        bashio::log.info "Starte udevd für USB-Hotplug"
-        udevd --daemon >/dev/null 2>&1 || \
-            bashio::log.warning "udevd konnte nicht gestartet werden"
-    else
-        bashio::log.warning "Kein udev-Daemon gefunden – USB-Hotplug nicht verfügbar"
-        return
-    fi
-
-    udevadm control --reload || true
-    udevadm trigger --action=add --type=subsystems --type=devices || true
-    udevadm settle || true
 }
 
 # ---------------------------------------------------------------------------
@@ -79,52 +40,26 @@ wait_for_avahi() {
 }
 
 # ---------------------------------------------------------------------------
-# Brother Spool-Verzeichnisse sicherstellen
-# ---------------------------------------------------------------------------
-ensure_brother_runtime() {
-    bashio::log.info "Stelle Brother Spool-Verzeichnisse sicher"
-    mkdir -p /var/spool/lpd/mfc260c || true
-    chmod 1777 /var/spool/lpd /var/spool/lpd/mfc260c || true
-}
-
-# ---------------------------------------------------------------------------
 # CUPS Konfiguration persistent machen
 # ---------------------------------------------------------------------------
 prepare_cups_config() {
     bashio::log.info "Bereite persistente CUPS-Konfiguration vor"
 
-    # HA mountet addon_config nach /homeassistant oder /config je nach Version
-    # Finde den richtigen Pfad
-    local config_dir
-    if [ -d /addon_configs ]; then
-        config_dir="/addon_configs"
-    elif [ -d /homeassistant ]; then
-        config_dir="/homeassistant"
-    else
-        config_dir="/config"
-    fi
-
-    bashio::log.info "Nutze Konfigurationspfad: ${config_dir}"
-    mkdir -p "${config_dir}/cups"
-
-    if [ ! -f "${config_dir}/cups/cupsd.conf" ]; then
-        bashio::log.info "Kopiere Standard CUPS-Konfiguration nach ${config_dir}/cups"
-        cp -r /etc/cups/. "${config_dir}/cups/"
+    if [ ! -d /config/cups ]; then
+        bashio::log.info "Kopiere Standard CUPS-Konfiguration nach /config/cups"
+        cp -r /etc/cups /config/cups
     fi
 
     rm -rf /etc/cups
-    ln -s "${config_dir}/cups" /etc/cups
-    bashio::log.info "CUPS Konfiguration verlinkt: ${config_dir}/cups → /etc/cups"
+    ln -s /config/cups /etc/cups
+    bashio::log.info "CUPS Konfiguration verlinkt: /config/cups → /etc/cups"
 }
 
 # ---------------------------------------------------------------------------
 # Hauptprogramm
 # ---------------------------------------------------------------------------
-start_udev
 set_usb_quirks
-detach_usblp
 wait_for_avahi
-ensure_brother_runtime
 prepare_cups_config
 
 bashio::log.info "Starte CUPS Server"
