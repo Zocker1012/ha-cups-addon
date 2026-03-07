@@ -18,9 +18,6 @@ usb: true
 init: false
 host_network: true
 
-# Vollzugriff für USB-Drucken erforderlich
-full_access: true
-
 ports:
   631/tcp: 631
 ports_description:
@@ -32,5 +29,8 @@ ingress_stream: true
 panel_icon: mdi:printer
 panel_title: CUPS
 
-options: {}
-schema: {}
+# Benutzer wählt das USB-Drucker-Device aus
+options:
+  printer_device: "/dev/bus/usb/001/001"
+schema:
+  printer_device: "device(subsystem=usb)"
