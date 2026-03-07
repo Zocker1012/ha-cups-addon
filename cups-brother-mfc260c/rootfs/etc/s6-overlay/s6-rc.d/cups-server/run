@@ -21,6 +21,32 @@ set_usb_quirks() {
 }
 
 # ---------------------------------------------------------------------------
+# USB Device Permissions setzen
+# ---------------------------------------------------------------------------
+fix_usb_permissions() {
+    local device
+    device=$(bashio::config 'printer_device')
+
+    if [ -z "${device}" ]; then
+        bashio::log.warning "Kein USB-Drucker-Device konfiguriert!"
+        bashio::log.warning "Bitte unter Addon-Konfiguration 'printer_device' setzen."
+        bashio::log.warning "Beispiel: /dev/bus/usb/001/011"
+        return
+    fi
+
+    if [ ! -e "${device}" ]; then
+        bashio::log.warning "USB-Device '${device}' nicht gefunden!"
+        bashio::log.warning "Drucker angeschlossen? Richtige Device-Nummer?"
+        return
+    fi
+
+    bashio::log.info "Setze Permissions für USB-Device: ${device}"
+    chmod 0666 "${device}" 2>/dev/null && \
+        bashio::log.info "USB-Device Permissions gesetzt" || \
+        bashio::log.warning "Konnte Permissions nicht setzen – Protected Mode aktiv?"
+}
+
+# ---------------------------------------------------------------------------
 # Auf Avahi-Socket warten
 # ---------------------------------------------------------------------------
 wait_for_avahi() {
@@ -59,6 +85,7 @@ prepare_cups_config() {
 # Hauptprogramm
 # ---------------------------------------------------------------------------
 set_usb_quirks
+fix_usb_permissions
 wait_for_avahi
 prepare_cups_config
 
