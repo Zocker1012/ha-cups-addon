@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+
+ulimit -n 524288
+
+bashio::log.info "Warte auf CUPS Socket..."
+
+until [ -e /run/cups/cups.sock ]; do
+    sleep 1
+done
+
+bashio::log.info "Starte nginx Proxy für Ingress"
+
+exec nginx -g "daemon off;"
