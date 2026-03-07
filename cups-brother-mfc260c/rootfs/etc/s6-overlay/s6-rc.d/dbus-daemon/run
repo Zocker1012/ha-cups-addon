@@ -1,1 +1,7 @@
+#!/usr/bin/with-contenv bashio
 
+ulimit -n 524288
+
+bashio::log.info "Starte D-Bus Daemon"
+
+exec dbus-daemon --system --nofork
