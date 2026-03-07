@@ -11,25 +11,21 @@ url: "https://github.com/Zocker1012/ha-cups-addon"
 arch:
   - amd64
 
-# Persistent config storage
 map:
   - addon_config:rw
 
-# USB printer access – nur usb: true, kein devices!
 usb: true
-
 init: false
-
-# Full network access needed for Avahi/mDNS
 host_network: true
 
-# CUPS web UI – direct access
+# Vollzugriff für USB-Drucken erforderlich
+full_access: true
+
 ports:
   631/tcp: 631
 ports_description:
   631/tcp: "CUPS web interface and printing"
 
-# CUPS web UI – via HA dashboard (Ingress)
 ingress: true
 ingress_port: 8080
 ingress_stream: true
