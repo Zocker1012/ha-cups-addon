@@ -35,6 +35,7 @@ RUN dpkg --add-architecture i386 \
         procps \
         file \
         a2ps \
+        nginx \
         printer-driver-all \
         printer-driver-gutenprint \
         openprinting-ppds \
