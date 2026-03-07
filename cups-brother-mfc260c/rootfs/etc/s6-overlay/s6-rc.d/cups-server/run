@@ -93,14 +93,28 @@ ensure_brother_runtime() {
 prepare_cups_config() {
     bashio::log.info "Bereite persistente CUPS-Konfiguration vor"
 
-    if [ ! -d /addon_config/cups ]; then
-        bashio::log.info "Kopiere Standard CUPS-Konfiguration nach /addon_config/cups"
-        cp -r /etc/cups /addon_config/cups
+    # HA mountet addon_config nach /homeassistant oder /config je nach Version
+    # Finde den richtigen Pfad
+    local config_dir
+    if [ -d /addon_configs ]; then
+        config_dir="/addon_configs"
+    elif [ -d /homeassistant ]; then
+        config_dir="/homeassistant"
+    else
+        config_dir="/config"
+    fi
+
+    bashio::log.info "Nutze Konfigurationspfad: ${config_dir}"
+    mkdir -p "${config_dir}/cups"
+
+    if [ ! -f "${config_dir}/cups/cupsd.conf" ]; then
+        bashio::log.info "Kopiere Standard CUPS-Konfiguration nach ${config_dir}/cups"
+        cp -r /etc/cups/. "${config_dir}/cups/"
     fi
 
     rm -rf /etc/cups
-    ln -s /addon_config/cups /etc/cups
-    bashio::log.info "CUPS Konfiguration verlinkt: /addon_config/cups → /etc/cups"
+    ln -s "${config_dir}/cups" /etc/cups
+    bashio::log.info "CUPS Konfiguration verlinkt: ${config_dir}/cups → /etc/cups"
 }
 
 # ---------------------------------------------------------------------------
