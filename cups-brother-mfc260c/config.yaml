@@ -1,0 +1,48 @@
+name: "CUPS Addon (Brother MFC-260C)"
+version: "1.0.0"
+slug: cups-brother-mfc260c
+description: >
+  CUPS print server with Avahi/AirPrint support for the Brother MFC-260C.
+  Includes official Brother LPR and CUPS wrapper drivers.
+  Avahi runs in reflector mode for discovery across network segments.
+
+url: "https://github.com/Zocker1012/ha-cups-addon"
+
+arch:
+  - amd64
+
+# Persistent config storage
+map:
+  - addon_config:rw
+
+# USB printer access
+usb: true
+devices:
+  - /dev/bus/usb
+
+# Required for udev (USB hotplug) and avahi
+init: false
+udev: true
+
+privileged:
+  - SYS_ADMIN
+  - SYS_RAWIO
+
+# Full network access needed for Avahi/mDNS
+host_network: true
+
+# CUPS web UI – direct access
+ports:
+  631/tcp: 631
+ports_description:
+  631/tcp: "CUPS web interface and printing"
+
+# CUPS web UI – via HA dashboard (Ingress)
+ingress: true
+ingress_port: 631
+ingress_stream: true
+panel_icon: mdi:printer
+panel_title: CUPS
+
+options: {}
+schema: {}
