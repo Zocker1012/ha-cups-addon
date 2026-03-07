@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+
+ulimit -n 524288
+
+bashio::log.info "Warte auf D-Bus Socket..."
+
+until [ -e /run/dbus/system_bus_socket ]; do
+    sleep 1
+done
+
+bashio::log.info "Starte Avahi Daemon"
+
+exec avahi-daemon --no-drop-root
