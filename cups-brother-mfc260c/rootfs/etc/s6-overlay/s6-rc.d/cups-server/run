@@ -1,1 +1,117 @@
+#!/usr/bin/with-contenv bashio
 
+ulimit -n 524288
+
+# ---------------------------------------------------------------------------
+# USB-Quirks für Brother MFC-260C setzen
+# ---------------------------------------------------------------------------
+set_usb_quirks() {
+    local quirk_file="/usr/share/cups/usb/org.cups.usb-quirks"
+    local quirk_line="0x04f9 0x01d6 no-reattach"
+
+    if [ -f "${quirk_file}" ] && ! grep -qF "${quirk_line}" "${quirk_file}"; then
+        bashio::log.info "Füge Brother MFC-260C USB-Quirk hinzu"
+        echo "${quirk_line}" >> "${quirk_file}"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# usblp Kernelmodul vom Drucker lösen (sonst exklusiver Host-Zugriff)
+# ---------------------------------------------------------------------------
+detach_usblp() {
+    if [ ! -d /sys/bus/usb/drivers/usblp ]; then
+        bashio::log.info "usblp Treiberpfad nicht vorhanden – überspringe"
+        return
+    fi
+
+    bashio::log.info "Löse usblp vom Brother Drucker (falls verbunden)"
+    for dev in /sys/bus/usb/drivers/usblp/*; do
+        [ -e "${dev}" ] || continue
+        devname=$(basename "${dev}")
+        case "${devname}" in
+            *:*.*)
+                bashio::log.info "Trenne usblp von ${devname}"
+                echo "${devname}" > /sys/bus/usb/drivers/usblp/unbind 2>/dev/null || true
+                ;;
+        esac
+    done
+}
+
+# ---------------------------------------------------------------------------
+# udev starten für USB-Hotplug
+# ---------------------------------------------------------------------------
+start_udev() {
+    if command -v systemd-udevd >/dev/null 2>&1; then
+        bashio::log.info "Starte systemd-udevd für USB-Hotplug"
+        systemd-udevd --daemon >/dev/null 2>&1 || \
+            bashio::log.warning "systemd-udevd konnte nicht gestartet werden"
+    elif command -v udevd >/dev/null 2>&1; then
+        bashio::log.info "Starte udevd für USB-Hotplug"
+        udevd --daemon >/dev/null 2>&1 || \
+            bashio::log.warning "udevd konnte nicht gestartet werden"
+    else
+        bashio::log.warning "Kein udev-Daemon gefunden – USB-Hotplug nicht verfügbar"
+        return
+    fi
+
+    udevadm control --reload || true
+    udevadm trigger --action=add --type=subsystems --type=devices || true
+    udevadm settle || true
+}
+
+# ---------------------------------------------------------------------------
+# Auf Avahi-Socket warten
+# ---------------------------------------------------------------------------
+wait_for_avahi() {
+    local timeout=30
+    local elapsed=0
+
+    bashio::log.info "Warte auf Avahi Socket..."
+    until [ -e /var/run/avahi-daemon/socket ]; do
+        sleep 1
+        elapsed=$((elapsed + 1))
+        if [ "${elapsed}" -ge "${timeout}" ]; then
+            bashio::log.warning "Avahi Socket nach ${timeout}s nicht gefunden – starte CUPS trotzdem"
+            return
+        fi
+    done
+    bashio::log.info "Avahi Socket bereit"
+}
+
+# ---------------------------------------------------------------------------
+# Brother Spool-Verzeichnisse sicherstellen
+# ---------------------------------------------------------------------------
+ensure_brother_runtime() {
+    bashio::log.info "Stelle Brother Spool-Verzeichnisse sicher"
+    mkdir -p /var/spool/lpd/mfc260c || true
+    chmod 1777 /var/spool/lpd /var/spool/lpd/mfc260c || true
+}
+
+# ---------------------------------------------------------------------------
+# CUPS Konfiguration persistent machen
+# ---------------------------------------------------------------------------
+prepare_cups_config() {
+    bashio::log.info "Bereite persistente CUPS-Konfiguration vor"
+
+    if [ ! -d /addon_config/cups ]; then
+        bashio::log.info "Kopiere Standard CUPS-Konfiguration nach /addon_config/cups"
+        cp -r /etc/cups /addon_config/cups
+    fi
+
+    rm -rf /etc/cups
+    ln -s /addon_config/cups /etc/cups
+    bashio::log.info "CUPS Konfiguration verlinkt: /addon_config/cups → /etc/cups"
+}
+
+# ---------------------------------------------------------------------------
+# Hauptprogramm
+# ---------------------------------------------------------------------------
+start_udev
+set_usb_quirks
+detach_usblp
+wait_for_avahi
+ensure_brother_runtime
+prepare_cups_config
+
+bashio::log.info "Starte CUPS Server"
+exec cupsd -f
