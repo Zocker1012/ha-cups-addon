@@ -24,14 +24,6 @@ devices:
 init: false
 udev: true
 
-privileged:
-  - SYS_ADMIN
-  - SYS_RAWIO
-  - MKNOD
-  - DAC_OVERRIDE
-
-full_access: true
-
 # Full network access needed for Avahi/mDNS
 host_network: true
 
