@@ -9,11 +9,15 @@ url: "https://github.com/Zocker1012/ha-cups-addon"
 arch:
   - amd64
 
-map:
-  - addon_config:rw
-
-usb: true
+startup: services
+boot: auto
 init: false
+
+# Schutzmechanismen deaktivieren
+protection_mode: false
+apparmor: false
+
+# Netzwerk
 host_network: true
 
 ports:
@@ -21,11 +25,34 @@ ports:
 ports_description:
   631/tcp: "CUPS web interface and printing"
 
+# Ingress (HA UI Zugriff)
 ingress: true
 ingress_port: 8080
 ingress_stream: true
+
 panel_icon: mdi:printer
 panel_title: CUPS
+
+# USB Zugriff
+usb: true
+devices:
+  - /dev/bus/usb
+  - /dev/usb
+
+# Dateisystem Zugriff
+map:
+  - addon_config:rw
+  - config:rw
+  - share:rw
+  - ssl:rw
+
+# Erweiterte Rechte (für Treiber / Avahi / CUPS Backend)
+privileged:
+  - SYS_ADMIN
+  - SYS_RAWIO
+  - NET_ADMIN
+  - SYS_NICE
+  - DAC_READ_SEARCH
 
 options: {}
 schema: {}
