@@ -90,4 +90,6 @@ RUN useradd \
     print \
   && sed -i '/%sudo[[:space:]]/ s/ALL[[:space:]]*$/NOPASSWD:ALL/' /etc/sudoers
 
+RUN rm -f /etc/nginx/sites-enabled/default
+
 EXPOSE 631
