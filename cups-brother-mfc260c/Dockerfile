@@ -17,6 +17,7 @@ RUN dpkg --add-architecture i386 \
     && apt-get install -y --no-install-recommends \
         cups \
         cups-filters \
+        cups-pdf \  
         avahi-daemon \
         libnss-mdns \
         dbus \
@@ -64,13 +65,12 @@ COPY rootfs /
 
 # Benutzer "print" für CUPS Web-UI anlegen
 RUN useradd \
-    --groups=sudo,lp,lpadmin \
+    --groups=lp,lpadmin \
     --create-home \
     --home-dir=/home/print \
     --shell=/bin/bash \
     --password=$(openssl passwd -6 print) \
-    print \
-  && sed -i '/%sudo[[:space:]]/ s/ALL[[:space:]]*$/NOPASSWD:ALL/' /etc/sudoers
+    print 
 
 RUN rm -f /etc/nginx/sites-enabled/default
 
