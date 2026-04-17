@@ -17,7 +17,7 @@ RUN dpkg --add-architecture i386 \
     && apt-get install -y --no-install-recommends \
         cups \
         cups-filters \
-        cups-pdf \  
+        cups-pdf \
         avahi-daemon \
         libnss-mdns \
         dbus \
