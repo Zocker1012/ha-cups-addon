@@ -68,6 +68,7 @@ wait_for_avahi() {
 # ---------------------------------------------------------------------------
 # CUPS Konfiguration persistent machen
 # ---------------------------------------------------------------------------
+mkdir -p /share/cups-pdf
 prepare_cups_config() {
     bashio::log.info "Bereite persistente CUPS-Konfiguration vor"
 
