@@ -53,5 +53,7 @@ privileged:
   - SYS_NICE
   - DAC_READ_SEARCH
 
-options: {}
-schema: {}
+options:
+  printer_device: ""
+schema:
+  printer_device: str
