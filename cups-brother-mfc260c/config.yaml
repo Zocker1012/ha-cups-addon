@@ -20,11 +20,6 @@ apparmor: false
 # Netzwerk
 host_network: true
 
-ports:
-  631/tcp: 631
-ports_description:
-  631/tcp: "CUPS web interface and printing"
-
 # Ingress (HA UI Zugriff)
 ingress: true
 ingress_port: 8080
