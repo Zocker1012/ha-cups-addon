@@ -28,7 +28,6 @@ ports_description:
 # Ingress (HA UI Zugriff)
 ingress: true
 ingress_port: 8080
-ingress_stream: true
 
 panel_icon: mdi:printer
 panel_title: CUPS
