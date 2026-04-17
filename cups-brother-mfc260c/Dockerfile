@@ -15,32 +15,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN dpkg --add-architecture i386 \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-        sudo \
-        locales \
         cups \
         cups-filters \
-        cups-pdf \
         avahi-daemon \
         libnss-mdns \
         dbus \
-        udev \
-        colord \
         ghostscript \
         perl \
-        gnupg2 \
-        ca-certificates \
-        wget \
-        curl \
-        nano \
-        procps \
-        file \
-        a2ps \
         nginx \
-        printer-driver-all \
-        printer-driver-gutenprint \
-        openprinting-ppds \
-        printer-driver-brlaser \
-        printer-driver-escpr \
         # 32-Bit Laufzeit-Bibliotheken für Brother i386-Treiber
         libc6:i386 \
         libstdc++6:i386 \
