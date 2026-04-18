@@ -2,6 +2,6 @@
 
 ulimit -n 524288
 
-bashio::log.info "Starte D-Bus Daemon"
+bashio::log.info "D-Bus-Daemon wird gestartet"
 
 exec dbus-daemon --system --nofork
