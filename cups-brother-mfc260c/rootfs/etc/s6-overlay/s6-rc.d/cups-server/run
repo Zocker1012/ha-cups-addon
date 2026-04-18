@@ -85,7 +85,7 @@ prepare_cups_config() {
 set_usb_quirks
 fix_usb_permissions
 wait_for_avahi
-mkdir -p /share/cups-pdf 
+mkdir -p /share/cups-pdf
 prepare_cups_config
 
 bashio::log.info "Starte CUPS Server"
