@@ -2,7 +2,7 @@
 
 ulimit -n 524288
 
-bashio::log.info "Starte Avahi Daemon"
+bashio::log.info "Warte auf D-Bus-Socket..."
 
 until [ -e /run/dbus/system_bus_socket ]; do
     sleep 1
