@@ -24,6 +24,9 @@ RUN dpkg --add-architecture i386 \
         ghostscript \
         perl \
         nginx \
+        # aktiv genutz vom Brother Filter!
+        file \
+        a2ps \
         # 32-Bit Laufzeit-Bibliotheken für Brother i386-Treiber
         libc6:i386 \
         libstdc++6:i386 \
