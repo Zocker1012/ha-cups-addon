@@ -2,12 +2,12 @@
 
 ulimit -n 524288
 
-bashio::log.info "Warte auf CUPS Socket..."
+bashio::log.info "Starte nginx Proxy für Ingress"
 
 until [ -e /run/cups/cups.sock ]; do
     sleep 1
 done
 
-bashio::log.info "Starte nginx Proxy für Ingress"
+bashio::log.info "nginx-Ingress-Proxy wird gestartet"
 
 exec nginx -g "daemon off;"
