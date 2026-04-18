@@ -23,7 +23,6 @@ RUN dpkg --add-architecture i386 \
         dbus \
         ghostscript \
         perl \
-        nginx \
         nginx-extras \
         # 32-Bit Laufzeit-Bibliotheken für Brother i386-Treiber
         libc6:i386 \
