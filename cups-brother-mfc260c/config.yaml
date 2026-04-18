@@ -47,8 +47,3 @@ privileged:
   - NET_ADMIN
   - SYS_NICE
   - DAC_READ_SEARCH
-
-options:
-  printer_device: ""
-schema:
-  printer_device: str
