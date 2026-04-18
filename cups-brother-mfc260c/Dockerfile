@@ -47,18 +47,7 @@ RUN apt-get update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN if [ -d /usr/lib/cups/filter ]; then \
-         find /usr/lib/cups/filter -maxdepth 1 -type f \
-           \( -name 'br*' -o -name '*mfc260c*' \) \
-           -exec chmod 0755 {} \; ; \
-       fi \
-    && if [ -d /opt/brother ]; then \
-         find /opt/brother -type f \
-           \( -name '*.sh' -o -name '*wrapper*' -o -name '*filter*' \
-              -o -name 'brprintconflsr3' -o -name 'rawtobr3' \) \
-           -exec chmod 0755 {} \; ; \
-       fi \
-    && mkdir -p /var/spool/lpd/mfc260c \
+RUN mkdir -p /var/spool/lpd/mfc260c \
     && chmod 1777 /var/spool/lpd /var/spool/lpd/mfc260c \
     && rm -rf /tmp/drivers
 
