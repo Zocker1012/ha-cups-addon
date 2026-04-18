@@ -37,12 +37,14 @@ RUN dpkg --add-architecture i386 \
 # Brother MFC-260C Treiber aus dem Repo installieren
 COPY drivers/ /tmp/drivers/
 
-RUN dpkg -i /tmp/drivers/mfc260clpr-1.0.1-1.i386.deb \
-        /tmp/drivers/mfc260ccupswrapper-1.0.1-1.i386.deb || true \
-    && apt-get update \
-    && apt-get -f install -y --no-install-recommends \
-    # CUPS-Filter und Wrapper ausführbar machen
-    && if [ -d /usr/lib/cups/filter ]; then \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        /tmp/drivers/mfc260clpr-1.0.1-1.i386.deb \
+        /tmp/drivers/mfc260ccupswrapper-1.0.1-1.i386.deb \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN if [ -d /usr/lib/cups/filter ]; then \
          find /usr/lib/cups/filter -maxdepth 1 -type f \
            \( -name 'br*' -o -name '*mfc260c*' \) \
            -exec chmod 0755 {} \; ; \
@@ -53,11 +55,8 @@ RUN dpkg -i /tmp/drivers/mfc260clpr-1.0.1-1.i386.deb \
               -o -name 'brprintconflsr3' -o -name 'rawtobr3' \) \
            -exec chmod 0755 {} \; ; \
        fi \
-    # Spool-Verzeichnisse anlegen
     && mkdir -p /var/spool/lpd/mfc260c \
     && chmod 1777 /var/spool/lpd /var/spool/lpd/mfc260c \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/drivers
 
 # rootfs ins Image-Dateisystem übernehmen
