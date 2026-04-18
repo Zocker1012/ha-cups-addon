@@ -35,7 +35,6 @@ devices:
 
 # Dateisystem Zugriff
 map:
-  - addon_config:rw
   - config:rw
   - share:rw
   - ssl:rw
