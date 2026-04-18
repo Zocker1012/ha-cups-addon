@@ -27,10 +27,8 @@ fix_usb_permissions() {
     local device
     device=$(bashio::config 'printer_device')
 
-    if [ -z "${device}" ]; then
-        bashio::log.warning "Kein USB-Drucker-Device konfiguriert!"
-        bashio::log.warning "Bitte unter Addon-Konfiguration 'printer_device' setzen."
-        bashio::log.warning "Beispiel: /dev/bus/usb/001/011"
+if [ -z "${device}" ] || [ "${device}" = "null" ]; then
+        bashio::log.info "Kein USB-Device konfiguriert, CUPS erkennt Drucker automatisch"
         return
     fi
 
