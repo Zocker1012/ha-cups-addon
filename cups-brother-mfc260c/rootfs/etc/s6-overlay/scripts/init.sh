@@ -102,6 +102,34 @@ else
 fi
 
 # ------------------------------------------------------------------------------
+# Scanner: Einstellungen für die Scan-Taste, Ordner anlegen
+# ------------------------------------------------------------------------------
+scanner=false
+if bashio::config.true 'scanner'; then
+    if [[ -e /usr/share/cups-addon-scan-driver ]]; then
+        scanner=true
+    else
+        bashio::log.warning "Scanner: Brother-Scannertreiber (brscan2) fehlt im Image – Scanner deaktiviert. Siehe Dokumentation."
+    fi
+fi
+printf '%s' "${scanner}" > "${RUN_DIR}/scanner_enabled"
+
+if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_button'; then
+    scan_folder=$(bashio::config 'scan_folder')
+    mkdir -p "${scan_folder}"
+    {
+        printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
+        printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_format')"
+        printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_resolution')"
+        printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_mode')"
+    } > "${RUN_DIR}/scan.env"
+fi
+
+if bashio::config.true 'print_folder'; then
+    mkdir -p "$(bashio::config 'print_folder_path')"
+fi
+
+# ------------------------------------------------------------------------------
 # nginx-Konfiguration für Ingress erzeugen
 # ------------------------------------------------------------------------------
 ingress_port=$(bashio::addon.ingress_port)
@@ -112,6 +140,7 @@ bashio::var.json \
     port "^${ingress_port}" \
     entry "${ingress_entry}" \
     auth "${auth}" \
+    scanner "^${scanner}" \
     | tempio \
         -template /etc/nginx/templates/ingress.gtpl \
         -out /etc/nginx/conf.d/ingress.conf

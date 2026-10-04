@@ -1,8 +1,9 @@
 # CUPS Addon (Brother MFC-260C)
 
-Druckserver für den per USB angeschlossenen **Brother MFC-260C**. Der Drucker
-wird im Netzwerk per **AirPrint / IPP Everywhere** angeboten – iPhone, iPad,
-Android, macOS, Windows und Linux drucken ohne eigenen Treiber.
+Druck- und Scanserver für den per USB angeschlossenen **Brother MFC-260C**.
+Der Drucker wird im Netzwerk per **AirPrint / IPP Everywhere** angeboten –
+iPhone, iPad, Android, macOS, Windows und Linux drucken ohne eigenen Treiber.
+Der Scanner steht per **AirScan / eSCL** bereit.
 
 ## Modi
 
@@ -27,8 +28,10 @@ Die Drucker-Einrichtung wird je Modus getrennt gespeichert.
 Mit `auto_setup: true` (Standard) legt das Add-on den Drucker automatisch als
 **MFC260C** an – beim Start und auch im laufenden Betrieb, sobald der Drucker
 per USB verbunden und eingeschaltet wird. Ein Neustart des Add-ons ist dafür
-nicht nötig. Die Auto-Einrichtung greift nur, solange noch kein Drucker
-angelegt ist.
+nicht nötig. Dazu prüft das Add-on alle 5 Sekunden den USB-Bus (nur ein paar
+Dateien lesen, keine Netzwerk- oder Druckerabfragen). Sobald ein Drucker
+eingerichtet ist, endet diese Überwachung bis zum nächsten Start des Add-ons.
+Wer den Drucker später löscht, startet das Add-on einmal neu.
 
 Manuell geht es in der Weboberfläche über **Add Printer**: Gerät „Brother
 MFC-260C“ (USB) und Treiber „Brother MFC-260C, CUPS v1.1“ wählen.
@@ -42,11 +45,72 @@ Weboberfläche öffnen, **Administration → Add Printer**, den Brother
 MFC-260C (USB) und das Modell „Brother MFC-260C CUPS v1.1“ wählen und
 „Share This Printer“ aktivieren.
 
+## Scanner
+
+Mit `scanner: true` (Standard) stellt das Add-on den Scanner über
+[AirSane](https://github.com/SimulPiscator/AirSane) per **AirScan/eSCL** bereit –
+dem modernen, treiberlosen Scan-Standard (Gegenstück zu AirPrint/IPP Everywhere):
+
+- **macOS**: Digitale Bilder oder Vorschau → „Ablage → Von Scanner importieren“
+- **Windows 10/11**: Einstellungen → Drucker & Scanner → Gerät hinzufügen
+- **Android**: App „Mopria Scan“
+- **Linux**: über `sane-airscan` (z. B. Simple Scan)
+- **iPhone/iPad**: iOS hat keine eingebaute Funktion dafür – eine eSCL-fähige
+  App ist nötig
+- **Browser**: in der HA-Seitenleiste unter „Scanner“ oder direkt
+  `http://<IP-von-Home-Assistant>:8090/`
+
+Der Scannertreiber (`brscan2`) und das Scan-Key-Tool werden beim Bauen des
+Add-ons von Brother geladen und per Prüfsumme kontrolliert. Ist Brother beim
+Bauen nicht erreichbar, startet das Add-on ohne Scanner und meldet das im Log.
+Alternativ lassen sich die Dateien `brscan2-0.2.5-1.x86_64.rpm` und
+`brscan-skey-0.2.4-1.x86_64.rpm` (oder `-0.3.5-0`) von der Brother-Supportseite
+des MFC-260C in den Ordner `drivers/` des Repositorys legen.
+
+### Scan-Taste am Gerät (experimentell)
+
+Mit `scan_button: true` scannt die Taste **Scan → Datei** am MFC-260C direkt in
+den `scan_folder` (Standard `/share/scans`, im Netzwerk über die Samba-Freigabe
+„share“ erreichbar). Format, Auflösung und Farbe stellen `scan_format`,
+`scan_resolution` und `scan_mode` ein. Nach jedem Scan sendet das Add-on das
+Ereignis `cups_addon_scan` an Home Assistant (`status`, `file`) – z. B. für eine
+Benachrichtigung:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: cups_addon_scan
+    event_data:
+      status: ok
+actions:
+  - action: notify.notify
+    data:
+      message: "Neuer Scan: {{ trigger.event.data.file }}"
+```
+
+Die Scan-Taste nutzt Brothers Scan-Key-Tool. Ob es mit dem MFC-260C über USB
+zuverlässig funktioniert, ist noch nicht am echten Gerät getestet.
+
+## Druckordner
+
+Mit `print_folder: true` wird alles gedruckt, was im `print_folder_path`
+(Standard `/share/print`) landet – z. B. per Samba vom PC oder aus einer
+Home-Assistant-Automation. Unterstützt werden PDF, PostScript, JPEG und PNG.
+Gedruckte Dateien wandern nach `gedruckt/`, nicht unterstützte oder
+fehlgeschlagene nach `fehler/`.
+
+## Druckerstatus in Home Assistant
+
+Die eingebaute **IPP-Integration** von Home Assistant erkennt den Drucker
+automatisch (Einstellungen → Geräte & Dienste) und liefert den Status als
+Entität. Das funktioniert mit beiden Modi. Füllstände der Tinte meldet der
+Brother-Linux-Treiber nicht.
+
 ## Weboberfläche und Anmeldung
 
-- **Seitenleiste von Home Assistant** (Ingress): Hier bist du in beiden Modi
-  automatisch als Admin angemeldet – Home Assistant hat dich ja schon
-  angemeldet.
+- **Seitenleiste von Home Assistant** (Ingress): Startseite mit „Drucker“ und
+  „Scanner“. Hier bist du in beiden Modi automatisch als Admin angemeldet –
+  Home Assistant hat dich ja schon angemeldet.
 - **Direkt**: `http://<IP-von-Home-Assistant>:631/`. Für Admin-Seiten
   wechselt die Oberfläche auf HTTPS mit einem selbst signierten Zertifikat –
   die Browser-Warnung ist normal.
@@ -72,6 +136,14 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 | `admin_username` | Benutzername bei `auth: manual` (nur Modus `cups`), Standard `print` |
 | `admin_password` | Passwort bei `auth: manual` |
 | `auto_setup` | Drucker im Modus `printer_app` automatisch anlegen, auch beim Anstecken im laufenden Betrieb |
+| `scanner` | Scanner per AirScan/eSCL bereitstellen |
+| `scan_button` | Scan-Taste am Gerät nutzen (experimentell) |
+| `scan_folder` | Zielordner für Scans per Taste (unter `/share` oder `/media`) |
+| `scan_format` | `pdf`, `jpeg` oder `png` |
+| `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
+| `scan_mode` | `color` oder `gray` |
+| `print_folder` | Druckordner aktivieren |
+| `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
 | `log_level` | `debug`, `info`, `warning`, `error`. `debug` schreibt zusätzlich das Debug-Log des Brother-Treibers ins Add-on-Log. |
 
 ## Fehlersuche
@@ -82,6 +154,10 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   `rootfs/usr/share/cups/usb/brother-mfc260c.usb-quirks` angepasst werden.
 - **Druck kommt nicht oder fehlerhaft:** `log_level: debug` setzen, Add-on neu
   starten, erneut drucken und das Log ansehen.
+- **Scanner fehlt:** Im Log nach „Scanner:“ suchen. Fehlt der Treiber, siehe
+  Abschnitt Scanner. Mit `log_level: debug` schreibt AirSane Details ins Log.
+- **Add-on hängt:** Im Add-on-Tab den **Watchdog** einschalten – der Supervisor
+  startet das Add-on dann neu, wenn Port 631 nicht mehr antwortet.
 - **Im Modus `printer_app` klappt es nicht:** `mode: cups` setzen, das Add-on
   neu starten und den Drucker dort einrichten.
 

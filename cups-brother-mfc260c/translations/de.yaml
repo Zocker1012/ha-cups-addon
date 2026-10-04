@@ -24,7 +24,39 @@ configuration:
     description: >-
       Legt den Brother MFC-260C automatisch an, sobald er per USB verbunden
       und eingeschaltet ist – auch im laufenden Betrieb (nur Modus
-      "printer_app").
+      "printer_app"). Ist ein Drucker eingerichtet, endet die USB-Überwachung
+      bis zum nächsten Start des Add-ons.
+  scanner:
+    name: Scanner
+    description: >-
+      Scanner per AirScan/eSCL bereitstellen (macOS, Windows, Android/Mopria,
+      Linux) und in der HA-Seitenleiste scannen.
+  scan_button:
+    name: Scan-Taste am Gerät (experimentell)
+    description: >-
+      Taste "Scan" am MFC-260C scannt direkt in den Scan-Ordner. Benötigt das
+      Brother Scan-Key-Tool, siehe Dokumentation.
+  scan_folder:
+    name: Scan-Ordner
+    description: >-
+      Zielordner für Scans per Taste (unter /share oder /media).
+  scan_format:
+    name: Scan-Format
+    description: Dateiformat für Scans per Taste.
+  scan_resolution:
+    name: Scan-Auflösung
+    description: Auflösung in dpi für Scans per Taste.
+  scan_mode:
+    name: Scan-Farbmodus
+    description: Farbe oder Graustufen für Scans per Taste.
+  print_folder:
+    name: Druckordner
+    description: >-
+      Dateien (PDF, PostScript, JPEG, PNG), die im Druckordner landen, werden
+      automatisch gedruckt und danach nach "gedruckt/" verschoben.
+  print_folder_path:
+    name: Pfad des Druckordners
+    description: Ordner unter /share oder /media, z. B. /share/print.
   log_level:
     name: Log-Level
     description: >-

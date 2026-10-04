@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.2.0
+
+### Neu
+
+- Scanner: AirSane stellt den Scanner des MFC-260C per AirScan/eSCL bereit
+  (macOS, Windows, Android/Mopria, Linux) und im Browser bzw. in der
+  HA-Seitenleiste. Brother-Scannertreiber `brscan2` wird beim Bauen von Brother
+  geladen und per Prüfsumme kontrolliert.
+- Scan-Taste am Gerät (experimentell): scannt in einen einstellbaren Ordner
+  und meldet das Ereignis `cups_addon_scan` an Home Assistant.
+- Druckordner: Dateien in `/share/print` (einstellbar) werden automatisch
+  gedruckt.
+- Ingress-Startseite mit „Drucker“ und „Scanner“.
+- Watchdog: Der Supervisor kann das Add-on neu starten, wenn Port 631 nicht
+  mehr antwortet (Schalter im Add-on-Tab).
+
+### Geändert
+
+- USB-Überwachung der Auto-Einrichtung endet, sobald ein Drucker eingerichtet
+  ist.
+- Zugriff auf `share` und `media` für Druck- und Scanordner.
+
 ## 2.1.0
 
 ### Neu

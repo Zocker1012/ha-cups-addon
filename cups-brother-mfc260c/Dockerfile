@@ -1,4 +1,90 @@
 ARG BUILD_FROM
+
+# ==============================================================================
+# AirSane: stellt den Scanner treiberlos per AirScan/eSCL bereit
+# ==============================================================================
+FROM ${BUILD_FROM} AS airsane
+
+ARG AIRSANE_VERSION=v0.4.9
+ARG AIRSANE_COMMIT=291513fe0fc8327ebc086447caeb9f0672865faf
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        cmake \
+        git \
+        libavahi-client-dev \
+        libjpeg-dev \
+        libpng-dev \
+        libsane-dev \
+        libusb-1.0-0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 --branch "${AIRSANE_VERSION}" \
+        https://github.com/SimulPiscator/AirSane /src/airsane \
+    && test "$(git -C /src/airsane rev-parse HEAD)" = "${AIRSANE_COMMIT}" \
+    && cmake -S /src/airsane -B /src/build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build /src/build -j"$(nproc)" \
+    && install -Dm755 /src/build/airsaned /out/usr/sbin/airsaned \
+    && install -Dm644 /src/airsane/etc/Gnome-scanner.png /out/etc/airsane/Gnome-scanner.png \
+    && install -Dm644 /src/airsane/etc/access.conf /out/etc/airsane/access.conf \
+    && install -Dm644 /src/airsane/etc/ignore.conf /out/etc/airsane/ignore.conf
+
+# ==============================================================================
+# Brother-Scannertreiber (brscan2) und Scan-Tasten-Tool (brscan-skey)
+# Offizielle Pakete von Brother, per Prüfsumme kontrolliert. Liegen passende
+# Dateien in drivers/, werden diese verwendet. Fehlt ein Paket, wird ohne die
+# jeweilige Funktion weitergebaut – das Add-on meldet das beim Start.
+# ==============================================================================
+FROM ${BUILD_FROM} AS brother-scan
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# hadolint ignore=DL3008
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates coreutils cpio curl rpm2cpio \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY drivers/ /drivers/
+
+WORKDIR /tmp/pkg
+
+# fetch NAME URL HASH-PROGRAMM HASH ZIEL: lokal aus drivers/ oder Download, Hash prüfen
+# hadolint ignore=SC2016
+RUN fetch() { \
+        local name="$1" url="$2" hashprog="$3" hash="$4" target="$5"; \
+        if [ -f "/drivers/${name}" ]; then cp "/drivers/${name}" "${target}"; \
+        elif ! curl -fsSL --retry 3 -o "${target}" "${url}"; then \
+            echo "WARNUNG: ${name} nicht herunterladbar"; return 1; fi; \
+        if ! echo "${hash}  ${target}" | "${hashprog}" -c -; then \
+            echo "WARNUNG: Prüfsumme von ${name} falsch"; rm -f "${target}"; return 1; fi; \
+    }; \
+    mkdir -p /out; \
+    if fetch brscan2-0.2.5-1.x86_64.rpm \
+            https://download.brother.com/welcome/dlf006640/brscan2-0.2.5-1.x86_64.rpm \
+            sha256sum ab02c4e2292e9847a0338a225973735ccaec49c3d443f584004c8f91f5d6a8c9 \
+            brscan2.rpm; then \
+        rpm2cpio /tmp/pkg/brscan2.rpm | cpio -idm --quiet -D /out; \
+    fi; \
+    if fetch brscan-skey-0.2.4-1.x86_64.rpm \
+            https://download.brother.com/welcome/dlf006650/brscan-skey-0.2.4-1.x86_64.rpm \
+            sha256sum 2e034b37e282e44a6f94315d932eb8f34693007e4abd10ca10fb4ec468c9bb3d \
+            skey.rpm \
+        || fetch brscan-skey-0.3.5-0.x86_64.rpm \
+            https://download.brother.com/welcome/dlf006650/brscan-skey-0.3.5-0.x86_64.rpm \
+            b2sum 22498692f345da364d116b026314a7a9d29916102b571604435918fda80dfc624754bd1bd8e50c2d246cb5649ffc7850a3579aa2063cb5c44948d3f505c521df \
+            skey.rpm; then \
+        rpm2cpio /tmp/pkg/skey.rpm | cpio -idm --quiet -D /out; \
+    fi; \
+    find /out -maxdepth 4 | sort
+
+# ==============================================================================
+# Add-on
+# ==============================================================================
 FROM ${BUILD_FROM}
 
 ARG BUILD_ARCH=amd64
@@ -36,6 +122,16 @@ RUN dpkg --add-architecture i386 \
         psutils \
         # Die Brother-Binaries (i386) brauchen nur libc.so.6
         libc6:i386 \
+        # Scanner: SANE, AirSane-Laufzeit, Brother-Scannertreiber (libusb 0.1)
+        libavahi-client3 \
+        libjpeg8 \
+        libpng16-16t64 \
+        libsane1 \
+        libusb-0.1-4 \
+        libusb-1.0-0 \
+        sane-utils \
+        # Druckordner
+        inotify-tools \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -81,6 +177,26 @@ RUN set -e; \
 RUN rm -f /etc/nginx/sites-enabled/default \
     # PAM-Modul für die Anmeldung (siehe rootfs/etc/pam.d)
     && test -f /usr/lib/x86_64-linux-gnu/security/pam_exec.so
+
+# Scanner: AirSane und Brother-Treiber übernehmen und einbinden
+COPY --from=airsane /out/ /
+COPY --from=brother-scan /out/ /
+
+RUN set -e; \
+    if [ -e /usr/lib64/sane/libsane-brother2.so.1 ]; then \
+        echo /usr/lib64 > /etc/ld.so.conf.d/brother-scan.conf; \
+        ldconfig; \
+        sane_dir=/usr/lib/x86_64-linux-gnu/sane; \
+        ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so.1"; \
+        ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so"; \
+        grep -q '^0x01d6.*MFC-260C' /usr/local/Brother/sane/models2/ext1.ini; \
+        touch /usr/share/cups-addon-scan-driver; \
+    fi; \
+    # Nur den Brother-Treiber laden: schneller und kein Herumprobieren an anderen USB-Geräten
+    echo brother2 > /etc/sane.d/dll.conf; \
+    if ls /opt/brother/scanner/brscan-skey/*.cfg > /dev/null 2>&1; then \
+        touch /usr/share/cups-addon-scan-button; \
+    fi
 
 COPY rootfs /
 

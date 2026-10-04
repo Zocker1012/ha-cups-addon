@@ -1,0 +1,50 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Scan-Taste am Gerät (Brother Scan-Key-Tool, experimentell)
+# Taste "Scan" am MFC-260C -> Scan landet im eingestellten Ordner
+# ==============================================================================
+
+readonly SKEY_DIR="/opt/brother/scanner/brscan-skey"
+
+if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_button'; then
+    s6-svc -O .
+    exit 0
+fi
+
+if [[ ! -e /usr/share/cups-addon-scan-button ]]; then
+    bashio::log.warning "Scan-Taste: Brother Scan-Key-Tool (brscan-skey) fehlt im Image – siehe Dokumentation"
+    s6-svc -O .
+    exit 0
+fi
+
+# Alle Ziele der Taste (Datei, Bild, OCR, E-Mail) auf den Scan-Ordner lenken
+for cfg in "${SKEY_DIR}"/*.cfg; do
+    for target in FILE IMAGE OCR EMAIL; do
+        sed -i "s|^${target}=.*|${target}=\"bash /usr/local/lib/cups-addon/scan-button.sh ${target,,}\"|" "${cfg}"
+    done
+done
+
+skey=$(command -v brscan-skey || true)
+if [[ -z "${skey}" ]]; then
+    skey=$(find "${SKEY_DIR}" -maxdepth 1 -type f -name 'brscan-skey*' -perm -u+x ! -name '*.sh' | head -n1)
+fi
+if [[ -z "${skey}" ]]; then
+    bashio::log.error "Scan-Taste: brscan-skey nicht gefunden"
+    s6-svc -O .
+    exit 0
+fi
+
+bashio::log.info "Scan-Taste wird überwacht (Ziel: $(bashio::config 'scan_folder'))"
+"${skey}" > /dev/null 2>&1 || true
+sleep 3
+"${skey}" -l 2>/dev/null | while IFS= read -r line; do
+    bashio::log.info "Scan-Taste: ${line}"
+done
+
+# brscan-skey läuft als Hintergrundprozess – solange er lebt, Dienst halten
+while pgrep -f 'brscan-skey' > /dev/null; do
+    sleep 30
+done
+bashio::log.warning "Scan-Taste: brscan-skey wurde beendet – starte neu"
+exit 1

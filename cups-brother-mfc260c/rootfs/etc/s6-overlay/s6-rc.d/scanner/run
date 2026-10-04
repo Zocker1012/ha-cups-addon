@@ -1,0 +1,36 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# AirSane: Scanner per AirScan/eSCL im Netzwerk (Port 8090) und in der
+# HA-Seitenleiste bereitstellen
+# ==============================================================================
+
+if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]]; then
+    s6-svc -O .
+    exit 0
+fi
+
+# Auf Avahi warten, damit der Scanner sofort per DNS-SD angekündigt wird
+for _ in $(seq 1 30); do
+    [[ -e /run/avahi-daemon/socket ]] && break
+    sleep 1
+done
+
+debug=false
+if [[ "$(bashio::config 'log_level')" == "debug" ]]; then
+    debug=true
+fi
+
+bashio::log.info "Scanner (AirSane) wird gestartet (Port 8090)"
+exec airsaned \
+    --listen-port=8090 \
+    --hotplug=true \
+    --mdns-announce=true \
+    --web-interface=true \
+    --reset-option=false \
+    --disclose-version=false \
+    --local-scanners-only=true \
+    --options-file=/etc/airsane/options.conf \
+    --access-file=/etc/airsane/access.conf \
+    --ignore-list=/etc/airsane/ignore.conf \
+    --debug="${debug}"

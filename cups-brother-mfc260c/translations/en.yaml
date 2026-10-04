@@ -23,7 +23,38 @@ configuration:
     description: >-
       Automatically adds the Brother MFC-260C as soon as it is connected via
       USB and switched on, also while the add-on is running ("printer_app"
-      mode only).
+      mode only). Once a printer is set up, USB monitoring stops until the
+      next add-on start.
+  scanner:
+    name: Scanner
+    description: >-
+      Provide the scanner via AirScan/eSCL (macOS, Windows, Android/Mopria,
+      Linux) and scan from the Home Assistant sidebar.
+  scan_button:
+    name: Scan button on the device (experimental)
+    description: >-
+      The "Scan" button on the MFC-260C scans straight into the scan folder.
+      Requires the Brother scan-key-tool, see documentation.
+  scan_folder:
+    name: Scan folder
+    description: Target folder for button scans (below /share or /media).
+  scan_format:
+    name: Scan format
+    description: File format for button scans.
+  scan_resolution:
+    name: Scan resolution
+    description: Resolution in dpi for button scans.
+  scan_mode:
+    name: Scan color mode
+    description: Color or grayscale for button scans.
+  print_folder:
+    name: Print folder
+    description: >-
+      Files (PDF, PostScript, JPEG, PNG) placed in the print folder are
+      printed automatically and then moved to "gedruckt/".
+  print_folder_path:
+    name: Print folder path
+    description: Folder below /share or /media, e.g. /share/print.
   log_level:
     name: Log level
     description: >-

@@ -5,7 +5,8 @@
 #
 # PAPPL (und damit CUPS 3) erkennt neu angesteckte USB-Drucker nur beim Start.
 # Daher beobachtet dieser Dienst den USB-Bus (sysfs) und richtet den Drucker
-# ein, sobald ein Brother-Gerät auftaucht und noch kein Drucker existiert.
+# ein, sobald ein Brother-Gerät auftaucht. Ist ein Drucker eingerichtet, beendet
+# sich der Dienst bis zum nächsten Start des Add-ons.
 # ==============================================================================
 
 # shellcheck source=printer-app-env.sh
@@ -57,7 +58,6 @@ setup_printer() {
 
     printers=$("${APP}" printers 2>/dev/null) || return 1
     if [[ -n "${printers}" ]]; then
-        bashio::log.info "Auto-Einrichtung: Drucker bereits vorhanden – nichts zu tun"
         return 0
     fi
 
@@ -98,13 +98,24 @@ setup_printer() {
     return 1
 }
 
-wait_for_server || exit 0
+# Fertig: Dienst nicht von s6 neu starten lassen
+finish() {
+    s6-svc -O . 2> /dev/null || true
+    exit 0
+}
+
+wait_for_server || finish
+
+if [[ -n "$("${APP}" printers 2>/dev/null)" ]]; then
+    bashio::log.info "Auto-Einrichtung: Drucker bereits eingerichtet – keine USB-Überwachung nötig"
+    finish
+fi
 
 # Ohne Zugriff auf den USB-Bus nur einmal beim Start einrichten
 if [[ ! -d "${USB_SYSFS}" ]]; then
     bashio::log.warning "Auto-Einrichtung: USB-Bus nicht lesbar – neue Drucker werden nur beim Start erkannt"
     setup_printer || true
-    exec sleep infinity
+    finish
 fi
 
 bashio::log.info "Auto-Einrichtung: Überwache USB auf Brother-Drucker"
@@ -126,7 +137,8 @@ while true; do
 
     if [[ -n "${current}" && "${tries}" -lt "${MAX_TRIES}" ]]; then
         if setup_printer; then
-            tries="${MAX_TRIES}"
+            bashio::log.info "Auto-Einrichtung: USB-Überwachung beendet"
+            finish
         else
             tries=$((tries + 1))
         fi

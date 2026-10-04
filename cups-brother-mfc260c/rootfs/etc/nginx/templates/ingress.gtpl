@@ -1,9 +1,12 @@
-# Ingress-Proxy: Home Assistant -> Web-Oberfläche auf Port 631
-# (CUPS im Modus "cups", Legacy Printer Application im Modus "printer_app")
+# Ingress-Proxy: Home Assistant -> Weboberflächen des Add-ons
 #
-# Beide Oberflächen verwenden absolute Pfade ("/admin", "/style.css" ...).
-# Unter Ingress liegt die Oberfläche aber unter {{ .entry }}/, daher werden
-# Links, Formulare und Weiterleitungen umgeschrieben.
+#   /          Startseite (Drucker / Scanner) bzw. direkt zum Drucker
+#   /printer/  CUPS (Modus "cups") oder Legacy Printer Application auf Port 631
+#   /scan/     AirSane (Scanner) auf Port 8090
+#
+# Die Oberflächen verwenden absolute Pfade ("/admin", "/style.css" ...).
+# Unter Ingress liegen sie aber unter {{ .entry }}/..., daher werden Links,
+# Formulare und Weiterleitungen umgeschrieben.
 
 server {
     listen {{ .port }} default_server;
@@ -14,9 +17,23 @@ server {
 
     client_max_body_size 256M;
     proxy_read_timeout   300s;
+    absolute_redirect    off;
 
-    location / {
-        proxy_pass         http://127.0.0.1:631;
+    location = / {
+{{- if .scanner }}
+        root      /usr/share/cups-addon/www;
+        try_files /index.html =404;
+{{- else }}
+        return    302 {{ .entry }}/printer/;
+{{- end }}
+    }
+
+    location = /printer {
+        return 302 {{ .entry }}/printer/;
+    }
+
+    location /printer/ {
+        proxy_pass         http://127.0.0.1:631/;
         proxy_http_version 1.1;
         proxy_set_header   Host            localhost:631;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -39,20 +56,52 @@ server {
         # bei Home Assistant über reines HTTP verworfen
         proxy_cookie_flags ~ nosecure;
 
-        proxy_redirect     http://localhost:631/  {{ .entry }}/;
-        proxy_redirect     https://localhost:631/ {{ .entry }}/;
-        proxy_redirect     /                      {{ .entry }}/;
+        proxy_redirect     http://localhost:631/  {{ .entry }}/printer/;
+        proxy_redirect     https://localhost:631/ {{ .entry }}/printer/;
+        proxy_redirect     /                      {{ .entry }}/printer/;
 
         sub_filter_types   text/css text/javascript application/javascript;
         sub_filter_once    off;
-        sub_filter         'http://localhost:631/'  '{{ .entry }}/';
-        sub_filter         'https://localhost:631/' '{{ .entry }}/';
-        sub_filter         'href="/'   'href="{{ .entry }}/';
-        sub_filter         'src="/'    'src="{{ .entry }}/';
-        sub_filter         'action="/' 'action="{{ .entry }}/';
-        sub_filter         'url(/'     'url({{ .entry }}/';
-        sub_filter         'URL=/'     'URL={{ .entry }}/';
-        sub_filter         "href='/"   "href='{{ .entry }}/";
-        sub_filter         "action='/" "action='{{ .entry }}/";
+        sub_filter         'http://localhost:631/'  '{{ .entry }}/printer/';
+        sub_filter         'https://localhost:631/' '{{ .entry }}/printer/';
+        sub_filter         'href="/'   'href="{{ .entry }}/printer/';
+        sub_filter         'src="/'    'src="{{ .entry }}/printer/';
+        sub_filter         'action="/' 'action="{{ .entry }}/printer/';
+        sub_filter         'url(/'     'url({{ .entry }}/printer/';
+        sub_filter         'URL=/'     'URL={{ .entry }}/printer/';
+        sub_filter         "href='/"   "href='{{ .entry }}/printer/";
+        sub_filter         "action='/" "action='{{ .entry }}/printer/";
     }
+{{- if .scanner }}
+
+    location = /scan {
+        return 302 {{ .entry }}/scan/;
+    }
+
+    location /scan/ {
+        proxy_pass         http://127.0.0.1:8090/;
+        proxy_http_version 1.1;
+        proxy_set_header   Host            localhost:8090;
+        proxy_set_header   Accept-Encoding "";
+        proxy_hide_header  X-Frame-Options;
+        proxy_hide_header  Content-Security-Policy;
+        # Scans können dauern
+        proxy_read_timeout 600s;
+        proxy_buffering    off;
+
+        proxy_redirect     http://localhost:8090/ {{ .entry }}/scan/;
+        proxy_redirect     /                      {{ .entry }}/scan/;
+
+        sub_filter_types   text/css text/javascript application/javascript;
+        sub_filter_once    off;
+        sub_filter         'http://localhost:8090/' '{{ .entry }}/scan/';
+        sub_filter         'href="/'   'href="{{ .entry }}/scan/';
+        sub_filter         'src="/'    'src="{{ .entry }}/scan/';
+        sub_filter         'action="/' 'action="{{ .entry }}/scan/';
+        sub_filter         "href='/"   "href='{{ .entry }}/scan/";
+        sub_filter         "src='/"    "src='{{ .entry }}/scan/";
+        sub_filter         "action='/" "action='{{ .entry }}/scan/";
+        sub_filter         'url(/'     'url({{ .entry }}/scan/';
+    }
+{{- end }}
 }
