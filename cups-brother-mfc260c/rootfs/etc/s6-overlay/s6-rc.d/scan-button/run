@@ -1,11 +1,14 @@
 #!/command/with-contenv bashio
 # shellcheck shell=bash
 # ==============================================================================
-# Scan-Taste am Gerät (Brother Scan-Key-Tool, experimentell)
-# Taste "Scan" am MFC-260C -> Scan landet im eingestellten Ordner
+# Scan-Menü am Gerät (Brother Scan-Key-Tool, experimentell)
+# Menü "Scan" am MFC-260C -> Scan landet im eingestellten Ordner
 # ==============================================================================
 
 readonly SKEY_DIR="/opt/brother/scanner/brscan-skey"
+readonly SCRIPT="/usr/local/lib/cups-addon/scan-button.sh"
+# Hierhin speichern Brothers eigene Skripte (falls sie doch einmal laufen)
+readonly BROTHER_OUT="${HOME:-/root}/brscan"
 
 if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_button'; then
     s6-svc -O .
@@ -18,13 +21,54 @@ if [[ ! -e /usr/share/cups-addon-scan-button ]]; then
     exit 0
 fi
 
-# Alle Ziele der Taste (Datei, Bild, OCR, E-Mail) auf den Scan-Ordner lenken
-for cfg in "${SKEY_DIR}"/*.cfg; do
+# ------------------------------------------------------------------------------
+# Alle Ziele des Scan-Menüs (Datei, Bild, OCR, E-Mail) auf unser Skript lenken.
+# Version 0.3.x: brscan-skey.config, Version 0.2.x: brscan-skey-<version>.cfg
+# ------------------------------------------------------------------------------
+configured=false
+for cfg in "${SKEY_DIR}/brscan-skey.config" "${SKEY_DIR}"/brscan-skey-*.cfg; do
+    [[ -f "${cfg}" ]] || continue
     for target in FILE IMAGE OCR EMAIL; do
-        sed -i "s|^${target}=.*|${target}=\"bash /usr/local/lib/cups-addon/scan-button.sh ${target,,}\"|" "${cfg}"
+        if grep -qE "^[[:space:]]*${target}[[:space:]]*=" "${cfg}"; then
+            sed -i -E "s|^[[:space:]]*${target}[[:space:]]*=.*|${target}=\"bash ${SCRIPT} ${target,,}\"|" "${cfg}"
+        else
+            echo "${target}=\"bash ${SCRIPT} ${target,,}\"" >> "${cfg}"
+        fi
     done
+    bashio::log.info "Scan-Taste: ${cfg##*/} eingerichtet"
+    bashio::log.debug "$(grep -E '^(FILE|IMAGE|OCR|EMAIL)=' "${cfg}")"
+    configured=true
 done
 
+if [[ "${configured}" != "true" ]]; then
+    bashio::log.error "Scan-Taste: Konfiguration von brscan-skey nicht gefunden"
+    s6-svc -O .
+    exit 0
+fi
+
+# ------------------------------------------------------------------------------
+# Sicherheitsnetz: Landet doch ein Scan in Brothers Standardordner, in den
+# Scan-Ordner verschieben
+# ------------------------------------------------------------------------------
+scan_folder=$(bashio::config 'scan_folder')
+mkdir -p "${BROTHER_OUT}" "${scan_folder}"
+(
+    inotifywait -m -q -e close_write -e moved_to --format '%w%f' "${BROTHER_OUT}" 2>/dev/null \
+        | while IFS= read -r file; do
+            [[ -f "${file}" ]] || continue
+            mv -f "${file}" "${scan_folder}/" \
+                && echo "[scan-button] Brother-Standardscan verschoben: ${scan_folder}/${file##*/}" > /proc/1/fd/1
+        done
+) &
+
+bashio::log.info "Scan-Taste wird überwacht (Ziel: ${scan_folder})"
+
+# Version 0.3.x kann im Vordergrund laufen (-f) – ideal für s6
+if [[ -x "${SKEY_DIR}/brscan-skey-exe" ]]; then
+    exec "${SKEY_DIR}/brscan-skey-exe" -f
+fi
+
+# Version 0.2.x startet sich selbst im Hintergrund – solange er lebt, Dienst halten
 skey=$(command -v brscan-skey || true)
 if [[ -z "${skey}" ]]; then
     skey=$(find "${SKEY_DIR}" -maxdepth 1 -type f -name 'brscan-skey*' -perm -u+x ! -name '*.sh' | head -n1)
@@ -35,14 +79,8 @@ if [[ -z "${skey}" ]]; then
     exit 0
 fi
 
-bashio::log.info "Scan-Taste wird überwacht (Ziel: $(bashio::config 'scan_folder'))"
 "${skey}" > /dev/null 2>&1 || true
 sleep 3
-"${skey}" -l 2>/dev/null | while IFS= read -r line; do
-    bashio::log.info "Scan-Taste: ${line}"
-done
-
-# brscan-skey läuft als Hintergrundprozess – solange er lebt, Dienst halten
 while pgrep -f 'brscan-skey' > /dev/null; do
     sleep 30
 done

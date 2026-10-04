@@ -166,10 +166,10 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   starten, erneut drucken und das Log ansehen.
 - **Scanner fehlt:** Im Log nach „Scanner:“ suchen. Fehlt der Treiber, siehe
   Abschnitt Scanner. Mit `log_level: debug` schreibt AirSane Details ins Log.
-- **Druckauftrag lässt sich nicht abbrechen:** Ein Auftrag, der schon komplett
-  an den Drucker übertragen wurde, druckt der MFC-260C aus seinem Speicher zu
-  Ende – dann am Gerät „Stopp“ drücken. Solange das Add-on noch rechnet,
-  bricht es den Auftrag sofort ab.
+- **Druckauftrag abbrechen:** Das Add-on beendet den Auftrag innerhalb weniger
+  Sekunden; die gerade gedruckte Seite wird abgeschlossen und ausgeworfen,
+  weitere Seiten kommen nicht. Was schon komplett im Drucker liegt, druckt der
+  MFC-260C aus seinem Speicher zu Ende – dann am Gerät „Stopp“ drücken.
 - **Add-on hängt:** Im Add-on-Tab den **Watchdog** einschalten – der Supervisor
   startet das Add-on dann neu, wenn Port 631 nicht mehr antwortet.
 - **Im Modus `printer_app` klappt es nicht:** `mode: cups` setzen, das Add-on

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.1
+
+### Behoben
+
+- Abbrechen: Die angefangene Seite wird jetzt sauber abgeschlossen und
+  ausgeworfen, statt im Drucker hängen zu bleiben. Der Wächter beendet dafür
+  zuerst nur Ghostscript; der Brother-Filter schließt die Seite dann selbst ab.
+- Scan-Taste mit Brother Scan-Key-Tool 0.3.x: Die Konfiguration heißt dort
+  `brscan-skey.config` und wurde bisher nicht angepasst – Scans landeten in
+  Brothers Standardordner. Jetzt werden beide Versionen eingerichtet, und
+  Scans aus dem Standardordner werden zusätzlich in den Scan-Ordner verschoben.
+
 ## 2.3.0
 
 ### Behoben

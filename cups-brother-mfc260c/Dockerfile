@@ -187,7 +187,8 @@ RUN set -e; \
     fi; \
     # Nur den Brother-Treiber laden: schneller und kein Herumprobieren an anderen USB-Geräten
     echo brother2 > /etc/sane.d/dll.conf; \
-    if ls /opt/brother/scanner/brscan-skey/*.cfg > /dev/null 2>&1; then \
+    if [ -f /opt/brother/scanner/brscan-skey/brscan-skey.config ] \
+        || ls /opt/brother/scanner/brscan-skey/brscan-skey-*.cfg > /dev/null 2>&1; then \
         touch /usr/share/cups-addon-scan-button; \
     fi
 
