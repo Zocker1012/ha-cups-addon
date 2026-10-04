@@ -30,8 +30,15 @@ configuration:
     description: >-
       Provide the scanner via AirScan/eSCL (macOS, Windows, Android/Mopria,
       Linux) and scan from the Home Assistant sidebar.
+  scan_max_resolution:
+    name: Maximum scan resolution
+    description: >-
+      Highest resolution offered to computers and phones. The MFC-260C scans
+      optically at 600 dpi (default); anything above is interpolated and
+      very slow. Without a limit the driver offers up to 9600 dpi; such scans
+      fail and Windows reports a "paper jam".
   scan_button:
-    name: Scan button on the device (experimental)
+    name: Scan menu on the device
     description: >-
       The "Scan" menu on the MFC-260C scans straight into the scan folder
       ("File" with the settings below, "Image" as color JPEG). Requires the
@@ -48,10 +55,6 @@ configuration:
   scan_mode:
     name: Scan color mode
     description: Color or grayscale for button scans.
-  scan_source:
-    name: Scan source
-    description: >-
-      Flatbed or automatic document feeder (adf) for button scans.
   print_folder:
     name: Print folder
     description: >-

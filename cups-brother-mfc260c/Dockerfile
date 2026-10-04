@@ -25,9 +25,13 @@ RUN apt-get update \
         libusb-1.0-0-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Eigene Anpassung: maximale Auflösung begrenzbar (AIRSANE_MAX_RESOLUTION)
+COPY patches/ /tmp/patches/
+
 RUN git clone --depth 1 --branch "${AIRSANE_VERSION}" \
         https://github.com/SimulPiscator/AirSane /src/airsane \
     && test "$(git -C /src/airsane rev-parse HEAD)" = "${AIRSANE_COMMIT}" \
+    && git -C /src/airsane apply /tmp/patches/airsane-max-resolution.patch \
     && cmake -S /src/airsane -B /src/build -DCMAKE_BUILD_TYPE=Release \
     && cmake --build /src/build -j"$(nproc)" \
     && install -Dm755 /src/build/airsaned /out/usr/sbin/airsaned \

@@ -57,24 +57,18 @@ else
     color="RGB24"
 fi
 
-if [[ "${SCAN_SOURCE}" == "adf" ]]; then
-    source_xml="<pwg:InputSource>Feeder</pwg:InputSource><scan:ConcatIfPossible>1</scan:ConcatIfPossible>"
-else
-    source_xml="<pwg:InputSource>Platen</pwg:InputSource>"
-fi
-
 settings="<?xml version='1.0' encoding='UTF-8'?>
 <scan:ScanSettings xmlns:scan='http://schemas.hp.com/imaging/escl/2011/05/03' xmlns:pwg='http://www.pwg.org/schemas/2010/12/sm'>
   <pwg:Version>2.6</pwg:Version>
   <scan:Intent>${intent}</scan:Intent>
-  ${source_xml}
+  <pwg:InputSource>Platen</pwg:InputSource>
   <scan:ColorMode>${color}</scan:ColorMode>
   <scan:XResolution>${SCAN_RESOLUTION}</scan:XResolution>
   <scan:YResolution>${SCAN_RESOLUTION}</scan:YResolution>
   <pwg:DocumentFormat>${mime}</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}, Quelle ${SCAN_SOURCE}"
+log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}"
 
 # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
 job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \

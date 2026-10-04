@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.4.0
+
+### Behoben
+
+- Scannen unter Windows mit hoher Auflösung: Der Brother-Treiber meldet
+  hochgerechnete Auflösungen bis 9600 dpi. Ein solcher Scan wird riesig und
+  bricht ab, Windows zeigt dann „Papierstau“. Der Scanner bietet jetzt
+  höchstens 600 dpi an, die echte Auflösung des MFC-260C (einstellbar bis
+  1200 dpi).
+
+### Neu
+
+- Option `scan_max_resolution` (300/600/1200 dpi): höchste Auflösung, die
+  der Scanner im Netzwerk anbietet.
+- Lizenzhinweise in der Dokumentation und `drivers/LICENSE-Brother.txt`.
+- GitHub-Workflow, der fertige Images baut (siehe Dokumentation, „Fertige
+  Images“). Das Add-on wird weiterhin auf dem Gerät gebaut, bis das Image
+  in `config.yaml` eingetragen ist.
+
+### Geändert
+
+- Option `scan_source` entfernt: Der MFC-260C hat nur ein Flachbett.
+- Das Scan-Menü am Gerät gilt nicht mehr als experimentell.
+
 ## 2.3.2
 
 ### Geändert

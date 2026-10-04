@@ -1,0 +1,117 @@
+Lizenzhinweise zu den Brother-Treibern in diesem Add-on
+=======================================================
+
+Die Brother-Treiber werden unverändert weitergegeben bzw. beim Bauen des
+Images unverändert von download.brother.com geladen (Prüfsummen im Dockerfile).
+Copyright: Brother Industries, Ltd.
+
+- mfc260clpr-1.0.1-1.i386.deb, mfc260ccupswrapper-1.0.1-1.i386.deb
+  (Druckertreiber). Die Pakete selbst enthalten keinen Lizenztext; Brother
+  zeigt die Lizenz beim Download auf support.brother.com an. Die Shell-Skripte
+  des cupswrapper sind im Quellcode unter der GPL veröffentlicht.
+- brscan2-0.2.5-1 (Scannertreiber, SANE-Backend):
+  "Brother Printer Driver Software Open License Agreement" (Text 1 unten);
+  die SANE-Teile stehen unter der GPL mit SANE-Ausnahme.
+- brscan-skey (Scan-Key-Tool): "Brother License Agreement" (Text 2 unten).
+
+Nach diesen Lizenzen dürfen die Dateien vervielfältigt und weitergegeben
+werden; Binärdateien dürfen nicht verändert weitergegeben werden, und
+Empfänger müssen eine gleichwertige Lizenz erhalten (diese Datei).
+
+
+==============================================================================
+Text 1
+==============================================================================
+
+Brother Printer Driver Software Open License Agreement
+
+This Agreement provides terms and conditions for license grant from
+Brother Industries, Ltd. ("Brother"), who owns all copyrights to the software
+that is distributed with this Agreement ("Software") to recipients thereof
+("User"), for use of the Software.
+User shall have the right to use the Software only in accordance with the terms
+and conditions of this Agreement.  Any use by User of the Software shall be
+deemed as its agreement hereto.
+
+1.  Brother retains any and all copyrights to the Software.
+In no case this Agreement shall be construed to assign or otherwise transfer
+from Brother to User any copyrights or other intellectual property rights to
+whole or any part of the Software.
+
+2.  Brother grants User a non-exclusive license:
+    (1) With respect to the Software distributed in source code form:
+	a. To reproduce and distribute (via Internet or in any other manner)
+	   the Software,
+	b. To modify, alter, translate or otherwise prepare derivative works
+	   of the Software, and
+        c. To reproduce and distribute (via Internet or in any other manner)
+	   the Software or any derivative works thereto as modified, altered,
+	   translated or otherwise prepared under the license granted in
+	   accordance with paragraph 2(1)b immediately above.
+
+    (2) With respect to the Software distributed in binary code or executable
+        code form:
+	a. To reproduce and distribute (via Internet or in any other manner)
+           the Software.
+        *  User shall not have any rights to modify, alter, translate or
+	   otherwise prepare derivative works of the Software if and when the
+	   same is distributed in binary code or executable code form: provided, however, that Brother permits User to modify such Software only for User's own use and reverse engineering only for debugging such modifications, to the extent such permission is required under GNU Lesser General Public License (ver. 2.1 or later).
+
+3.  When User distribute (via Internet or in any other manner) the Software or
+    any derivative works thereto as modified, altered, translated or otherwise
+    prepared under the license granted in accordance with paragraph 2 above,
+    User must expressly grant any and all recipient thereof the license
+    equivalent to this Agreement.
+
+4.  The license of the Software from Brother hereunder is granted "AS IS."
+    BROTHER HEREBY DISCLAIMS ANY WARRANTIES WITH RESPECT TO THE SOFTWARE,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTY FOR THE QUALITY,
+    MERCHANTABILITY, FITNESS FOR PARTICULAR PURPOSE OR NON-INFRINGEMENT.
+
+5.  Brother shall have no liability in contract, tort (including negligence or
+    breach of statutory duty) or otherwise for any interruption of use, loss
+    of data, or for any indirect, incidental, punitive or consequential loss
+    or damage, or for any loss of profit, revenue, data, goodwill or
+    anticipated savings that arises under, out of, or in contemplation of this
+    Agreement or otherwise arises due to any error, inaccuracy or defect in
+    the Software even if Brother has been advised of the possibility of such
+    loss or damage.
+
+
+copying.brother
+
+
+==============================================================================
+Text 2
+==============================================================================
+
+Brother License Agreement
+
+Brother retains any and all copyrights to the Software. In no case this
+Agreement shall be construed to assign or otherwise transfer from Brother to
+User any copyrights or other intellectual property rights to whole or any
+part of the Software.
+
+Brother grants User a non-exclusive license: to reproduce and/or distribute
+(via Internet or in any other manner) the Software. Further, Brother grants
+User a non-exclusive license to modify, alter, translate or otherwise prepare
+derivative works of the Software and to reproduce and distribute (via
+Internet or in any other manner) such modification, alteration, translation
+or other derivative works for any purpose.
+
+The license of the Software from Brother hereunder is granted "AS IS."
+BROTHER HEREBY DISCLAIMS ANY WARRANTIES WITH RESPECT TO THE SOFTWARE, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTY FOR THE QUALITY,
+MERCHANTABILITY, FITNESS FOR PARTICULAR PURPOSE OR NON-INFRINGEMENT.
+Brother shall have no liability in contract, tort (including negligence or
+breach of statutory duty) or otherwise for any interruption of use, loss of
+data, or for any indirect, incidental, punitive or consequential loss or
+damage, or for any loss of profit, revenue, data, goodwill or anticipated
+savings that arises under, out of, or in contemplation of this Agreement or
+otherwise arises due to any error, inaccuracy or defect in the Software even
+if Brother has been advised of the possibility of such loss or damage.
+Further, Brother shall have no liability to disclose and/or distribute the
+source cord of the Software to User under any circumstances. In no case shall
+the above license by Brother to modify, alter, translate or otherwise prepare
+derivative works of the Software be construed as Brother's implied agreement
+or undertakings to disclose and/or distribute the source cord of the Software.

@@ -21,7 +21,13 @@ if [[ "$(bashio::config 'log_level')" == "debug" ]]; then
     debug=true
 fi
 
-bashio::log.info "Scanner (AirSane) wird gestartet (Port 8090)"
+# Höchste angebotene Auflösung begrenzen: Der Brother-Treiber meldet bis zu
+# 9600 dpi (hochgerechnet). Solche Scans sind riesig und scheitern – Windows
+# meldet das dann als "Papierstau".
+AIRSANE_MAX_RESOLUTION=$(bashio::config 'scan_max_resolution' '600')
+export AIRSANE_MAX_RESOLUTION
+
+bashio::log.info "Scanner (AirSane) wird gestartet (Port 8090, bis ${AIRSANE_MAX_RESOLUTION} dpi)"
 exec airsaned \
     --listen-port=8090 \
     --hotplug=true \

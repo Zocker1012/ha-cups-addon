@@ -60,14 +60,21 @@ dem modernen, treiberlosen Scan-Standard (Gegenstück zu AirPrint/IPP Everywhere
 - **Browser**: in der HA-Seitenleiste unter „Scanner“ oder direkt
   `http://<IP-von-Home-Assistant>:8090/`
 
-Der Scannertreiber (`brscan2`) und das Scan-Key-Tool werden beim Bauen des
-Add-ons von Brother geladen und per Prüfsumme kontrolliert. Ist Brother beim
-Bauen nicht erreichbar, startet das Add-on ohne Scanner und meldet das im Log.
-Alternativ lassen sich die Dateien `brscan2-0.2.5-1.x86_64.rpm` und
-`brscan-skey-0.2.4-1.x86_64.rpm` (oder `-0.3.5-0`) von der Brother-Supportseite
-des MFC-260C in den Ordner `drivers/` des Repositorys legen.
+Der MFC-260C scannt optisch mit 600 dpi, alles darüber rechnet der Treiber
+hoch. Der Treiber bietet bis zu 9600 dpi an – solche Scans werden riesig und
+scheitern (Windows meldet dann „Papierstau“). Das Add-on bietet deshalb
+höchstens `scan_max_resolution` an: Standard 600 dpi, die echte Auflösung des
+Geräts. 1200 dpi (hochgerechnet, wie bei Brothers eigenem Windows-Treiber)
+lässt sich einstellen, dauert aber sehr lange und bringt keine echten Details.
 
-### Scan-Taste am Gerät (experimentell)
+Der Scannertreiber (`brscan2`) und das Scan-Key-Tool werden beim Bauen des
+Add-ons von Brother geladen und per Prüfsumme kontrolliert. Liegen die Dateien
+`brscan2-0.2.5-1.x86_64.rpm` und `brscan-skey-0.3.5-0.x86_64.rpm` (oder
+`-0.2.4-1`) im Ordner `drivers/` des Repositorys, werden stattdessen diese
+verwendet. Ist beides nicht möglich, startet das Add-on ohne Scanner und meldet
+das im Log.
+
+### Scan-Menü am Gerät
 
 Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
 `scan_folder` (Standard `/share/scans`, im Netzwerk über die Samba-Freigabe
@@ -78,8 +85,8 @@ Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
 | **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus `scan_format`, `scan_resolution`, `scan_mode` |
 | **Bild** | JPEG in Farbe, Auflösung aus `scan_resolution` |
 
-`scan_source` wählt Vorlagenglas (`flatbed`) oder Vorlageneinzug (`adf`). Der
-Scan selbst läuft über AirSane – denselben Weg wie in der Weboberfläche.
+Gescannt wird vom Vorlagenglas. Der Scan selbst läuft über AirSane – denselben
+Weg wie in der Weboberfläche.
 
 Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` an Home
 Assistant (`status`, `file`, `target`) – z. B. für eine Benachrichtigung:
@@ -146,15 +153,15 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 | `admin_password` | Passwort bei `auth: manual` |
 | `auto_setup` | Drucker im Modus `printer_app` automatisch anlegen, auch beim Anstecken im laufenden Betrieb |
 | `scanner` | Scanner per AirScan/eSCL bereitstellen |
-| `scan_button` | Scan-Taste am Gerät nutzen (experimentell) |
+| `scan_max_resolution` | Höchste angebotene Auflösung: 300, 600 oder 1200 dpi |
+| `scan_button` | Scan-Menü am Gerät nutzen |
 | `scan_folder` | Zielordner für Scans per Taste (unter `/share` oder `/media`) |
 | `scan_format` | `pdf`, `jpeg` oder `png` |
 | `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
 | `scan_mode` | `color` oder `gray` |
-| `scan_source` | `flatbed` (Vorlagenglas) oder `adf` (Vorlageneinzug) |
 | `print_folder` | Druckordner aktivieren |
 | `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
-| `log_level` | `debug`, `info`, `warning`, `error`. `debug` schreibt zusätzlich das Debug-Log des Brother-Treibers ins Add-on-Log. |
+| `log_level` | `debug`, `info`, `warning`, `error`. Bei `info` nur Meldungen des Add-ons und Warnungen; `debug` zeigt jede Verbindung und das Debug-Log des Brother-Treibers. |
 
 ## Fehlersuche
 
@@ -166,6 +173,9 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   starten, erneut drucken und das Log ansehen.
 - **Scanner fehlt:** Im Log nach „Scanner:“ suchen. Fehlt der Treiber, siehe
   Abschnitt Scanner. Mit `log_level: debug` schreibt AirSane Details ins Log.
+- **Windows meldet beim Scannen „Papierstau“:** Die gewählte Auflösung ist zu
+  hoch. `scan_max_resolution` auf 600 lassen (Standard), das ist die echte
+  Auflösung des Geräts.
 - **Druckauftrag abbrechen:** Das Add-on beendet den Auftrag innerhalb weniger
   Sekunden; die gerade gedruckte Seite wird abgeschlossen und ausgeworfen,
   weitere Seiten kommen nicht. Was schon komplett im Drucker liegt, druckt der
@@ -182,3 +192,42 @@ in Backups enthalten) statt im Home-Assistant-Konfigurationsordner. Den
 Drucker deshalb einmal neu einrichten (im Modus `printer_app` passiert das
 automatisch). Der alte Ordner `cups/` im Home-Assistant-Konfigurationsordner
 wird nicht mehr benutzt und kann gelöscht werden.
+
+## Fertige Images (ohne Bauen auf dem Gerät)
+
+Ohne weitere Einstellung baut der Supervisor das Add-on beim Installieren und
+bei jedem Update selbst (einige Minuten, Downloads von Ubuntu, GitHub und
+Brother). Alternativ baut GitHub das Image:
+
+1. Der Workflow `.github/workflows/build.yaml` baut bei jedem Push auf `main`
+   das Image `ghcr.io/zocker1012/amd64-cups-brother-mfc260c:<version>` und
+   lädt es in die GitHub Packages des Repositorys.
+2. Auf GitHub unter **Packages → amd64-cups-brother-mfc260c → Package
+   settings** die Sichtbarkeit auf **Public** stellen. Home Assistant kann das
+   Image sonst nicht laden.
+3. In `config.yaml` die Zeile
+   `image: "ghcr.io/zocker1012/{arch}-cups-brother-mfc260c"` ergänzen.
+
+Ab dann lädt Home Assistant nur noch das fertige Image. Wichtig: Jede neue
+`version` in `config.yaml` braucht ein fertig gebautes Image mit diesem Tag,
+sonst schlägt das Update fehl. Erst pushen, Workflow abwarten, dann updaten.
+
+## Lizenzen
+
+Der Code dieses Add-ons (Skripte, Konfiguration) stammt aus diesem Repository.
+Im Image stecken außerdem:
+
+| Komponente | Lizenz | Hinweis |
+|---|---|---|
+| Brother-Druckertreiber MFC-260C (`drivers/*.deb`) | Brother-Lizenz, GPL (cupswrapper-Skripte) | Weitergabe unveränderter Dateien mit Lizenztext erlaubt (`drivers/LICENSE-Brother.txt`) |
+| Brother-Scannertreiber `brscan2`, Scan-Key-Tool `brscan-skey` | Brother-Lizenzen, GPL (SANE-Teil) | wie oben; beim Bauen von Brother geladen oder aus `drivers/` |
+| CUPS, cups-filters, libppd, libcupsfilters | Apache 2.0 | Ubuntu-Pakete |
+| PAPPL, Legacy Printer Application (pappl-retrofit) | Apache 2.0 | Ubuntu-Pakete |
+| AirSane | GPL-3.0 | aus dem Quellcode gebaut (Version im Dockerfile), mit kleiner Anpassung (`patches/`) |
+| Ghostscript, SANE, Avahi, nginx u. a. | AGPL/GPL/LGPL/BSD | Ubuntu-Pakete |
+| Basis-Image `amd64-base-ubuntu` | Apache 2.0 | Home Assistant |
+| CUPS-Logo (`icon.png`, `logo.png`) | Marke von OpenPrinting/Apple | für private Nutzung unkritisch |
+
+Für die private Nutzung ist nichts weiter zu beachten. Wer fertige Images
+öffentlich anbietet (z. B. über GitHub Packages), gibt damit GPL-Software weiter
+und sollte auf die Quellen verweisen – die Links stehen im Dockerfile.

@@ -1,7 +1,7 @@
 #!/command/with-contenv bashio
 # shellcheck shell=bash
 # ==============================================================================
-# Scan-Menü am Gerät (Brother Scan-Key-Tool, experimentell)
+# Scan-Menü am Gerät (Brother Scan-Key-Tool)
 # Menü "Scan" am MFC-260C -> Scan landet im eingestellten Ordner
 # ==============================================================================
 

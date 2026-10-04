@@ -31,8 +31,15 @@ configuration:
     description: >-
       Scanner per AirScan/eSCL bereitstellen (macOS, Windows, Android/Mopria,
       Linux) und in der HA-Seitenleiste scannen.
+  scan_max_resolution:
+    name: Höchste Scan-Auflösung
+    description: >-
+      Höchste Auflösung, die PCs und Handys angeboten wird. Der MFC-260C
+      scannt optisch mit 600 dpi (Standard), alles darüber ist hochgerechnet
+      und dauert sehr lange. Ohne Grenze bietet der Treiber bis 9600 dpi an;
+      solche Scans scheitern, Windows meldet dann "Papierstau".
   scan_button:
-    name: Scan-Taste am Gerät (experimentell)
+    name: Scan-Menü am Gerät
     description: >-
       Menü "Scan" am MFC-260C scannt direkt in den Scan-Ordner ("Datei" mit
       den Einstellungen unten, "Bild" als JPEG in Farbe). Benötigt das
@@ -50,10 +57,6 @@ configuration:
   scan_mode:
     name: Scan-Farbmodus
     description: Farbe oder Graustufen für Scans per Taste.
-  scan_source:
-    name: Scan-Quelle
-    description: >-
-      Vorlagenglas (flatbed) oder Vorlageneinzug (adf) für Scans per Taste.
   print_folder:
     name: Druckordner
     description: >-

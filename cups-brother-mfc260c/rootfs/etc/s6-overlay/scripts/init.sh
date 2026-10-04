@@ -141,7 +141,6 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_button'; then
         printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_format')"
         printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_resolution')"
         printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_mode')"
-        printf 'SCAN_SOURCE=%q\n' "$(bashio::config 'scan_source' 'flatbed')"
     } > "${RUN_DIR}/scan.env"
 fi
 
