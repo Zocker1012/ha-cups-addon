@@ -1,13 +1,18 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Avahi: DNS-SD/mDNS für AirPrint und IPP Everywhere
+# ==============================================================================
 
-ulimit -n 524288
+# Sehr hohe fd-Limits (Docker-Default) begrenzen, falls möglich
+ulimit -n 524288 2>/dev/null || true
 
 bashio::log.info "Warte auf D-Bus-Socket..."
-
-until [ -e /run/dbus/system_bus_socket ]; do
+until [[ -e /run/dbus/system_bus_socket ]]; do
     sleep 1
 done
 
-bashio::log.info "Avahi-Daemon wird gestartet"
+rm -f /run/avahi-daemon/pid
 
-exec avahi-daemon --no-drop-root
+bashio::log.info "Avahi-Daemon wird gestartet"
+exec avahi-daemon --no-drop-root --no-chroot

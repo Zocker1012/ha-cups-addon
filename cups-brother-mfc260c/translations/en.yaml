@@ -1,0 +1,21 @@
+configuration:
+  mode:
+    name: Mode
+    description: >-
+      "printer_app": CUPS 3 style using the Legacy Printer Application
+      (recommended). "cups": classic CUPS server as a fallback.
+  admin_password:
+    name: Admin password
+    description: >-
+      Password for web administration (user "print"). Leave empty to generate
+      a random password, which is then shown in the add-on log.
+  auto_setup:
+    name: Automatic setup
+    description: >-
+      Automatically adds the USB-connected Brother MFC-260C on startup
+      ("printer_app" mode only).
+  log_level:
+    name: Log level
+    description: >-
+      Log verbosity. "debug" additionally enables the Brother driver's debug
+      log.

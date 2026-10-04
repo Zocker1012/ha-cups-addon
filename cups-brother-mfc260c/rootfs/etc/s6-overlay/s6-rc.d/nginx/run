@@ -1,13 +1,16 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# nginx: Ingress-Proxy auf die Web-Oberfläche (CUPS oder Printer Application)
+# ==============================================================================
 
-ulimit -n 524288
+# Sehr hohe fd-Limits (Docker-Default) begrenzen, falls möglich
+ulimit -n 524288 2>/dev/null || true
 
-bashio::log.info "Warte auf CUPS-Socket..."
-
-until [ -e /run/cups/cups.sock ]; do
+bashio::log.info "Warte auf Web-Oberfläche (Port 631)..."
+until (exec 3<>/dev/tcp/127.0.0.1/631) 2>/dev/null; do
     sleep 1
 done
 
 bashio::log.info "nginx-Ingress-Proxy wird gestartet"
-
 exec nginx -g "daemon off;"

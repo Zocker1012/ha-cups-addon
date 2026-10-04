@@ -1,37 +1,30 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Klassischer CUPS-Server (Modus "cups")
+# ==============================================================================
 
-ulimit -n 524288
+if [[ "$(bashio::config 'mode')" != "cups" ]]; then
+    # Nicht aktiv: Dienst einmalig beenden, ohne Neustart durch s6
+    s6-svc -O .
+    exit 0
+fi
 
-# ---------------------------------------------------------------------------
-# USB-Quirks für Brother MFC-260C setzen
-# ---------------------------------------------------------------------------
-set_usb_quirks() {
-    local quirk_file="/usr/share/cups/usb/org.cups.usb-quirks"
+# Sehr hohe fd-Limits (Docker-Default) begrenzen, falls möglich
+ulimit -n 524288 2>/dev/null || true
 
-    if [ -f "${quirk_file}" ]; then
-        if ! grep -qF "0x04f9 0x01d6 no-reattach" "${quirk_file}"; then
-            bashio::log.info "USB-Quirk gesetzt: Brother MFC-260C no-reattach"
-            echo "0x04f9 0x01d6 no-reattach" >> "${quirk_file}"
-        fi
-        if ! grep -qF "0x04f9 0x01d6 usbfs" "${quirk_file}"; then
-            bashio::log.info "USB-Quirk gesetzt: Brother MFC-260C usbfs"
-            echo "0x04f9 0x01d6 usbfs" >> "${quirk_file}"
-        fi
-    fi
-}
-
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Auf Avahi-Socket warten
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 wait_for_avahi() {
     local timeout=30
     local elapsed=0
 
     bashio::log.info "Warte auf Avahi-Socket..."
-    until [ -e /var/run/avahi-daemon/socket ]; do
+    until [[ -e /run/avahi-daemon/socket ]]; do
         sleep 1
         elapsed=$((elapsed + 1))
-        if [ "${elapsed}" -ge "${timeout}" ]; then
+        if [[ "${elapsed}" -ge "${timeout}" ]]; then
             bashio::log.warning "Avahi-Socket nach ${timeout}s nicht erreichbar – fahre ohne mDNS fort"
             return
         fi
@@ -39,28 +32,36 @@ wait_for_avahi() {
     bashio::log.info "Avahi-Socket bereit"
 }
 
-# ---------------------------------------------------------------------------
-# CUPS Konfiguration persistent machen
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# CUPS-Konfiguration: Druckerdaten persistent in /data/cups,
+# cupsd.conf/cups-files.conf bei jedem Start aus dem Image
+# ------------------------------------------------------------------------------
 prepare_cups_config() {
-    bashio::log.info "Initialisiere persistente CUPS-Konfiguration"
+    local log_level
 
-    if [ ! -d /config/cups ]; then
-        bashio::log.info "Erstinstallation: Kopiere CUPS-Standardkonfiguration nach /config/cups"
-        cp -r /etc/cups /config/cups
+    if [[ ! -L /etc/cups ]]; then
+        if [[ ! -e /data/cups/.initialized ]]; then
+            bashio::log.info "Erststart: Lege CUPS-Konfiguration in /data/cups an"
+            cp -a /etc/cups/. /data/cups/
+            touch /data/cups/.initialized
+        fi
+        rm -rf /etc/cups
+        ln -s /data/cups /etc/cups
     fi
 
-    rm -rf /etc/cups
-    ln -s /config/cups /etc/cups
-    bashio::log.info "CUPS-Konfiguration aktiv: /config/cups → /etc/cups"
+    cp /usr/share/cups-addon/cupsd.conf /data/cups/cupsd.conf
+    cp /usr/share/cups-addon/cups-files.conf /data/cups/cups-files.conf
+
+    case "$(bashio::config 'log_level')" in
+        debug) log_level="debug" ;;
+        info) log_level="info" ;;
+        warning) log_level="warn" ;;
+        *) log_level="error" ;;
+    esac
+    sed -i "s/^LogLevel .*/LogLevel ${log_level}/" /data/cups/cupsd.conf
 }
 
-# ---------------------------------------------------------------------------
-# Hauptprogramm
-# ---------------------------------------------------------------------------
-set_usb_quirks
 wait_for_avahi
-mkdir -p /share/cups-pdf
 prepare_cups_config
 
 bashio::log.info "CUPS-Server wird gestartet"

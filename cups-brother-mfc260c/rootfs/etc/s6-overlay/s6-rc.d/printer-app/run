@@ -1,0 +1,78 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Legacy Printer Application (Modus "printer_app", CUPS-3-Weg)
+# Stellt den Brother-PPD-Treiber als treiberlosen IPP-Everywhere-/AirPrint-
+# Drucker bereit.
+# ==============================================================================
+
+if [[ "$(bashio::config 'mode')" != "printer_app" ]]; then
+    # Nicht aktiv: Dienst einmalig beenden, ohne Neustart durch s6
+    s6-svc -O .
+    exit 0
+fi
+
+readonly STATE_DIR="/data/legacy-printer-app"
+readonly STATE_FILE="${STATE_DIR}/legacy-printer-app.state"
+
+export STATE_DIR
+export SPOOL_DIR="/var/spool/legacy-printer-app"
+export FILTER_DIR="/usr/lib/cups/filter"
+export BACKEND_DIR="/usr/lib/cups/backend"
+export USER_PPD_DIR="${STATE_DIR}/ppd"
+# Nur die angepasste Brother-PPD anbieten (siehe Dockerfile) plus eigene Uploads
+export PPD_DIRS="/usr/share/cups-addon/ppd:${USER_PPD_DIR}"
+
+# Sehr hohe fd-Limits (Docker-Default) begrenzen, falls möglich
+ulimit -n 524288 2>/dev/null || true
+
+mkdir -p "${SPOOL_DIR}" "${USER_PPD_DIR}"
+
+# Alten Domain-Socket entfernen (die Auto-Einrichtung wartet auf den neuen)
+rm -f /run/legacy-printer-app.sock
+
+# ------------------------------------------------------------------------------
+# Web-Admin-Passwort in die PAPPL-State-Datei schreiben
+# (Format wie papplSystemHashPassword: "<nonce>~<sha256(nonce:passwort)>")
+# ------------------------------------------------------------------------------
+set_web_password() {
+    local password nonce hash
+
+    password=$(</run/cups-addon/admin_password)
+    nonce=$(openssl rand -hex 8)
+    hash=$(printf '%s:%s' "${nonce}" "${password}" | sha256sum | cut -d' ' -f1)
+
+    if [[ -s "${STATE_FILE}" ]]; then
+        sed -i '/^Password /d' "${STATE_FILE}"
+        sed -i "1i Password ${nonce}~${hash}" "${STATE_FILE}"
+    else
+        printf 'DNSSDName %s\nPassword %s~%s\n' \
+            "Brother MFC-260C" "${nonce}" "${hash}" > "${STATE_FILE}"
+    fi
+}
+
+case "$(bashio::config 'log_level')" in
+    debug) log_level="debug" ;;
+    info) log_level="info" ;;
+    warning) log_level="warn" ;;
+    *) log_level="error" ;;
+esac
+
+set_web_password
+
+# Auf Avahi warten, damit der Drucker sofort per DNS-SD angekündigt wird
+for _ in $(seq 1 30); do
+    [[ -e /run/avahi-daemon/socket ]] && break
+    sleep 1
+done
+
+if bashio::config.true 'auto_setup'; then
+    /etc/s6-overlay/scripts/printer-setup.sh &
+fi
+
+bashio::log.info "Legacy Printer Application wird gestartet (Port 631)"
+exec legacy-printer-app server \
+    -o server-port=631 \
+    -o state-file="${STATE_FILE}" \
+    -o log-file=- \
+    -o log-level="${log_level}"
