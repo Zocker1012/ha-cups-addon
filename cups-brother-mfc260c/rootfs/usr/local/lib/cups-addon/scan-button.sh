@@ -16,7 +16,7 @@ target="${1:-file}"
 source /run/cups-addon/scan.env
 
 log() {
-    echo "[scan-button] $*" > /proc/1/fd/1 2>/dev/null || echo "[scan-button] $*"
+    { echo "[scan-button] $*" > /proc/1/fd/1; } 2>/dev/null || echo "[scan-button] $*"
 }
 
 notify() {
@@ -57,58 +57,83 @@ else
     color="RGB24"
 fi
 
-settings="<?xml version='1.0' encoding='UTF-8'?>
+mkdir -p "${SCAN_FOLDER}"
+base="scan_$(date +%Y-%m-%d_%H-%M-%S)"
+saved=()
+
+# Einen Scan-Auftrag über AirSane ausführen und alle Seiten speichern.
+# $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Vorlageneinzug)
+scan_from() {
+    local input="$1" extra="" settings job page name tmp status
+    if [[ "${input}" == "Feeder" ]]; then
+        # Mehrere Seiten möglichst in einer Datei (PDF)
+        extra="<scan:ConcatIfPossible>1</scan:ConcatIfPossible>"
+    fi
+
+    settings="<?xml version='1.0' encoding='UTF-8'?>
 <scan:ScanSettings xmlns:scan='http://schemas.hp.com/imaging/escl/2011/05/03' xmlns:pwg='http://www.pwg.org/schemas/2010/12/sm'>
   <pwg:Version>2.6</pwg:Version>
   <scan:Intent>${intent}</scan:Intent>
-  <pwg:InputSource>Platen</pwg:InputSource>
+  <pwg:InputSource>${input}</pwg:InputSource>
+  ${extra}
   <scan:ColorMode>${color}</scan:ColorMode>
   <scan:XResolution>${SCAN_RESOLUTION}</scan:XResolution>
   <scan:YResolution>${SCAN_RESOLUTION}</scan:YResolution>
   <pwg:DocumentFormat>${mime}</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}"
+    log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}, Quelle ${input}"
 
-# Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
-job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
-        -H "Content-Type: text/xml" --data-binary "${settings}" \
-        "${ESCL}/ScanJobs" \
-    | tr -d '\r' | sed -n 's/^[Ll]ocation: *//p' | head -n1) || job=""
-[[ -n "${job}" ]] || fail "Scanner nicht erreichbar oder Auftrag abgelehnt (läuft der Scanner-Dienst?)"
-job="${job#http://*/}"
-job="/${job#/}"
-
-mkdir -p "${SCAN_FOLDER}"
-base="scan_$(date +%Y-%m-%d_%H-%M-%S)"
-saved=()
-page=1
-while true; do
-    if [[ "${page}" -eq 1 ]]; then
-        name="${base}.${ext}"
-    else
-        name="${base}_${page}.${ext}"
+    # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
+    job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
+            -H "Content-Type: text/xml" --data-binary "${settings}" \
+            "${ESCL}/ScanJobs" \
+        | tr -d '\r' | sed -n 's/^[Ll]ocation: *//p' | head -n1) || job=""
+    if [[ -z "${job}" ]]; then
+        log "Scanner nicht erreichbar oder Auftrag abgelehnt (Quelle ${input})"
+        return 1
     fi
-    tmp="${SCAN_FOLDER}/.${name}.part"
+    job="${job#http://*/}"
+    job="/${job#/}"
 
-    status=$(curl -s --max-time 600 -o "${tmp}" -w '%{http_code}' \
-        "http://127.0.0.1:8090${job}/NextDocument") || status="000"
+    page=1
+    while true; do
+        if [[ "${#saved[@]}" -eq 0 ]]; then
+            name="${base}.${ext}"
+        else
+            name="${base}_$(( ${#saved[@]} + 1 )).${ext}"
+        fi
+        tmp="${SCAN_FOLDER}/.${name}.part"
 
-    if [[ "${status}" == "200" && -s "${tmp}" ]]; then
-        mv "${tmp}" "${SCAN_FOLDER}/${name}"
-        saved+=("${SCAN_FOLDER}/${name}")
-        log "Gespeichert: ${SCAN_FOLDER}/${name}"
-        page=$((page + 1))
-        continue
-    fi
+        status=$(curl -s --max-time 600 -o "${tmp}" -w '%{http_code}' \
+            "http://127.0.0.1:8090${job}/NextDocument") || status="000"
 
-    rm -f "${tmp}"
-    # 404 = keine weiteren Seiten
-    if [[ "${status}" != "404" ]]; then
-        log "Unerwartete Antwort des Scanners: HTTP ${status}"
-    fi
-    break
-done
+        if [[ "${status}" == "200" && -s "${tmp}" ]]; then
+            mv "${tmp}" "${SCAN_FOLDER}/${name}"
+            saved+=("${SCAN_FOLDER}/${name}")
+            log "Gespeichert: ${SCAN_FOLDER}/${name}"
+            page=$((page + 1))
+            continue
+        fi
+
+        rm -f "${tmp}"
+        # 404 = keine weiteren Seiten
+        if [[ "${status}" != "404" ]]; then
+            log "Antwort des Scanners: HTTP ${status} (Quelle ${input})"
+        fi
+        break
+    done
+
+    [[ "${page}" -gt 1 ]]
+}
+
+case "${SCAN_SOURCE:-auto}" in
+    flatbed) scan_from Platen ;;
+    adf) scan_from Feeder ;;
+    # Automatisch: Liegt Papier im Einzug, wird von dort gescannt,
+    # sonst (keine Seite erhalten) vom Vorlagenglas
+    *) scan_from Feeder || { sleep 2; scan_from Platen; } ;;
+esac
 
 [[ "${#saved[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
 

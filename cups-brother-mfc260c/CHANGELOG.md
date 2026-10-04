@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.4.1
+
+### Behoben
+
+- Option `scan_source` ist zurück: Der MFC-260C hat einen Vorlageneinzug
+  (in 2.4.0 versehentlich entfernt). Neuer Standard `auto` scannt vom
+  Einzug, wenn dort Papier liegt, sonst vom Vorlagenglas.
+
 ## 2.4.0
 
 ### Behoben
@@ -21,7 +29,7 @@
 
 ### Geändert
 
-- Option `scan_source` entfernt: Der MFC-260C hat nur ein Flachbett.
+- Option `scan_source` entfernt.
 - Das Scan-Menü am Gerät gilt nicht mehr als experimentell.
 
 ## 2.3.2

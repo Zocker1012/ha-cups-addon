@@ -85,8 +85,12 @@ Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
 | **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus `scan_format`, `scan_resolution`, `scan_mode` |
 | **Bild** | JPEG in Farbe, Auflösung aus `scan_resolution` |
 
-Gescannt wird vom Vorlagenglas. Der Scan selbst läuft über AirSane – denselben
-Weg wie in der Weboberfläche.
+Die Quelle bestimmt `scan_source`: Bei `auto` (Standard) wird vom
+Vorlageneinzug gescannt, wenn dort Papier liegt, sonst vom Vorlagenglas.
+Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
+einer Datei pro Seite. Der Scan selbst läuft über AirSane – denselben Weg wie
+in der Weboberfläche. Dort und unter Windows lässt sich die Quelle
+(„Platen“/Flachbett oder „Feeder“/Einzug) direkt auswählen.
 
 Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` an Home
 Assistant (`status`, `file`, `target`) – z. B. für eine Benachrichtigung:
@@ -159,6 +163,7 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 | `scan_format` | `pdf`, `jpeg` oder `png` |
 | `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
 | `scan_mode` | `color` oder `gray` |
+| `scan_source` | `auto`, `flatbed` (Vorlagenglas) oder `adf` (Vorlageneinzug) |
 | `print_folder` | Druckordner aktivieren |
 | `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
 | `log_level` | `debug`, `info`, `warning`, `error`. Bei `info` nur Meldungen des Add-ons und Warnungen; `debug` zeigt jede Verbindung und das Debug-Log des Brother-Treibers. |

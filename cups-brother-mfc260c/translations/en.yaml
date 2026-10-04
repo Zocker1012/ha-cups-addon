@@ -55,6 +55,11 @@ configuration:
   scan_mode:
     name: Scan color mode
     description: Color or grayscale for button scans.
+  scan_source:
+    name: Scan source
+    description: >-
+      For scans from the device menu: auto (document feeder if paper is
+      loaded, otherwise flatbed), flatbed or adf (document feeder).
   print_folder:
     name: Print folder
     description: >-

@@ -57,6 +57,12 @@ configuration:
   scan_mode:
     name: Scan-Farbmodus
     description: Farbe oder Graustufen für Scans per Taste.
+  scan_source:
+    name: Scan-Quelle
+    description: >-
+      Für Scans über das Menü am Gerät: auto (Vorlageneinzug, wenn dort Papier
+      liegt, sonst Vorlagenglas), flatbed (Vorlagenglas) oder adf
+      (Vorlageneinzug).
   print_folder:
     name: Druckordner
     description: >-
