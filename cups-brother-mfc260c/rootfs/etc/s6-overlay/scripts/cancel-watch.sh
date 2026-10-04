@@ -70,5 +70,7 @@ while true; do
         fi
     done <<<"${running}"
 
-    sleep 3
+    # Während gedruckt wird jede Sekunde prüfen – je schneller der Abbruch
+    # erkannt wird, desto weniger Daten liegen schon im Drucker
+    sleep 1
 done

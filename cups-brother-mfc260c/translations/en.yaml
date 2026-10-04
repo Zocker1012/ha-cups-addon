@@ -63,5 +63,6 @@ configuration:
   log_level:
     name: Log level
     description: >-
-      Log verbosity. "debug" additionally enables the Brother driver's debug
-      log.
+      Log verbosity. "info" shows add-on messages and warnings; "debug"
+      additionally shows every printer connection and the Brother driver's
+      debug log.

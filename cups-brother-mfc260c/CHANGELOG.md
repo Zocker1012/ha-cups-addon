@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.2
+
+### Geändert
+
+- Ruhigeres Log: Bei `log_level: info` schreibt die Printer Application nur
+  noch Warnungen (statt mehrerer Zeilen pro Verbindung, z. B. bei jeder
+  Abfrage der HA-IPP-Integration). CUPS protokolliert Zugriffe nur noch für
+  Aktionen. Alle Details weiterhin mit `log_level: debug`.
+- Abbrechen wird während des Drucks jede Sekunde statt alle drei Sekunden
+  geprüft – es landen weniger Restdaten im Drucker.
+
 ## 2.3.1
 
 ### Behoben

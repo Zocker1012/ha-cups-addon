@@ -44,10 +44,12 @@ set_web_password() {
 
 set_web_password
 
+# Bei "info" nur Warnungen der Printer Application: Sie schreibt sonst für jede
+# einzelne Verbindung (Windows, Handys, HA-IPP-Integration ...) mehrere Zeilen.
+# Alle Details gibt es mit log_level "debug".
 case "$(bashio::config 'log_level')" in
     debug) log_level="debug" ;;
-    info) log_level="info" ;;
-    warning) log_level="warn" ;;
+    info | warning) log_level="warn" ;;
     *) log_level="error" ;;
 esac
 

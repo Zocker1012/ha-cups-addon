@@ -65,5 +65,6 @@ configuration:
   log_level:
     name: Log-Level
     description: >-
-      Ausführlichkeit der Logs. "debug" schaltet zusätzlich das Debug-Log des
-      Brother-Treibers ein.
+      Ausführlichkeit der Logs. Bei "info" erscheinen Meldungen des Add-ons und
+      Warnungen; "debug" zeigt zusätzlich jede Verbindung zum Drucker und das
+      Debug-Log des Brother-Treibers.
