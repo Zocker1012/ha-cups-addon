@@ -179,12 +179,14 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
     mkdir -p "${scan_folder}"
     {
         printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
-        printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_menu.format')"
-        printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.resolution')"
-        printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_menu.color')"
-        printf 'SCAN_IMAGE_FORMAT=%q\n' "$(bashio::config 'scan_menu.image_format' 'jpeg')"
-        printf 'SCAN_IMAGE_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.image_resolution' '300')"
-        printf 'SCAN_IMAGE_MODE=%q\n' "$(bashio::config 'scan_menu.image_color' 'color')"
+        # Menüpunkt: Präfix der Option, Standard für Format, Auflösung, Farbe
+        for entry in "FILE::pdf:300:color" "IMAGE:image_:jpeg:300:color" \
+            "OCR:ocr_:pdf:300:gray" "EMAIL:email_:pdf:150:color"; do
+            IFS=: read -r name key def_format def_res def_color <<< "${entry}"
+            printf 'SCAN_%s_FORMAT=%q\n' "${name}" "$(bashio::config "scan_menu.${key}format" "${def_format}")"
+            printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "scan_menu.${key}resolution" "${def_res}")"
+            printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "scan_menu.${key}color" "${def_color}")"
+        done
     } > "${RUN_DIR}/scan.env"
 fi
 

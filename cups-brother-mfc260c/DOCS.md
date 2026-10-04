@@ -59,10 +59,16 @@ Schaltest du **Scan-Menü am Gerät → Scan-Menü nutzen** ein, speichert das M
 per Samba unter „share“ erreichbar). Das Gerät meldet nur den gewählten
 Menüpunkt, alles andere stellst du im Add-on ein:
 
-| Menüpunkt | Einstellungen | Standard |
-|---|---|---|
-| Datei, OCR, E-Mail | Format, Auflösung, Farbe | PDF, 300 dpi, Farbe |
-| Bild | Format, Auflösung, Farbe bei Bild | JPEG, 300 dpi, Farbe |
+| Menüpunkt | Standard (Format, Auflösung, Farbe) |
+|---|---|
+| Datei | PDF, 300 dpi, Farbe |
+| Bild | JPEG, 300 dpi, Farbe |
+| OCR | PDF, 300 dpi, Graustufen |
+| E-Mail | PDF, 150 dpi, Farbe (kleine Datei) |
+
+Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
+Farbe oder Graustufen einstellen. „OCR“ und „E-Mail“ speichern nur in den
+Ordner – Texterkennung und Mailversand macht das Add-on nicht.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
@@ -113,12 +119,18 @@ scanning:
 scan_menu:
   enabled: false
   folder: /share/scans    # unter /share oder /media
-  format: pdf             # pdf | jpeg | png
-  resolution: "300"       # 100 | 150 | 200 | 300 | 600
-  color: color            # color | gray
-  image_format: jpeg      # wie oben, für den Menüpunkt "Bild"
-  image_resolution: "300"
+  format: pdf             # Datei: pdf | jpeg | png
+  resolution: "300"       # Datei: 100 | 150 | 200 | 300 | 600
+  color: color            # Datei: color | gray
+  image_format: jpeg      # Bild, OCR und E-Mail genauso mit
+  image_resolution: "300" # image_, ocr_ und email_ davor
   image_color: color
+  ocr_format: pdf
+  ocr_resolution: "300"
+  ocr_color: gray
+  email_format: pdf
+  email_resolution: "150"
+  email_color: color
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media

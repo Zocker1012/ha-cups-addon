@@ -37,16 +37,14 @@ fail() {
     exit 1
 }
 
-# Menüpunkt "Bild" am Gerät hat eigene Einstellungen, alle anderen
-# (Datei, OCR, E-Mail) teilen sich eine
-format="${SCAN_FORMAT}"
-mode="${SCAN_MODE}"
-resolution="${SCAN_RESOLUTION}"
-if [[ "${target}" == "image" ]]; then
-    format="${SCAN_IMAGE_FORMAT:-jpeg}"
-    mode="${SCAN_IMAGE_MODE:-color}"
-    resolution="${SCAN_IMAGE_RESOLUTION:-${SCAN_RESOLUTION}}"
-fi
+# Jeder Menüpunkt (Datei, Bild, OCR, E-Mail) hat eigene Einstellungen
+case "${target}" in
+    image | ocr | email) prefix="SCAN_${target^^}" ;;
+    *) prefix="SCAN_FILE" ;;
+esac
+var="${prefix}_FORMAT" && format="${!var:-pdf}"
+var="${prefix}_MODE" && mode="${!var:-color}"
+var="${prefix}_RESOLUTION" && resolution="${!var:-300}"
 
 case "${format}" in
     jpeg) mime="image/jpeg"; ext="jpg"; intent="Photo" ;;

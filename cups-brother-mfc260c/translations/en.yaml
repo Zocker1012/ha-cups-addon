@@ -42,7 +42,9 @@ configuration:
           slow.
   scan_menu:
     name: Scan menu on the device
-    description: The "Scan" menu on the MFC-260C saves directly to a folder.
+    description: >-
+      The "Scan" menu on the MFC-260C saves directly to a folder. Each menu
+      item has its own settings.
     fields:
       enabled:
         name: Use scan menu
@@ -50,23 +52,29 @@ configuration:
         name: Folder
         description: Below /share or /media.
       format:
-        name: Format
-        description: For "File", "OCR" and "E-mail".
+        name: File – format
       resolution:
-        name: Resolution (dpi)
-        description: For "File", "OCR" and "E-mail".
+        name: File – resolution (dpi)
       color:
-        name: Color
-        description: For "File", "OCR" and "E-mail". "gray" = grayscale.
+        name: File – color
       image_format:
-        name: Format for Image
-        description: For the "Image" menu item.
+        name: Image – format
       image_resolution:
-        name: Resolution for Image (dpi)
-        description: For the "Image" menu item.
+        name: Image – resolution (dpi)
       image_color:
-        name: Color for Image
-        description: For the "Image" menu item.
+        name: Image – color
+      ocr_format:
+        name: OCR – format
+      ocr_resolution:
+        name: OCR – resolution (dpi)
+      ocr_color:
+        name: OCR – color
+      email_format:
+        name: E-mail – format
+      email_resolution:
+        name: E-mail – resolution (dpi)
+      email_color:
+        name: E-mail – color
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.

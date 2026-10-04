@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.0
+
+### Neu
+
+- Scan-Menü am Gerät: Jeder Menüpunkt (Datei, Bild, OCR, E-Mail) hat eigene
+  Einstellungen für Format, Auflösung und Farbe. Standards: Datei PDF/300/
+  Farbe, Bild JPEG/300/Farbe, OCR PDF/300/Graustufen, E-Mail PDF/150/Farbe.
+
 ## 2.8.0
 
 ### Neu
