@@ -46,11 +46,23 @@ var="${prefix}_FORMAT" && format="${!var:-pdf}"
 var="${prefix}_MODE" && mode="${!var:-color}"
 var="${prefix}_RESOLUTION" && resolution="${!var:-300}"
 
-case "${format}" in
+# Texterkennung beim Menüpunkt "OCR": Es werden einzelne Seitenbilder gescannt
+# (bei PDF als JPEG) und danach von Tesseract verarbeitet
+ocr=false
+if [[ "${target}" == "ocr" && "${SCAN_OCR_TEXT:-false}" == "true" ]]; then
+    ocr=true
+fi
+scan_format="${format}"
+if [[ "${ocr}" == "true" && "${format}" == "pdf" ]]; then
+    scan_format="jpeg"
+fi
+
+case "${scan_format}" in
     jpeg) mime="image/jpeg"; ext="jpg"; intent="Photo" ;;
     png) mime="image/png"; ext="png"; intent="Photo" ;;
     *) mime="application/pdf"; ext="pdf"; intent="Document" ;;
 esac
+[[ "${ocr}" == "true" ]] && intent="Document"
 
 if [[ "${mode}" == "gray" ]]; then
     color="Grayscale8"
@@ -70,6 +82,15 @@ if compgen -G "${SCAN_FOLDER}/${base}*" > /dev/null; then
     base="${base}_$$"
 fi
 saved=()
+
+# Ziel der gescannten Seiten: direkt der Scan-Ordner, bei Texterkennung ein
+# Arbeitsordner (wird am Ende gelöscht)
+out_dir="${SCAN_FOLDER}"
+if [[ "${ocr}" == "true" ]]; then
+    work_dir=$(mktemp -d /tmp/scan-ocr.XXXXXX)
+    trap 'rm -rf "${work_dir}"' EXIT
+    out_dir="${work_dir}"
+fi
 
 # Warten, bis AirSane läuft und der Scanner frei ist (z. B. nach einem
 # Neustart des Scanner-Dienstes oder direkt nach dem vorigen Scan)
@@ -128,15 +149,15 @@ scan_from() {
         else
             name="${base}_$(( ${#saved[@]} + 1 )).${ext}"
         fi
-        tmp="${SCAN_FOLDER}/.${name}.part"
+        tmp="${out_dir}/.${name}.part"
 
         status=$(curl -s --max-time 600 -o "${tmp}" -w '%{http_code}' \
             "http://127.0.0.1:8090${job}/NextDocument") || status="000"
 
         if [[ "${status}" == "200" && -s "${tmp}" ]]; then
-            mv "${tmp}" "${SCAN_FOLDER}/${name}"
-            saved+=("${SCAN_FOLDER}/${name}")
-            log "Gespeichert: ${SCAN_FOLDER}/${name}"
+            mv "${tmp}" "${out_dir}/${name}"
+            saved+=("${out_dir}/${name}")
+            [[ "${ocr}" == "true" ]] || log "Gespeichert: ${out_dir}/${name}"
             page=$((page + 1))
             continue
         fi
@@ -161,6 +182,77 @@ wait_ready || fail "Scanner nicht bereit (läuft der Scanner-Dienst? Zeigt das G
 scan_from Feeder || { wait_ready && scan_from Platen; }
 
 [[ "${#saved[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
+
+# ------------------------------------------------------------------------------
+# Texterkennung
+# ------------------------------------------------------------------------------
+
+# Datei über eine .part-Datei in den Scan-Ordner kopieren (Ordner liegt evtl.
+# auf einem anderen Dateisystem) und den Zielpfad ausgeben
+publish() {
+    local src="$1" name="$2"
+    cp "${src}" "${SCAN_FOLDER}/.${name}.part" \
+        && mv "${SCAN_FOLDER}/.${name}.part" "${SCAN_FOLDER}/${name}" \
+        && echo "${SCAN_FOLDER}/${name}"
+}
+
+# Verkehrt herum oder quer liegende Seite drehen (nur JPEG, verlustfrei).
+# Tesseract meldet "Rotate: <Grad im Uhrzeigersinn>"; gedreht wird nur bei
+# ausreichender Sicherheit, sonst bleibt die Seite wie gescannt.
+rotate_page() {
+    local page="$1" osd angle confidence
+    osd=$(nice -n 10 tesseract "${page}" - --psm 0 2> /dev/null) || return 0
+    angle=$(sed -n 's/^Rotate: *//p' <<< "${osd}")
+    confidence=$(sed -n 's/^Orientation confidence: *//p' <<< "${osd}")
+    [[ -n "${angle}" && "${angle}" != "0" ]] || return 0
+    if awk -v c="${confidence:-0}" 'BEGIN { exit !(c >= 2) }'; then
+        jpegtran -copy all -rotate "${angle}" -outfile "${page}.rot" "${page}" \
+            && mv "${page}.rot" "${page}" \
+            && log "Seite ${page##*/} um ${angle}° gedreht"
+    fi
+}
+
+if [[ "${ocr}" == "true" ]]; then
+    case "${SCAN_OCR_LANG:-deu_eng}" in
+        deu) lang="deu" ;;
+        eng) lang="eng" ;;
+        *) lang="deu+eng" ;;
+    esac
+    log "Texterkennung (${lang}) für ${#saved[@]} Seite(n) ..."
+
+    if [[ "${SCAN_OCR_ROTATE:-true}" == "true" && "${scan_format}" == "jpeg" ]]; then
+        for page in "${saved[@]}"; do
+            rotate_page "${page}"
+        done
+    fi
+
+    pages=("${saved[@]}")
+    saved=()
+    if [[ "${format}" == "pdf" ]]; then
+        # Alle Seiten in ein durchsuchbares PDF (Bild + unsichtbarer Text)
+        printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
+        if nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/${base}" \
+                -l "${lang}" pdf > /dev/null 2>&1 \
+            && file=$(publish "${work_dir}/${base}.pdf" "${base}.pdf"); then
+            saved+=("${file}")
+        else
+            fail "Texterkennung fehlgeschlagen"
+        fi
+    else
+        # Bilder wie eingestellt, dazu der erkannte Text als .txt
+        : > "${work_dir}/${base}.txt"
+        for page in "${pages[@]}"; do
+            file=$(publish "${page}" "${page##*/}") && saved+=("${file}")
+            nice -n 10 tesseract "${page}" - -l "${lang}" 2> /dev/null >> "${work_dir}/${base}.txt"
+            printf '\f' >> "${work_dir}/${base}.txt"
+        done
+        file=$(publish "${work_dir}/${base}.txt" "${base}.txt") && saved+=("${file}")
+    fi
+
+    for file in "${saved[@]}"; do
+        log "Gespeichert: ${file}"
+    done
+fi
 
 for file in "${saved[@]}"; do
     notify "ok" "${file}"

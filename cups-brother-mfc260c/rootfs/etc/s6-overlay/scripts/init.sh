@@ -187,6 +187,9 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
             printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "scan_menu.${key}resolution" "${def_res}")"
             printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "scan_menu.${key}color" "${def_color}")"
         done
+        printf 'SCAN_OCR_TEXT=%q\n' "$(bashio::config 'scan_menu.ocr_text' 'true')"
+        printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_menu.ocr_language' 'deu_eng')"
+        printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_menu.ocr_rotate' 'true')"
     } > "${RUN_DIR}/scan.env"
 fi
 

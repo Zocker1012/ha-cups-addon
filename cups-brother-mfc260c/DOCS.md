@@ -67,8 +67,15 @@ Menüpunkt, alles andere stellst du im Add-on ein:
 | E-Mail | PDF, 150 dpi, Farbe (kleine Datei) |
 
 Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
-Farbe oder Graustufen einstellen. „OCR“ und „E-Mail“ speichern nur in den
-Ordner – Texterkennung und Mailversand macht das Add-on nicht.
+Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
+verschickt das Add-on nicht.
+
+**Texterkennung bei „OCR“** (Standard an, Deutsch und Englisch): Als PDF
+bekommst du ein durchsuchbares PDF – du kannst darin Text suchen und
+kopieren, und z. B. Paperless findet den Inhalt. Bei JPEG/PNG kommt der
+erkannte Text als `.txt`-Datei dazu. Verkehrt herum oder quer eingelegte
+Seiten dreht das Add-on vorher automatisch (bei PDF und JPEG). Die Erkennung
+braucht je Seite etwa eine bis ein paar Sekunden.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
@@ -128,6 +135,9 @@ scan_menu:
   ocr_format: pdf
   ocr_resolution: "300"
   ocr_color: gray
+  ocr_text: true          # Texterkennung
+  ocr_language: deu_eng   # deu_eng | deu | eng
+  ocr_rotate: true        # Seiten automatisch drehen
   email_format: pdf
   email_resolution: "150"
   email_color: color
@@ -179,5 +189,5 @@ pushen, Workflow abwarten, dann in HA updaten.
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
 Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
-Anpassung in `patches/`) sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu
-(GPL/AGPL/LGPL/BSD). Das CUPS-Logo ist eine Marke von OpenPrinting/Apple.
+Anpassung in `patches/`), Tesseract (Apache 2.0) sowie Ghostscript, SANE,
+Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das CUPS-Logo ist eine Marke von OpenPrinting/Apple.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.10.0
+
+### Neu
+
+- Texterkennung für den Menüpunkt „OCR“ am Gerät (Tesseract, Deutsch und
+  Englisch): PDF wird durchsuchbar, bei JPEG/PNG kommt eine `.txt`-Datei dazu.
+  Verkehrt herum oder quer liegende Seiten werden vorher automatisch gedreht.
+  Einstellungen: OCR – Texterkennung, Sprache, Seiten automatisch drehen.
+
 ## 2.9.0
 
 ### Neu

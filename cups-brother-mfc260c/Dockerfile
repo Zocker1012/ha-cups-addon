@@ -127,6 +127,11 @@ RUN dpkg --add-architecture i386 \
         libusb-0.1-4 \
         libusb-1.0-0 \
         sane-utils \
+        # Texterkennung (Scan-Menü "OCR"), jpegtran zum verlustfreien Drehen
+        libjpeg-turbo-progs \
+        tesseract-ocr \
+        tesseract-ocr-deu \
+        tesseract-ocr-eng \
         # Druckordner
         inotify-tools \
     && apt-get clean -y \
@@ -169,7 +174,9 @@ RUN set -e; \
     test -s /usr/share/cups/model/brmfc260c.ppd; \
     test -x /usr/lib/cups/filter/brlpdwrappermfc260c; \
     test -x /usr/lib/cups/backend/usb; \
-    for cmd in gs pdf2ps file psnup a2ps; do command -v "${cmd}"; done; \
+    for cmd in gs pdf2ps file psnup a2ps tesseract jpegtran; do command -v "${cmd}"; done; \
+    tesseract --list-langs 2>&1 | grep -qx deu; \
+    tesseract --list-langs 2>&1 | grep -qx osd; \
     rc=0; \
     /usr/local/Brother/Printer/mfc260c/lpd/brmfc260cfilter < /dev/null > /dev/null 2>&1 || rc=$?; \
     if [ "${rc}" -ge 126 ]; then \
