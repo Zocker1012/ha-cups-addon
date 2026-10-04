@@ -19,22 +19,19 @@ Die Drucker-Einrichtung wird je Modus getrennt gespeichert.
 ## Einrichtung
 
 1. Drucker per USB an den Home-Assistant-Host anschließen und einschalten.
-2. Optional ein `admin_password` setzen. Bleibt es leer, erzeugt das Add-on
-   ein zufälliges Passwort und schreibt es beim Start ins Log.
+2. Anmeldung wählen (siehe unten).
 3. Add-on starten.
 
 ### Modus `printer_app`
 
-Mit `auto_setup: true` (Standard) legt das Add-on den Drucker beim Start
-automatisch als **MFC260C** an. War der Drucker beim Start aus, einfach das
-Add-on neu starten.
+Mit `auto_setup: true` (Standard) legt das Add-on den Drucker automatisch als
+**MFC260C** an – beim Start und auch im laufenden Betrieb, sobald der Drucker
+per USB verbunden und eingeschaltet wird. Ein Neustart des Add-ons ist dafür
+nicht nötig. Die Auto-Einrichtung greift nur, solange noch kein Drucker
+angelegt ist.
 
 Manuell geht es in der Weboberfläche über **Add Printer**: Gerät „Brother
 MFC-260C“ (USB) und Treiber „Brother MFC-260C, CUPS v1.1“ wählen.
-
-Für Änderungen in der Weboberfläche fragt die Printer Application nach dem
-Admin-Passwort (`admin_password`). Aus dem LAN öffnet sie Admin-Seiten per
-HTTPS mit einem selbst signierten Zertifikat – die Browser-Warnung ist normal.
 
 Die Brother-Optionen (Qualität, Medientyp, Graustufen, Helligkeit …) stehen
 unter **Printing Defaults** des Druckers zur Verfügung.
@@ -43,23 +40,38 @@ unter **Printing Defaults** des Druckers zur Verfügung.
 
 Weboberfläche öffnen, **Administration → Add Printer**, den Brother
 MFC-260C (USB) und das Modell „Brother MFC-260C CUPS v1.1“ wählen und
-„Share This Printer“ aktivieren. Anmeldung mit Benutzer `print` und dem
-Admin-Passwort.
+„Share This Printer“ aktivieren.
 
-## Weboberfläche
+## Weboberfläche und Anmeldung
 
-- **Seitenleiste von Home Assistant** (Ingress): Im Modus `cups` ist man dort
-  automatisch als Admin angemeldet, im Modus `printer_app` einmal mit dem
-  Admin-Passwort.
-- **Direkt**: `http://<IP-von-Home-Assistant>:631/`
+- **Seitenleiste von Home Assistant** (Ingress): Hier bist du in beiden Modi
+  automatisch als Admin angemeldet – Home Assistant hat dich ja schon
+  angemeldet.
+- **Direkt**: `http://<IP-von-Home-Assistant>:631/`. Für Admin-Seiten
+  wechselt die Oberfläche auf HTTPS mit einem selbst signierten Zertifikat –
+  die Browser-Warnung ist normal.
+
+Wer sich bei direktem Zugriff anmelden darf, legt die Option `auth` fest:
+
+| `auth` | Modus `cups` | Modus `printer_app` |
+|---|---|---|
+| `homeassistant` (Standard) | Mit jedem **Home-Assistant-Benutzerkonto** (Benutzername und Passwort wie beim HA-Login) | Verwaltung **nur über die HA-Seitenleiste**; direkt im LAN ist sie gesperrt |
+| `manual` | Mit `admin_username` (Standard `print`) und `admin_password` | Mit `admin_password` (die Printer Application kennt keine Benutzernamen) |
+
+Ist bei `manual` kein `admin_password` gesetzt, erzeugt das Add-on ein
+zufälliges Passwort und schreibt es beim Start ins Log.
+
+Drucken selbst braucht in keinem Fall eine Anmeldung.
 
 ## Optionen
 
 | Option | Beschreibung |
 |---|---|
 | `mode` | `printer_app` oder `cups` (siehe oben) |
-| `admin_password` | Passwort für die Web-Administration (Benutzer `print`) |
-| `auto_setup` | Drucker im Modus `printer_app` automatisch anlegen |
+| `auth` | `homeassistant` oder `manual` (siehe oben) |
+| `admin_username` | Benutzername bei `auth: manual` (nur Modus `cups`), Standard `print` |
+| `admin_password` | Passwort bei `auth: manual` |
+| `auto_setup` | Drucker im Modus `printer_app` automatisch anlegen, auch beim Anstecken im laufenden Betrieb |
 | `log_level` | `debug`, `info`, `warning`, `error`. `debug` schreibt zusätzlich das Debug-Log des Brother-Treibers ins Add-on-Log. |
 
 ## Fehlersuche

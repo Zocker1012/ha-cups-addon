@@ -21,9 +21,12 @@ server {
         proxy_set_header   Host            localhost:631;
         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
 
-        # Home Assistant hat den Benutzer bereits authentifiziert:
-        # CUPS-Admin-Anmeldung automatisch mitschicken
+        # Home Assistant hat den Benutzer bereits authentifiziert: als interner
+        # Benutzer "ingress" (zufälliges Token pro Start) bei CUPS bzw. der
+        # Printer Application anmelden
         proxy_set_header   Authorization   "Basic {{ .auth }}";
+        # Printer Application: Login-Cookie (wird von ingress-session.sh gepflegt)
+        include            /run/cups-addon/ingress-cookie.conf;
 
         # Unkomprimierte Antworten, damit sub_filter greift
         proxy_set_header   Accept-Encoding "";
@@ -32,8 +35,8 @@ server {
         proxy_hide_header  X-Frame-Options;
         proxy_hide_header  Content-Security-Policy;
 
-        # Die Printer Application setzt ihr Login-Cookie immer mit "secure" –
-        # das würde bei Home Assistant über reines HTTP verworfen
+        # Die Printer Application setzt Cookies immer mit "secure" – das würde
+        # bei Home Assistant über reines HTTP verworfen
         proxy_cookie_flags ~ nosecure;
 
         proxy_redirect     http://localhost:631/  {{ .entry }}/;

@@ -1,5 +1,5 @@
 name: "CUPS Addon (Brother MFC-260C)"
-version: "2.0.0"
+version: "2.1.0"
 slug: cups-brother-mfc260c
 description: >
   Druckserver für den Brother MFC-260C mit AirPrint/IPP Everywhere –
@@ -28,13 +28,19 @@ panel_title: Drucker
 # USB-Zugriff auf den Drucker
 usb: true
 
+# Anmeldung mit Home-Assistant-Benutzerkonten (Option auth: homeassistant)
+auth_api: true
+
 options:
   mode: printer_app
+  auth: homeassistant
   auto_setup: true
   log_level: info
 
 schema:
   mode: list(printer_app|cups)
+  auth: list(homeassistant|manual)
+  admin_username: str?
   admin_password: password?
   auto_setup: bool
   log_level: list(debug|info|warning|error)

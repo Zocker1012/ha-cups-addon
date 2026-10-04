@@ -2,13 +2,23 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Automatische Einrichtung des Brother MFC-260C in der Legacy Printer Application
-# Läuft im Hintergrund, sobald der Server erreichbar ist.
+#
+# PAPPL (und damit CUPS 3) erkennt neu angesteckte USB-Drucker nur beim Start.
+# Daher beobachtet dieser Dienst den USB-Bus (sysfs) und richtet den Drucker
+# ein, sobald ein Brother-Gerät auftaucht und noch kein Drucker existiert.
 # ==============================================================================
+
+# shellcheck source=printer-app-env.sh
+source /etc/s6-overlay/scripts/printer-app-env.sh
 
 readonly APP="legacy-printer-app"
 readonly SOCKET="/run/legacy-printer-app.sock"
 readonly PRINTER_NAME="MFC260C"
 readonly MODEL_PATTERN="mfc-?260c"
+readonly BROTHER_VENDOR_ID="04f9"
+readonly USB_SYSFS="${USB_SYSFS:-/sys/bus/usb/devices}"
+readonly POLL_INTERVAL=5
+readonly MAX_TRIES=3
 
 # ------------------------------------------------------------------------------
 # Warten, bis der Server fertig gestartet ist und Anfragen beantwortet.
@@ -18,54 +28,109 @@ readonly MODEL_PATTERN="mfc-?260c"
 wait_for_server() {
     local tries=0
 
-    until [[ -S "${SOCKET}" ]] && printers=$("${APP}" printers 2>/dev/null); do
+    until [[ -S "${SOCKET}" ]] && "${APP}" printers > /dev/null 2>&1; do
         tries=$((tries + 1))
         if [[ "${tries}" -ge 60 ]]; then
-            bashio::log.warning "Auto-Einrichtung: Server nicht erreichbar – abgebrochen"
-            exit 0
+            bashio::log.warning "Auto-Einrichtung: Server nicht erreichbar"
+            return 1
         fi
         sleep 2
     done
 }
 
-printers=""
-wait_for_server
+# Angeschlossene Brother-USB-Geräte (sysfs-Pfade), leer wenn keins da ist
+brother_usb_devices() {
+    local dev
 
-if [[ -n "${printers}" ]]; then
-    bashio::log.info "Auto-Einrichtung: Drucker bereits vorhanden – nichts zu tun"
-    exit 0
-fi
+    for dev in "${USB_SYSFS}"/*; do
+        [[ -r "${dev}/idVendor" ]] || continue
+        if [[ "$(<"${dev}/idVendor")" == "${BROTHER_VENDOR_ID}" ]]; then
+            echo "${dev##*/}"
+        fi
+    done
+}
 
-bashio::log.info "Auto-Einrichtung: Suche Brother MFC-260C..."
+# Drucker anlegen, falls noch keiner existiert.
+# Rückgabe: 0 = erledigt (eingerichtet oder schon vorhanden), 1 = nochmal versuchen
+setup_printer() {
+    local printers driver device_uri
 
-driver=$("${APP}" drivers 2>/dev/null \
-    | grep -iE "${MODEL_PATTERN}" \
-    | head -n1 \
-    | cut -d' ' -f1) || true
+    printers=$("${APP}" printers 2>/dev/null) || return 1
+    if [[ -n "${printers}" ]]; then
+        bashio::log.info "Auto-Einrichtung: Drucker bereits vorhanden – nichts zu tun"
+        return 0
+    fi
 
-if [[ -z "${driver}" ]]; then
-    bashio::log.error "Auto-Einrichtung: Brother-Treiber nicht gefunden"
-    exit 0
-fi
+    bashio::log.info "Auto-Einrichtung: Suche Brother MFC-260C..."
 
-# Geräteliste: URI ohne Einrückung, Details (Info, Geräte-ID) eingerückt darunter
-device_uri=$("${APP}" devices -o verbose 2>/dev/null \
-    | awk -v pattern="${MODEL_PATTERN}" '
-        /^[^ \t]/ { uri = $1 }
-        tolower($0) ~ pattern && uri != "" { print uri }
-    ' \
-    | awk '/usb/ { print; found = 1; exit } { first = first ? first : $0 } END { if (!found && first) print first }') || true
+    driver=$("${APP}" drivers 2>/dev/null \
+        | grep -iE "${MODEL_PATTERN}" \
+        | head -n1 \
+        | cut -d' ' -f1) || true
 
-if [[ -z "${device_uri}" ]]; then
-    bashio::log.warning "Auto-Einrichtung: Brother MFC-260C nicht gefunden (eingeschaltet und per USB verbunden?). Neuer Versuch beim nächsten Start."
-    exit 0
-fi
+    if [[ -z "${driver}" ]]; then
+        bashio::log.error "Auto-Einrichtung: Brother-Treiber nicht gefunden"
+        return 0
+    fi
 
-bashio::log.info "Auto-Einrichtung: Lege Drucker '${PRINTER_NAME}' an (${device_uri}, Treiber ${driver})"
+    # Geräteliste: URI ohne Einrückung, Details (Info, Geräte-ID) eingerückt darunter
+    device_uri=$("${APP}" devices -o verbose 2>/dev/null \
+        | awk -v pattern="${MODEL_PATTERN}" '
+            /^[^ \t]/ { uri = $1 }
+            tolower($0) ~ pattern && uri != "" { print uri }
+        ' \
+        | awk '/usb/ { print; found = 1; exit } { first = first ? first : $0 } END { if (!found && first) print first }') || true
 
-if "${APP}" add -d "${PRINTER_NAME}" -m "${driver}" -v "${device_uri}"; then
-    "${APP}" default -d "${PRINTER_NAME}" || true
-    bashio::log.info "Auto-Einrichtung: Drucker '${PRINTER_NAME}' ist eingerichtet"
-else
+    if [[ -z "${device_uri}" ]]; then
+        bashio::log.warning "Auto-Einrichtung: Brother MFC-260C nicht gefunden (eingeschaltet und per USB verbunden?)"
+        return 1
+    fi
+
+    bashio::log.info "Auto-Einrichtung: Lege Drucker '${PRINTER_NAME}' an (${device_uri}, Treiber ${driver})"
+
+    if "${APP}" add -d "${PRINTER_NAME}" -m "${driver}" -v "${device_uri}"; then
+        "${APP}" default -d "${PRINTER_NAME}" || true
+        bashio::log.info "Auto-Einrichtung: Drucker '${PRINTER_NAME}' ist eingerichtet"
+        return 0
+    fi
+
     bashio::log.error "Auto-Einrichtung: Anlegen des Druckers fehlgeschlagen"
+    return 1
+}
+
+wait_for_server || exit 0
+
+# Ohne Zugriff auf den USB-Bus nur einmal beim Start einrichten
+if [[ ! -d "${USB_SYSFS}" ]]; then
+    bashio::log.warning "Auto-Einrichtung: USB-Bus nicht lesbar – neue Drucker werden nur beim Start erkannt"
+    setup_printer || true
+    exec sleep infinity
 fi
+
+bashio::log.info "Auto-Einrichtung: Überwache USB auf Brother-Drucker"
+
+# Bei jeder Änderung der angeschlossenen Brother-Geräte (anstecken/einschalten)
+# höchstens MAX_TRIES Einrichtungsversuche
+known=""
+tries=0
+while true; do
+    current=$(brother_usb_devices | sort | tr '\n' ' ')
+
+    if [[ "${current}" != "${known}" ]]; then
+        known="${current}"
+        tries=0
+        if [[ -n "${current}" ]]; then
+            bashio::log.info "Auto-Einrichtung: Brother-USB-Gerät erkannt"
+        fi
+    fi
+
+    if [[ -n "${current}" && "${tries}" -lt "${MAX_TRIES}" ]]; then
+        if setup_printer; then
+            tries="${MAX_TRIES}"
+        else
+            tries=$((tries + 1))
+        fi
+    fi
+
+    sleep "${POLL_INTERVAL}"
+done

@@ -78,14 +78,9 @@ RUN set -e; \
     FILTER_DIR=/usr/lib/cups/filter BACKEND_DIR=/usr/lib/cups/backend \
         legacy-printer-app drivers | grep -i 'mfc-\?260c'
 
-# Benutzer "print" für die Web-Administration (Passwort wird beim Start gesetzt)
-RUN useradd \
-        --groups=lp,lpadmin \
-        --create-home \
-        --home-dir=/home/print \
-        --shell=/usr/sbin/nologin \
-        print \
-    && rm -f /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default \
+    # PAM-Modul für die Anmeldung (siehe rootfs/etc/pam.d)
+    && test -f /usr/lib/x86_64-linux-gnu/security/pam_exec.so
 
 COPY rootfs /
 

@@ -4,16 +4,27 @@ configuration:
     description: >-
       "printer_app": CUPS-3-Weg mit der Legacy Printer Application (empfohlen).
       "cups": klassischer CUPS-Server als Rückfallebene.
+  auth:
+    name: Anmeldung
+    description: >-
+      Anmeldung für die Web-Administration. "homeassistant": mit einem
+      Home-Assistant-Benutzerkonto. "manual": mit Benutzername und Passwort
+      aus den folgenden Optionen.
+  admin_username:
+    name: Admin-Benutzername
+    description: >-
+      Nur bei Anmeldung "manual". Standard: print.
   admin_password:
     name: Admin-Passwort
     description: >-
-      Passwort für die Web-Administration (Benutzer "print"). Leer lassen,
-      um ein zufälliges Passwort zu erzeugen – es steht dann im Add-on-Log.
+      Nur bei Anmeldung "manual". Leer lassen, um ein zufälliges Passwort zu
+      erzeugen – es steht dann im Add-on-Log.
   auto_setup:
     name: Automatische Einrichtung
     description: >-
-      Legt den per USB angeschlossenen Brother MFC-260C beim Start automatisch
-      an (nur Modus "printer_app").
+      Legt den Brother MFC-260C automatisch an, sobald er per USB verbunden
+      und eingeschaltet ist – auch im laufenden Betrieb (nur Modus
+      "printer_app").
   log_level:
     name: Log-Level
     description: >-

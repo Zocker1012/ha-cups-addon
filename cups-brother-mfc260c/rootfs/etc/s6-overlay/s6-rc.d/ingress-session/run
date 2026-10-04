@@ -1,0 +1,12 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Ingress-Login-Cookie für die Printer Application pflegen (Modus "printer_app")
+# ==============================================================================
+
+if [[ "$(bashio::config 'mode')" != "printer_app" ]]; then
+    s6-svc -O .
+    exit 0
+fi
+
+exec /etc/s6-overlay/scripts/ingress-session.sh

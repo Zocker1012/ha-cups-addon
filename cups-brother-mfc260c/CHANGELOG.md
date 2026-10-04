@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.1.0
+
+### Neu
+
+- Auto-Einrichtung erkennt den Drucker jetzt auch im laufenden Betrieb: Das
+  Add-on beobachtet den USB-Bus und legt den Drucker an, sobald er verbunden
+  und eingeschaltet wird – ohne Neustart. (PAPPL bzw. CUPS 3 selbst erkennen
+  neue USB-Drucker nur beim Start.)
+- Option `auth`: Anmeldung mit Home-Assistant-Benutzerkonten (`homeassistant`,
+  Standard) oder mit eigenem Benutzernamen/Passwort (`manual`, neue Option
+  `admin_username`).
+- HA-Seitenleiste (Ingress) jetzt auch im Modus `printer_app` ohne
+  zusätzlichen Login.
+
+### Geändert
+
+- Lokaler Benutzer `print` mit Systempasswort entfällt; die Anmeldung prüft
+  das Add-on selbst (PAM). Im Modus `printer_app` mit `auth: homeassistant` ist
+  die Verwaltung nur noch über die HA-Seitenleiste möglich.
+- Standard ist jetzt `auth: homeassistant`. Wer das in 2.0 gesetzte
+  `admin_password` weiter nutzen will, stellt `auth: manual` ein.
+
 ## 2.0.0
 
 ### Breaking

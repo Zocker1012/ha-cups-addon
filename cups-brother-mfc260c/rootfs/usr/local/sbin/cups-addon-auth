@@ -1,0 +1,69 @@
+#!/bin/bash
+# ==============================================================================
+# Anmeldeprüfung für CUPS (über pam_exec, Modus "cups")
+#
+# - Benutzer "ingress": zufälliges Token pro Start, nur dem Ingress-Proxy bekannt
+# - auth: homeassistant -> Benutzerkonto von Home Assistant (Supervisor-Auth-API)
+# - auth: manual        -> Benutzername/Passwort aus den Add-on-Optionen
+#
+# PAM übergibt den Benutzernamen in PAM_USER und das Passwort über stdin.
+# ==============================================================================
+set -u
+
+readonly DIR="/run/cups-addon"
+readonly CACHE_DIR="${DIR}/auth-cache"
+readonly CACHE_MINUTES=5
+
+user="${PAM_USER:-}"
+password=""
+IFS= read -r -d '' password || true
+
+[[ -n "${user}" && -n "${password}" ]] || exit 1
+
+# Lokales Konto anlegen, damit CUPS den Benutzer der Admin-Gruppe (@SYSTEM)
+# zuordnen kann. Nur für gültige Unix-Benutzernamen.
+ensure_local_user() {
+    if [[ "${user}" =~ ^[a-z_][a-z0-9_.-]{0,31}$ ]] && ! id "${user}" > /dev/null 2>&1; then
+        useradd --no-create-home --no-user-group --groups lpadmin \
+            --shell /usr/sbin/nologin "${user}" > /dev/null 2>&1 || true
+    fi
+}
+
+if [[ "${user}" == "ingress" ]]; then
+    [[ "${password}" == "$(<"${DIR}/ingress_token")" ]] && exit 0
+    exit 1
+fi
+
+case "$(<"${DIR}/auth_mode")" in
+    manual)
+        if [[ "${user}" == "$(<"${DIR}/admin_user")" \
+            && "${password}" == "$(<"${DIR}/admin_password")" ]]; then
+            ensure_local_user
+            exit 0
+        fi
+        ;;
+
+    homeassistant)
+        cache="${CACHE_DIR}/$(printf '%s\0%s' "${user}" "${password}" | sha256sum | cut -d' ' -f1)"
+        if [[ -n "$(find "${cache}" -mmin "-${CACHE_MINUTES}" 2> /dev/null)" ]]; then
+            exit 0
+        fi
+
+        status=$(jq -n --arg u "${user}" --arg p "${password}" '{username: $u, password: $p}' \
+            | curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+                -X POST \
+                -H "Authorization: Bearer $(<"${DIR}/supervisor_token")" \
+                -H "Content-Type: application/json" \
+                --data-binary @- \
+                "$(<"${DIR}/supervisor_api")/auth") || status=""
+
+        if [[ "${status}" == "200" ]]; then
+            mkdir -p "${CACHE_DIR}"
+            touch "${cache}"
+            ensure_local_user
+            exit 0
+        fi
+        ;;
+esac
+
+exit 1
