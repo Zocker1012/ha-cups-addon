@@ -51,12 +51,15 @@ configuration:
         description: Below /share or /media.
       format:
         name: Format
-        description: Applies to "File"; "Image" is always color JPEG.
+        description: For "File", "OCR" and "E-mail". "Image" is always JPEG.
       resolution:
         name: Resolution (dpi)
       color:
         name: Color
-        description: '"color" or "gray" (grayscale, smaller files).'
+        description: '"color" or "gray" for "File", "OCR" and "E-mail".'
+      image_color:
+        name: Color for "Image"
+        description: Color for the "Image" menu item.
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.
@@ -68,12 +71,15 @@ configuration:
         description: >-
           Below /share or /media. PDF, PostScript, JPEG, PNG; moved to
           "gedruckt/" afterwards.
+      paper:
+        name: Paper size
+        description: Default A4. Photo sizes in cm (10x15, 13x18, 9x13).
       color:
         name: Color
         description: '"gray" prints with black ink only.'
       quality:
         name: Quality
-        description: '"draft" saves ink, "fine" is slower. Paper is always A4.'
+        description: '"draft" saves ink, "fine" is slower.'
   log_level:
     name: Log level
     description: >-

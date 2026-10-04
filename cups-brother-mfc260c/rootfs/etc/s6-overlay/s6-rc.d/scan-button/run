@@ -16,7 +16,7 @@ if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.tru
 fi
 
 if [[ ! -e /usr/share/cups-addon-scan-button ]]; then
-    bashio::log.warning "Scan-Taste: Brother Scan-Key-Tool (brscan-skey) fehlt im Image – siehe Dokumentation"
+    bashio::log.warning "Scan-Menü: Brother Scan-Key-Tool (brscan-skey) fehlt im Image – siehe Dokumentation"
     s6-svc -O .
     exit 0
 fi
@@ -35,13 +35,13 @@ for cfg in "${SKEY_DIR}/brscan-skey.config" "${SKEY_DIR}"/brscan-skey-*.cfg; do
             echo "${target}=\"bash ${SCRIPT} ${target,,}\"" >> "${cfg}"
         fi
     done
-    bashio::log.info "Scan-Taste: ${cfg##*/} eingerichtet"
+    bashio::log.info "Scan-Menü: ${cfg##*/} eingerichtet"
     bashio::log.debug "$(grep -E '^(FILE|IMAGE|OCR|EMAIL)=' "${cfg}")"
     configured=true
 done
 
 if [[ "${configured}" != "true" ]]; then
-    bashio::log.error "Scan-Taste: Konfiguration von brscan-skey nicht gefunden"
+    bashio::log.error "Scan-Menü: Konfiguration von brscan-skey nicht gefunden"
     s6-svc -O .
     exit 0
 fi
@@ -61,7 +61,7 @@ mkdir -p "${BROTHER_OUT}" "${scan_folder}"
         done
 ) &
 
-bashio::log.info "Scan-Taste wird überwacht (Ziel: ${scan_folder})"
+bashio::log.info "Scan-Menü am Gerät wird überwacht (Ziel: ${scan_folder})"
 
 # Version 0.3.x kann im Vordergrund laufen (-f) – ideal für s6
 if [[ -x "${SKEY_DIR}/brscan-skey-exe" ]]; then
@@ -74,7 +74,7 @@ if [[ -z "${skey}" ]]; then
     skey=$(find "${SKEY_DIR}" -maxdepth 1 -type f -name 'brscan-skey*' -perm -u+x ! -name '*.sh' | head -n1)
 fi
 if [[ -z "${skey}" ]]; then
-    bashio::log.error "Scan-Taste: brscan-skey nicht gefunden"
+    bashio::log.error "Scan-Menü: brscan-skey nicht gefunden"
     s6-svc -O .
     exit 0
 fi
@@ -84,5 +84,5 @@ sleep 3
 while pgrep -f 'brscan-skey' > /dev/null; do
     sleep 30
 done
-bashio::log.warning "Scan-Taste: brscan-skey wurde beendet – starte neu"
+bashio::log.warning "Scan-Menü: brscan-skey wurde beendet – starte neu"
 exit 1

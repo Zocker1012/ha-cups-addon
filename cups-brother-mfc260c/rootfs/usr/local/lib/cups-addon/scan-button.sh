@@ -37,12 +37,12 @@ fail() {
     exit 1
 }
 
-# Menüpunkt "Bild" am Gerät: immer JPEG in Farbe, sonst die Einstellungen
+# Menüpunkt "Bild" am Gerät: immer JPEG, Farbe aus eigener Einstellung
 format="${SCAN_FORMAT}"
 mode="${SCAN_MODE}"
 if [[ "${target}" == "image" ]]; then
     format="jpeg"
-    mode="color"
+    mode="${SCAN_IMAGE_MODE:-color}"
 fi
 
 case "${format}" in

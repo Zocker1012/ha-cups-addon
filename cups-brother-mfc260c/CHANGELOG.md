@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.7.0
+
+### Neu
+
+- Druckordner: Papierformat wählbar (A4, A5, A6, Letter, Legal, Foto 10x15,
+  13x18, 9x13), Standard A4.
+- Scan-Menü am Gerät: Farbe für den Menüpunkt „Bild“ einstellbar
+  (Standard Farbe).
+
+### Geändert
+
+- Dokumentation durchgehend in der Du-Form und gekürzt.
+- Log-Meldungen sprechen vom „Scan-Menü“ statt von der „Scan-Taste“.
+
 ## 2.6.0
 
 ### Behoben

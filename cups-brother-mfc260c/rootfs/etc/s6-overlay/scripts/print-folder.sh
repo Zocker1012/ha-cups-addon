@@ -15,6 +15,21 @@ COLOR=$(bashio::config 'folder_printing.color' 'color')
 readonly COLOR
 QUALITY=$(bashio::config 'folder_printing.quality' 'normal')
 readonly QUALITY
+PAPER=$(bashio::config 'folder_printing.paper' 'a4')
+readonly PAPER
+
+# Papierformat: Name für die Printer Application (IPP) und für CUPS (PPD)
+case "${PAPER}" in
+    a5) MEDIA_IPP="iso_a5_148x210mm" MEDIA_PPD="A5" ;;
+    a6) MEDIA_IPP="iso_a6_105x148mm" MEDIA_PPD="A6" ;;
+    letter) MEDIA_IPP="na_letter_8.5x11in" MEDIA_PPD="Letter" ;;
+    legal) MEDIA_IPP="na_legal_8.5x14in" MEDIA_PPD="Legal" ;;
+    photo_10x15) MEDIA_IPP="na_index-4x6_4x6in" MEDIA_PPD="PostC4x6" ;;
+    photo_13x18) MEDIA_IPP="na_5x7_5x7in" MEDIA_PPD="Photo2L" ;;
+    photo_9x13) MEDIA_IPP="oe_photo-l_3.5x5in" MEDIA_PPD="PhotoL" ;;
+    *) MEDIA_IPP="iso_a4_210x297mm" MEDIA_PPD="A4" ;;
+esac
+readonly MEDIA_IPP MEDIA_PPD
 
 mkdir -p "${FOLDER}" "${DONE_DIR}" "${FAILED_DIR}"
 
@@ -32,12 +47,12 @@ printer_name() {
     echo "${name}"
 }
 
-# Druckoptionen: immer A4, Farbe und Qualität aus den Einstellungen
+# Druckoptionen: Papierformat, Farbe und Qualität aus den Einstellungen
 # (Modus "cups": PPD-Optionen des Brother-Treibers, sonst IPP-Attribute)
 submit() {
     local file="$1" printer="$2" opts=()
     if [[ "${MODE}" == "cups" ]]; then
-        opts+=(-o media=A4)
+        opts+=(-o "media=${MEDIA_PPD}")
         [[ "${COLOR}" == "gray" ]] && opts+=(-o BRMonoColor=BrMono)
         case "${QUALITY}" in
             draft) opts+=(-o Resolution=Draft) ;;
@@ -45,7 +60,7 @@ submit() {
         esac
         lp -d "${printer}" -t "${file##*/}" "${opts[@]}" -- "${file}" > /dev/null
     else
-        opts+=(-o media=iso_a4_210x297mm)
+        opts+=(-o "media=${MEDIA_IPP}")
         [[ "${COLOR}" == "gray" ]] && opts+=(-o print-color-mode=monochrome)
         case "${QUALITY}" in
             draft) opts+=(-o quality=fast) ;;
@@ -86,7 +101,7 @@ handle() {
     fi
 }
 
-bashio::log.info "Druckordner aktiv: ${FOLDER} (A4, ${COLOR}, Qualität ${QUALITY})"
+bashio::log.info "Druckordner aktiv: ${FOLDER} (${MEDIA_PPD}, ${COLOR}, Qualität ${QUALITY})"
 
 # Erst vorhandene Dateien, dann neue (fertig geschrieben oder hineinverschoben)
 for file in "${FOLDER}"/*; do

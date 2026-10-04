@@ -51,12 +51,15 @@ configuration:
         description: Unter /share oder /media.
       format:
         name: Format
-        description: Gilt für "Datei"; "Bild" ist immer JPEG in Farbe.
+        description: Für "Datei", "OCR" und "E-Mail". "Bild" ist immer JPEG.
       resolution:
         name: Auflösung (dpi)
       color:
         name: Farbe
-        description: '"color" oder "gray" (Graustufen, kleinere Dateien).'
+        description: '"color" oder "gray" für "Datei", "OCR" und "E-Mail".'
+      image_color:
+        name: Farbe bei Bild
+        description: Farbe für den Menüpunkt "Bild".
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.
@@ -68,12 +71,15 @@ configuration:
         description: >-
           Unter /share oder /media. PDF, PostScript, JPEG, PNG; danach nach
           "gedruckt/" verschoben.
+      paper:
+        name: Papierformat
+        description: Standard A4. Fotoformate in cm (10x15, 13x18, 9x13).
       color:
         name: Farbe
         description: '"gray" druckt nur mit schwarzer Tinte.'
       quality:
         name: Qualität
-        description: '"draft" spart Tinte, "fine" ist langsamer. Papier ist immer A4.'
+        description: '"draft" spart Tinte, "fine" ist langsamer.'
   log_level:
     name: Log-Level
     description: >-

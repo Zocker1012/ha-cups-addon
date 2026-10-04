@@ -162,7 +162,7 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# Scanner: Einstellungen für die Scan-Taste, Ordner anlegen
+# Scanner: Einstellungen für das Scan-Menü am Gerät, Ordner anlegen
 # ------------------------------------------------------------------------------
 scanner=false
 if bashio::config.true 'scanning.enabled'; then
@@ -182,6 +182,7 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
         printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_menu.format')"
         printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.resolution')"
         printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_menu.color')"
+        printf 'SCAN_IMAGE_MODE=%q\n' "$(bashio::config 'scan_menu.image_color' 'color')"
     } > "${RUN_DIR}/scan.env"
 fi
 
