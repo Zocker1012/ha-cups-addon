@@ -58,8 +58,32 @@ else
 fi
 
 mkdir -p "${SCAN_FOLDER}"
+
+# Immer nur ein Scan zur Zeit (Menü am Gerät mehrfach gewählt)
+exec 9> /run/cups-addon/scan-button.lock
+flock 9
+
+# Eindeutiger Dateiname, auch bei zwei Scans in derselben Sekunde
 base="scan_$(date +%Y-%m-%d_%H-%M-%S)"
+if compgen -G "${SCAN_FOLDER}/${base}*" > /dev/null; then
+    base="${base}_$$"
+fi
 saved=()
+
+# Warten, bis AirSane läuft und der Scanner frei ist (z. B. nach einem
+# Neustart des Scanner-Dienstes oder direkt nach dem vorigen Scan)
+wait_ready() {
+    local i
+    for i in $(seq 1 60); do
+        if curl -s --max-time 5 "${ESCL}/ScannerStatus" \
+            | grep -q '<pwg:State>Idle</pwg:State>'; then
+            return 0
+        fi
+        [[ "${i}" -eq 1 ]] && log "Warte auf den Scanner ..."
+        sleep 1
+    done
+    return 1
+}
 
 # Einen Scan-Auftrag über AirSane ausführen und alle Seiten speichern.
 # $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Vorlageneinzug)
@@ -127,13 +151,13 @@ scan_from() {
     [[ "${page}" -gt 1 ]]
 }
 
-case "${SCAN_SOURCE:-auto}" in
-    flatbed) scan_from Platen ;;
-    adf) scan_from Feeder ;;
-    # Automatisch: Liegt Papier im Einzug, wird von dort gescannt,
-    # sonst (keine Seite erhalten) vom Vorlagenglas
-    *) scan_from Feeder || { sleep 2; scan_from Platen; } ;;
-esac
+wait_ready || fail "Scanner nicht bereit (läuft der Scanner-Dienst? Zeigt das Gerät \"PC-Anschluss\", dort Stopp drücken)"
+
+# Die Quelle wählt der MFC-260C selbst: Liegt Papier im Einzug, scannt er von
+# dort, sonst vom Vorlagenglas. "Feeder" sorgt nur dafür, dass alle Seiten aus
+# dem Einzug abgeholt werden – beim Vorlagenglas endet der Auftrag nach einer
+# Seite. Mit "Platen" bliebe das Gerät bei weiteren Seiten im Einzug hängen.
+scan_from Feeder || { wait_ready && scan_from Platen; }
 
 [[ "${#saved[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
 

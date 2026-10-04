@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.4.2
+
+### Behoben
+
+- Scan-Menü am Gerät: Gerät blieb bei „PC-Anschluss“ hängen, wenn mit
+  `scan_source: flatbed` aus dem Einzug gescannt wurde. Der MFC-260C wählt
+  die Quelle selbst (Papier im Einzug → Einzug, sonst Vorlagenglas); das
+  Add-on holt jetzt immer alle Seiten ab. Die Option `scan_source` entfällt
+  deshalb wieder.
+- Scan-Menü wartet, bis der Scanner bereit ist (z. B. kurz nach einem Scan
+  oder einem Neustart des Scanner-Dienstes), statt sofort aufzugeben.
+- Stürzt der Scanner-Dienst ab, steht der Grund jetzt im Log.
+
 ## 2.4.1
 
 ### Behoben

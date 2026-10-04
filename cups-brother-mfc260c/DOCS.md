@@ -60,6 +60,12 @@ dem modernen, treiberlosen Scan-Standard (Gegenstück zu AirPrint/IPP Everywhere
 - **Browser**: in der HA-Seitenleiste unter „Scanner“ oder direkt
   `http://<IP-von-Home-Assistant>:8090/`
 
+**Vorlagenglas oder Einzug:** Der MFC-260C entscheidet selbst – liegt Papier im
+Vorlageneinzug (das Display zeigt es an), scannt er von dort, sonst vom Glas.
+Die Auswahl im Programm („Platen“/Flachbett oder „Feeder“/Einzug) ändert daran
+nichts. Für mehrere Seiten aus dem Einzug „Feeder“ und PDF wählen, sonst wird
+nur die erste Seite abgeholt.
+
 Der MFC-260C scannt optisch mit 600 dpi, alles darüber rechnet der Treiber
 hoch. Der Treiber bietet bis zu 9600 dpi an – solche Scans werden riesig und
 scheitern (Windows meldet dann „Papierstau“). Das Add-on bietet deshalb
@@ -85,12 +91,11 @@ Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
 | **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus `scan_format`, `scan_resolution`, `scan_mode` |
 | **Bild** | JPEG in Farbe, Auflösung aus `scan_resolution` |
 
-Die Quelle bestimmt `scan_source`: Bei `auto` (Standard) wird vom
-Vorlageneinzug gescannt, wenn dort Papier liegt, sonst vom Vorlagenglas.
-Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
-einer Datei pro Seite. Der Scan selbst läuft über AirSane – denselben Weg wie
-in der Weboberfläche. Dort und unter Windows lässt sich die Quelle
-(„Platen“/Flachbett oder „Feeder“/Einzug) direkt auswählen.
+Die Quelle wählt der MFC-260C selbst: Liegt Papier im Vorlageneinzug (das
+Display meldet es), scannt er von dort, sonst vom Vorlagenglas. Mehrere Seiten
+aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in einer Datei pro
+Seite. Der Scan selbst läuft über AirSane – denselben Weg wie in der
+Weboberfläche.
 
 Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` an Home
 Assistant (`status`, `file`, `target`) – z. B. für eine Benachrichtigung:
@@ -163,7 +168,6 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 | `scan_format` | `pdf`, `jpeg` oder `png` |
 | `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
 | `scan_mode` | `color` oder `gray` |
-| `scan_source` | `auto`, `flatbed` (Vorlagenglas) oder `adf` (Vorlageneinzug) |
 | `print_folder` | Druckordner aktivieren |
 | `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
 | `log_level` | `debug`, `info`, `warning`, `error`. Bei `info` nur Meldungen des Add-ons und Warnungen; `debug` zeigt jede Verbindung und das Debug-Log des Brother-Treibers. |
@@ -181,6 +185,9 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 - **Windows meldet beim Scannen „Papierstau“:** Die gewählte Auflösung ist zu
   hoch. `scan_max_resolution` auf 600 lassen (Standard), das ist die echte
   Auflösung des Geräts.
+- **Display zeigt „PC-Anschluss“ und reagiert nicht:** Ein Scan wurde
+  unterbrochen. Am Gerät „Stopp“ drücken. Im Log steht ggf., warum der
+  Scanner-Dienst neu gestartet wurde.
 - **Druckauftrag abbrechen:** Das Add-on beendet den Auftrag innerhalb weniger
   Sekunden; die gerade gedruckte Seite wird abgeschlossen und ausgeworfen,
   weitere Seiten kommen nicht. Was schon komplett im Drucker liegt, druckt der
