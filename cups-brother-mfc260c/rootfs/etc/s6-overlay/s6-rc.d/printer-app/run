@@ -6,7 +6,7 @@
 # Drucker bereit.
 # ==============================================================================
 
-if [[ "$(bashio::config 'mode')" != "printer_app" ]]; then
+if [[ "$(bashio::config 'printer.mode')" != "printer_app" ]]; then
     # Nicht aktiv: Dienst einmalig beenden, ohne Neustart durch s6
     s6-svc -O .
     exit 0

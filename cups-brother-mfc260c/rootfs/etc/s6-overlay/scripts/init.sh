@@ -27,7 +27,48 @@ mkdir -p \
 # Nur root darf die Anmeldedaten lesen
 mkdir -m 700 "${RUN_DIR}"
 
-bashio::log.info "Modus: $(bashio::config 'mode')"
+# ------------------------------------------------------------------------------
+# Einstellungen von 2.4.x (flach) einmalig in die Gruppen von 2.5.0 übernehmen
+# ------------------------------------------------------------------------------
+migrate_options() {
+    local old new
+    old=$(bashio::addon.options) || return 0
+    jq -e 'has("mode") or has("auth") or has("scanner") or has("scan_button")
+        or has("print_folder") or has("auto_setup")' <<< "${old}" > /dev/null \
+        || return 0
+
+    new=$(jq -c '
+        def pick(k; d): if (.[k] // null) != null then .[k] else d end;
+        {
+          printer: {mode: pick("mode"; "printer_app"),
+                    auto_setup: pick("auto_setup"; true)},
+          login: ({method: pick("auth"; "homeassistant")}
+                  + (if (.admin_username // "") != "" then {username: .admin_username} else {} end)
+                  + (if (.admin_password // "") != "" then {password: .admin_password} else {} end)),
+          scanning: {enabled: pick("scanner"; true),
+                     max_resolution: (pick("scan_max_resolution"; "600")
+                                      | if . == "1200" then . else "600" end)},
+          scan_menu: {enabled: pick("scan_button"; false),
+                       folder: pick("scan_folder"; "/share/scans"),
+                       format: pick("scan_format"; "pdf"),
+                       resolution: pick("scan_resolution"; "300"),
+                       color: pick("scan_mode"; "color")},
+          folder_printing: {enabled: pick("print_folder"; false),
+                            path: pick("print_folder_path"; "/share/print")},
+          log_level: pick("log_level"; "info")
+        }' <<< "${old}") || return 0
+
+    if bashio::api.supervisor POST /addons/self/options \
+        "$(jq -c -n --argjson o "${new}" '{options: $o}')" > /dev/null; then
+        bashio::cache.flush_all
+        bashio::log.info "Einstellungen ins neue Format (Gruppen) übernommen"
+    else
+        bashio::log.warning "Alte Einstellungen konnten nicht übernommen werden – bitte in der Konfiguration neu setzen"
+    fi
+}
+migrate_options
+
+bashio::log.info "Modus: $(bashio::config 'printer.mode')"
 
 # Lokales Konto (Admin-Gruppe) anlegen – das Passwort prüft PAM, nicht /etc/shadow
 add_admin_account() {
@@ -41,7 +82,7 @@ add_admin_account() {
 # Anmeldung für die Web-Administration (geprüft von cups-addon-auth über PAM)
 # ------------------------------------------------------------------------------
 auth_mode="homeassistant"
-if [[ "$(bashio::config 'auth')" == "manual" ]]; then
+if [[ "$(bashio::config 'login.method')" == "manual" ]]; then
     auth_mode="manual"
 fi
 printf '%s' "${auth_mode}" > "${RUN_DIR}/auth_mode"
@@ -52,12 +93,12 @@ if [[ "${auth_mode}" == "homeassistant" ]]; then
     bashio::log.info "Anmeldung: mit einem Home-Assistant-Benutzerkonto"
 else
     admin_user="print"
-    if bashio::config.has_value 'admin_username'; then
-        admin_user=$(bashio::config 'admin_username')
+    if bashio::config.has_value 'login.username'; then
+        admin_user=$(bashio::config 'login.username')
     fi
 
-    if bashio::config.has_value 'admin_password'; then
-        password=$(bashio::config 'admin_password')
+    if bashio::config.has_value 'login.password'; then
+        password=$(bashio::config 'login.password')
         rm -f "${PASSWORD_FILE}"
     else
         if [[ ! -s "${PASSWORD_FILE}" ]]; then
@@ -65,7 +106,7 @@ else
             chmod 600 "${PASSWORD_FILE}"
         fi
         password=$(<"${PASSWORD_FILE}")
-        bashio::log.warning "Option 'admin_password' ist leer – generiertes Passwort für Benutzer '${admin_user}': ${password}"
+        bashio::log.warning "Anmeldung → Passwort ist leer – generiertes Passwort für Benutzer '${admin_user}': ${password}"
     fi
 
     printf '%s' "${admin_user}" > "${RUN_DIR}/admin_user"
@@ -124,7 +165,7 @@ fi
 # Scanner: Einstellungen für die Scan-Taste, Ordner anlegen
 # ------------------------------------------------------------------------------
 scanner=false
-if bashio::config.true 'scanner'; then
+if bashio::config.true 'scanning.enabled'; then
     if [[ -e /usr/share/cups-addon-scan-driver ]]; then
         scanner=true
     else
@@ -133,19 +174,19 @@ if bashio::config.true 'scanner'; then
 fi
 printf '%s' "${scanner}" > "${RUN_DIR}/scanner_enabled"
 
-if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_button'; then
-    scan_folder=$(bashio::config 'scan_folder')
+if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
+    scan_folder=$(bashio::config 'scan_menu.folder')
     mkdir -p "${scan_folder}"
     {
         printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
-        printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_format')"
-        printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_resolution')"
-        printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_mode')"
+        printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_menu.format')"
+        printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.resolution')"
+        printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_menu.color')"
     } > "${RUN_DIR}/scan.env"
 fi
 
-if bashio::config.true 'print_folder'; then
-    mkdir -p "$(bashio::config 'print_folder_path')"
+if bashio::config.true 'folder_printing.enabled'; then
+    mkdir -p "$(bashio::config 'folder_printing.path')"
 fi
 
 # ------------------------------------------------------------------------------

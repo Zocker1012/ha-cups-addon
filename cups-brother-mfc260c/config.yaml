@@ -1,5 +1,5 @@
 name: "CUPS Addon (Brother MFC-260C)"
-version: "2.4.2"
+version: "2.5.0"
 slug: cups-brother-mfc260c
 description: >
   Druck- und Scanserver für den Brother MFC-260C: Drucken per AirPrint/IPP
@@ -42,34 +42,49 @@ map:
   - share:rw
   - media:rw
 
+# Optionen in Gruppen (in HA aufklappbar). Die Gruppen heißen bewusst anders
+# als die Optionen bis 2.4.x (z. B. "scanner"), damit alte gespeicherte Werte
+# den Start nicht blockieren – init.sh übernimmt sie einmalig.
+# Neue Felder in einer Gruppe immer optional ("?") anlegen: Gespeicherte
+# Gruppen ersetzen die Standardwerte komplett.
 options:
-  mode: printer_app
-  auth: homeassistant
-  auto_setup: true
-  scanner: true
-  scan_max_resolution: "600"
-  scan_button: false
-  scan_folder: /share/scans
-  scan_format: pdf
-  scan_resolution: "300"
-  scan_mode: color
-  print_folder: false
-  print_folder_path: /share/print
+  printer:
+    mode: printer_app
+    auto_setup: true
+  login:
+    method: homeassistant
+  scanning:
+    enabled: true
+    max_resolution: "600"
+  scan_menu:
+    enabled: false
+    folder: /share/scans
+    format: pdf
+    resolution: "300"
+    color: color
+  folder_printing:
+    enabled: false
+    path: /share/print
   log_level: info
 
 schema:
-  mode: list(printer_app|cups)
-  auth: list(homeassistant|manual)
-  admin_username: str?
-  admin_password: password?
-  auto_setup: bool
-  scanner: bool
-  scan_max_resolution: list(300|600|1200)
-  scan_button: bool
-  scan_folder: match(^/(share|media)(/.*)?$)
-  scan_format: list(pdf|jpeg|png)
-  scan_resolution: list(100|150|200|300|600)
-  scan_mode: list(color|gray)
-  print_folder: bool
-  print_folder_path: match(^/(share|media)(/.*)?$)
+  printer:
+    mode: list(printer_app|cups)
+    auto_setup: bool
+  login:
+    method: list(homeassistant|manual)
+    username: str?
+    password: password?
+  scanning:
+    enabled: bool
+    max_resolution: list(600|1200)
+  scan_menu:
+    enabled: bool
+    folder: match(^/(share|media)(/.*)?$)
+    format: list(pdf|jpeg|png)
+    resolution: list(100|150|200|300|600)
+    color: list(color|gray)
+  folder_printing:
+    enabled: bool
+    path: match(^/(share|media)(/.*)?$)
   log_level: list(debug|info|warning|error)

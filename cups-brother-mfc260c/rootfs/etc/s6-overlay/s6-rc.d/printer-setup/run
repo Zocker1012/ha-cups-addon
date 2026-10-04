@@ -4,7 +4,7 @@
 # Automatische Druckereinrichtung (nur Modus "printer_app" mit auto_setup)
 # ==============================================================================
 
-if [[ "$(bashio::config 'mode')" != "printer_app" ]] || ! bashio::config.true 'auto_setup'; then
+if [[ "$(bashio::config 'printer.mode')" != "printer_app" ]] || ! bashio::config.true 'printer.auto_setup'; then
     s6-svc -O .
     exit 0
 fi

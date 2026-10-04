@@ -4,7 +4,7 @@
 # Klassischer CUPS-Server (Modus "cups")
 # ==============================================================================
 
-if [[ "$(bashio::config 'mode')" != "cups" ]]; then
+if [[ "$(bashio::config 'printer.mode')" != "cups" ]]; then
     # Nicht aktiv: Dienst einmalig beenden, ohne Neustart durch s6
     s6-svc -O .
     exit 0

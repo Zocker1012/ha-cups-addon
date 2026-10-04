@@ -1,71 +1,74 @@
 configuration:
-  mode:
-    name: Mode
-    description: >-
-      "printer_app": CUPS 3 style using the Legacy Printer Application
-      (recommended). "cups": classic CUPS server as a fallback.
-  auth:
+  printer:
+    name: Printer
+    description: Print server and automatic setup.
+    fields:
+      mode:
+        name: Mode
+        description: >-
+          "printer_app" (recommended, CUPS 3 style) or "cups" (classic CUPS
+          server as a fallback).
+      auto_setup:
+        name: Automatic setup
+        description: >-
+          Add the printer as soon as it is connected via USB and switched on
+          ("printer_app" only).
+  login:
     name: Login
-    description: >-
-      Login for web administration. "homeassistant": with a Home Assistant
-      user account. "manual": with the username and password below.
-  admin_username:
-    name: Admin username
-    description: >-
-      Only for login "manual". Default: print.
-  admin_password:
-    name: Admin password
-    description: >-
-      Only for login "manual". Leave empty to generate a random password,
-      which is then shown in the add-on log.
-  auto_setup:
-    name: Automatic setup
-    description: >-
-      Automatically adds the Brother MFC-260C as soon as it is connected via
-      USB and switched on, also while the add-on is running ("printer_app"
-      mode only). Once a printer is set up, USB monitoring stops until the
-      next add-on start.
-  scanner:
+    description: Who may use the printer administration in the browser.
+    fields:
+      method:
+        name: Method
+        description: >-
+          "homeassistant": with a HA user account. "manual": with the username
+          and password from here.
+      username:
+        name: Username
+        description: Only for "manual" in "cups" mode. Empty = print.
+      password:
+        name: Password
+        description: >-
+          Only for "manual". Empty = random password, shown in the log.
+  scanning:
     name: Scanner
-    description: >-
-      Provide the scanner via AirScan/eSCL (macOS, Windows, Android/Mopria,
-      Linux) and scan from the Home Assistant sidebar.
-  scan_max_resolution:
-    name: Maximum scan resolution
-    description: >-
-      Highest resolution offered to computers and phones. The MFC-260C scans
-      optically at 600 dpi (default); anything above is interpolated and
-      very slow. Without a limit the driver offers up to 9600 dpi; such scans
-      fail and Windows reports a "paper jam".
-  scan_button:
+    description: Scanning via AirScan/eSCL (Windows, macOS, Android, Linux, HA).
+    fields:
+      enabled:
+        name: Provide scanner
+      max_resolution:
+        name: Maximum resolution (dpi)
+        description: >-
+          600 = the device's real resolution. 1200 is interpolated and very
+          slow.
+  scan_menu:
     name: Scan menu on the device
-    description: >-
-      The "Scan" menu on the MFC-260C scans straight into the scan folder
-      ("File" with the settings below, "Image" as color JPEG). Requires the
-      Brother scan-key-tool, see documentation.
-  scan_folder:
-    name: Scan folder
-    description: Target folder for button scans (below /share or /media).
-  scan_format:
-    name: Scan format
-    description: File format for button scans.
-  scan_resolution:
-    name: Scan resolution
-    description: Resolution in dpi for button scans.
-  scan_mode:
-    name: Scan color mode
-    description: Color or grayscale for button scans.
-  print_folder:
+    description: The "Scan" menu on the MFC-260C saves directly to a folder.
+    fields:
+      enabled:
+        name: Use scan menu
+      folder:
+        name: Folder
+        description: Below /share or /media.
+      format:
+        name: Format
+        description: Applies to "File"; "Image" is always color JPEG.
+      resolution:
+        name: Resolution (dpi)
+      color:
+        name: Color
+        description: '"color" or "gray" (grayscale, smaller files).'
+  folder_printing:
     name: Print folder
-    description: >-
-      Files (PDF, PostScript, JPEG, PNG) placed in the print folder are
-      printed automatically and then moved to "gedruckt/".
-  print_folder_path:
-    name: Print folder path
-    description: Folder below /share or /media, e.g. /share/print.
+    description: Files placed in this folder are printed automatically.
+    fields:
+      enabled:
+        name: Use print folder
+      path:
+        name: Folder
+        description: >-
+          Below /share or /media. PDF, PostScript, JPEG, PNG; moved to
+          "gedruckt/" afterwards.
   log_level:
     name: Log level
     description: >-
-      Log verbosity. "info" shows add-on messages and warnings; "debug"
-      additionally shows every printer connection and the Brother driver's
-      debug log.
+      "info" for everyday use, "debug" for troubleshooting (very verbose).

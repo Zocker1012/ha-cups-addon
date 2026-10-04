@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.5.0
+
+### Geändert
+
+- Einstellungen in aufklappbare Gruppen sortiert: Drucker, Anmeldung,
+  Scanner, Scan-Menü am Gerät, Druckordner. Kürzere Beschreibungen, Details
+  in der Dokumentation.
+- Bisherige Einstellungen werden beim ersten Start automatisch übernommen.
+- Höchste Scan-Auflösung: nur noch 600 oder 1200 dpi (300 war nicht sinnvoll).
+
 ## 2.4.2
 
 ### Behoben

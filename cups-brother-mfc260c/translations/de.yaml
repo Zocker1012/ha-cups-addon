@@ -1,73 +1,74 @@
 configuration:
-  mode:
-    name: Modus
-    description: >-
-      "printer_app": CUPS-3-Weg mit der Legacy Printer Application (empfohlen).
-      "cups": klassischer CUPS-Server als Rückfallebene.
-  auth:
+  printer:
+    name: Drucker
+    description: Druckserver und automatische Einrichtung.
+    fields:
+      mode:
+        name: Modus
+        description: >-
+          "printer_app" (empfohlen, CUPS-3-Weg) oder "cups" (klassischer
+          CUPS-Server als Rückfallebene).
+      auto_setup:
+        name: Automatisch einrichten
+        description: >-
+          Drucker anlegen, sobald er per USB verbunden und eingeschaltet ist
+          (nur "printer_app").
+  login:
     name: Anmeldung
-    description: >-
-      Anmeldung für die Web-Administration. "homeassistant": mit einem
-      Home-Assistant-Benutzerkonto. "manual": mit Benutzername und Passwort
-      aus den folgenden Optionen.
-  admin_username:
-    name: Admin-Benutzername
-    description: >-
-      Nur bei Anmeldung "manual". Standard: print.
-  admin_password:
-    name: Admin-Passwort
-    description: >-
-      Nur bei Anmeldung "manual". Leer lassen, um ein zufälliges Passwort zu
-      erzeugen – es steht dann im Add-on-Log.
-  auto_setup:
-    name: Automatische Einrichtung
-    description: >-
-      Legt den Brother MFC-260C automatisch an, sobald er per USB verbunden
-      und eingeschaltet ist – auch im laufenden Betrieb (nur Modus
-      "printer_app"). Ist ein Drucker eingerichtet, endet die USB-Überwachung
-      bis zum nächsten Start des Add-ons.
-  scanner:
+    description: Wer die Druckerverwaltung im Browser bedienen darf.
+    fields:
+      method:
+        name: Art
+        description: >-
+          "homeassistant": mit einem HA-Benutzerkonto. "manual": mit
+          Benutzername und Passwort von hier.
+      username:
+        name: Benutzername
+        description: Nur bei "manual" im Modus "cups". Leer = print.
+      password:
+        name: Passwort
+        description: >-
+          Nur bei "manual". Leer = zufälliges Passwort, steht dann im Log.
+  scanning:
     name: Scanner
-    description: >-
-      Scanner per AirScan/eSCL bereitstellen (macOS, Windows, Android/Mopria,
-      Linux) und in der HA-Seitenleiste scannen.
-  scan_max_resolution:
-    name: Höchste Scan-Auflösung
-    description: >-
-      Höchste Auflösung, die PCs und Handys angeboten wird. Der MFC-260C
-      scannt optisch mit 600 dpi (Standard), alles darüber ist hochgerechnet
-      und dauert sehr lange. Ohne Grenze bietet der Treiber bis 9600 dpi an;
-      solche Scans scheitern, Windows meldet dann "Papierstau".
-  scan_button:
+    description: Scannen per AirScan/eSCL (Windows, macOS, Android, Linux, HA).
+    fields:
+      enabled:
+        name: Scanner bereitstellen
+      max_resolution:
+        name: Höchste Auflösung (dpi)
+        description: >-
+          600 = echte Auflösung des Geräts. 1200 ist hochgerechnet und sehr
+          langsam.
+  scan_menu:
     name: Scan-Menü am Gerät
-    description: >-
-      Menü "Scan" am MFC-260C scannt direkt in den Scan-Ordner ("Datei" mit
-      den Einstellungen unten, "Bild" als JPEG in Farbe). Benötigt das
-      Brother Scan-Key-Tool, siehe Dokumentation.
-  scan_folder:
-    name: Scan-Ordner
-    description: >-
-      Zielordner für Scans per Taste (unter /share oder /media).
-  scan_format:
-    name: Scan-Format
-    description: Dateiformat für Scans per Taste.
-  scan_resolution:
-    name: Scan-Auflösung
-    description: Auflösung in dpi für Scans per Taste.
-  scan_mode:
-    name: Scan-Farbmodus
-    description: Farbe oder Graustufen für Scans per Taste.
-  print_folder:
+    description: Menü "Scan" am MFC-260C speichert direkt in einen Ordner.
+    fields:
+      enabled:
+        name: Scan-Menü nutzen
+      folder:
+        name: Ordner
+        description: Unter /share oder /media.
+      format:
+        name: Format
+        description: Gilt für "Datei"; "Bild" ist immer JPEG in Farbe.
+      resolution:
+        name: Auflösung (dpi)
+      color:
+        name: Farbe
+        description: '"color" oder "gray" (Graustufen, kleinere Dateien).'
+  folder_printing:
     name: Druckordner
-    description: >-
-      Dateien (PDF, PostScript, JPEG, PNG), die im Druckordner landen, werden
-      automatisch gedruckt und danach nach "gedruckt/" verschoben.
-  print_folder_path:
-    name: Pfad des Druckordners
-    description: Ordner unter /share oder /media, z. B. /share/print.
+    description: Dateien in diesem Ordner werden automatisch gedruckt.
+    fields:
+      enabled:
+        name: Druckordner nutzen
+      path:
+        name: Ordner
+        description: >-
+          Unter /share oder /media. PDF, PostScript, JPEG, PNG; danach nach
+          "gedruckt/" verschoben.
   log_level:
     name: Log-Level
     description: >-
-      Ausführlichkeit der Logs. Bei "info" erscheinen Meldungen des Add-ons und
-      Warnungen; "debug" zeigt zusätzlich jede Verbindung zum Drucker und das
-      Debug-Log des Brother-Treibers.
+      "info" für den Alltag, "debug" zur Fehlersuche (sehr ausführlich).

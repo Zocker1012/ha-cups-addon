@@ -7,7 +7,7 @@ Der Scanner steht per **AirScan / eSCL** bereit.
 
 ## Modi
 
-Über die Option `mode` wählst du, wie der Brother-Treiber betrieben wird:
+Unter **Drucker → Modus** wählst du, wie der Brother-Treiber betrieben wird:
 
 | Modus | Was läuft | Wann nutzen |
 |---|---|---|
@@ -23,9 +23,15 @@ Die Drucker-Einrichtung wird je Modus getrennt gespeichert.
 2. Anmeldung wählen (siehe unten).
 3. Add-on starten.
 
+Danach findet jedes Gerät im Netzwerk den Drucker von selbst: Android und
+iPhone/iPad direkt im Druckdialog, Windows unter *Einstellungen → Drucker &
+Scanner → Gerät hinzufügen* (Treiber „Microsoft IPP Class Driver“ – das ist
+richtig so, der Brother-Treiber läuft im Add-on), macOS unter *Drucker &
+Scanner*.
+
 ### Modus `printer_app`
 
-Mit `auto_setup: true` (Standard) legt das Add-on den Drucker automatisch als
+Mit **Drucker → Automatisch einrichten** (Standard an) legt das Add-on den Drucker als
 **MFC260C** an – beim Start und auch im laufenden Betrieb, sobald der Drucker
 per USB verbunden und eingeschaltet wird. Ein Neustart des Add-ons ist dafür
 nicht nötig. Dazu prüft das Add-on alle 5 Sekunden den USB-Bus (nur ein paar
@@ -47,7 +53,7 @@ MFC-260C (USB) und das Modell „Brother MFC-260C CUPS v1.1“ wählen und
 
 ## Scanner
 
-Mit `scanner: true` (Standard) stellt das Add-on den Scanner über
+Mit **Scanner → Scanner bereitstellen** (Standard an) stellt das Add-on den Scanner über
 [AirSane](https://github.com/SimulPiscator/AirSane) per **AirScan/eSCL** bereit –
 dem modernen, treiberlosen Scan-Standard (Gegenstück zu AirPrint/IPP Everywhere):
 
@@ -69,7 +75,7 @@ nur die erste Seite abgeholt.
 Der MFC-260C scannt optisch mit 600 dpi, alles darüber rechnet der Treiber
 hoch. Der Treiber bietet bis zu 9600 dpi an – solche Scans werden riesig und
 scheitern (Windows meldet dann „Papierstau“). Das Add-on bietet deshalb
-höchstens `scan_max_resolution` an: Standard 600 dpi, die echte Auflösung des
+höchstens **Scanner → Höchste Auflösung** an: Standard 600 dpi, die echte Auflösung des
 Geräts. 1200 dpi (hochgerechnet, wie bei Brothers eigenem Windows-Treiber)
 lässt sich einstellen, dauert aber sehr lange und bringt keine echten Details.
 
@@ -82,14 +88,15 @@ das im Log.
 
 ### Scan-Menü am Gerät
 
-Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
-`scan_folder` (Standard `/share/scans`, im Netzwerk über die Samba-Freigabe
+Mit **Scan-Menü am Gerät → Scan-Menü nutzen** scannt das Menü **Scan** am
+MFC-260C direkt in den eingestellten Ordner (Standard `/share/scans`, im
+Netzwerk über die Samba-Freigabe
 „share“ erreichbar):
 
 | Menüpunkt am Gerät | Ergebnis |
 |---|---|
-| **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus `scan_format`, `scan_resolution`, `scan_mode` |
-| **Bild** | JPEG in Farbe, Auflösung aus `scan_resolution` |
+| **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus den Einstellungen |
+| **Bild** | JPEG in Farbe, Auflösung aus den Einstellungen |
 
 Die Quelle wählt der MFC-260C selbst: Liegt Papier im Vorlageneinzug (das
 Display meldet es), scannt er von dort, sonst vom Vorlagenglas. Mehrere Seiten
@@ -113,13 +120,13 @@ actions:
 ```
 
 Die Menü-Erkennung übernimmt Brothers Scan-Key-Tool. Erscheint nach der Wahl
-am Gerät nichts im Log, mit `log_level: debug` erneut versuchen und das Log
+am Gerät nichts im Log, mit **Log-Level** `debug` erneut versuchen und das Log
 prüfen.
 
 ## Druckordner
 
-Mit `print_folder: true` wird alles gedruckt, was im `print_folder_path`
-(Standard `/share/print`) landet – z. B. per Samba vom PC oder aus einer
+Mit **Druckordner → Druckordner nutzen** wird alles gedruckt, was im
+eingestellten Ordner (Standard `/share/print`) landet – z. B. per Samba vom PC oder aus einer
 Home-Assistant-Automation. Unterstützt werden PDF, PostScript, JPEG und PNG.
 Gedruckte Dateien wandern nach `gedruckt/`, nicht unterstützte oder
 fehlgeschlagene nach `fehler/`.
@@ -140,37 +147,52 @@ Brother-Linux-Treiber nicht.
   wechselt die Oberfläche auf HTTPS mit einem selbst signierten Zertifikat –
   die Browser-Warnung ist normal.
 
-Wer sich bei direktem Zugriff anmelden darf, legt die Option `auth` fest:
+Wer sich bei direktem Zugriff anmelden darf, legt **Anmeldung → Art** fest:
 
-| `auth` | Modus `cups` | Modus `printer_app` |
+| Art | Modus `cups` | Modus `printer_app` |
 |---|---|---|
 | `homeassistant` (Standard) | Mit jedem **Home-Assistant-Benutzerkonto** (Benutzername und Passwort wie beim HA-Login) | Verwaltung **nur über die HA-Seitenleiste**; direkt im LAN ist sie gesperrt |
-| `manual` | Mit `admin_username` (Standard `print`) und `admin_password` | Mit `admin_password` (die Printer Application kennt keine Benutzernamen) |
+| `manual` | Mit Benutzername (Standard `print`) und Passwort | Nur mit dem Passwort (die Printer Application kennt keine Benutzernamen) |
 
-Ist bei `manual` kein `admin_password` gesetzt, erzeugt das Add-on ein
+Ist bei `manual` kein Passwort gesetzt, erzeugt das Add-on ein
 zufälliges Passwort und schreibt es beim Start ins Log.
 
 Drucken selbst braucht in keinem Fall eine Anmeldung.
 
-## Optionen
+## Einstellungen
 
-| Option | Beschreibung |
-|---|---|
-| `mode` | `printer_app` oder `cups` (siehe oben) |
-| `auth` | `homeassistant` oder `manual` (siehe oben) |
-| `admin_username` | Benutzername bei `auth: manual` (nur Modus `cups`), Standard `print` |
-| `admin_password` | Passwort bei `auth: manual` |
-| `auto_setup` | Drucker im Modus `printer_app` automatisch anlegen, auch beim Anstecken im laufenden Betrieb |
-| `scanner` | Scanner per AirScan/eSCL bereitstellen |
-| `scan_max_resolution` | Höchste angebotene Auflösung: 300, 600 oder 1200 dpi |
-| `scan_button` | Scan-Menü am Gerät nutzen |
-| `scan_folder` | Zielordner für Scans per Taste (unter `/share` oder `/media`) |
-| `scan_format` | `pdf`, `jpeg` oder `png` |
-| `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
-| `scan_mode` | `color` oder `gray` |
-| `print_folder` | Druckordner aktivieren |
-| `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
-| `log_level` | `debug`, `info`, `warning`, `error`. Bei `info` nur Meldungen des Add-ons und Warnungen; `debug` zeigt jede Verbindung und das Debug-Log des Brother-Treibers. |
+Die Einstellungen sind in aufklappbare Gruppen sortiert. In der YAML-Ansicht
+heißen sie so:
+
+```yaml
+printer:          # Drucker
+  mode: printer_app       # printer_app | cups
+  auto_setup: true
+login:            # Anmeldung
+  method: homeassistant   # homeassistant | manual
+  username: print         # optional, nur manual + Modus cups
+  password: geheim        # optional, nur manual
+scanning:         # Scanner
+  enabled: true
+  max_resolution: "600"   # 600 | 1200
+scan_menu:        # Scan-Menü am Gerät
+  enabled: false
+  folder: /share/scans    # unter /share oder /media
+  format: pdf             # pdf | jpeg | png
+  resolution: "300"       # 100 | 150 | 200 | 300 | 600
+  color: color            # color | gray
+folder_printing:  # Druckordner
+  enabled: false
+  path: /share/print      # unter /share oder /media
+log_level: info           # debug | info | warning | error
+```
+
+**Log-Level:** Bei `info` erscheinen Meldungen des Add-ons und Warnungen,
+`debug` zeigt zusätzlich jede Verbindung zum Drucker, Details von AirSane und
+das Debug-Log des Brother-Treibers.
+
+Beim Update von 2.4.x übernimmt das Add-on die bisherigen Einstellungen beim
+ersten Start automatisch in die Gruppen.
 
 ## Fehlersuche
 
@@ -178,12 +200,12 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   Auf dem Host zeigt `lsusb` die USB-ID des Druckers. Weicht sie von der im
   Add-on hinterlegten `04f9:01d6` ab, muss der USB-Quirk in
   `rootfs/usr/share/cups/usb/brother-mfc260c.usb-quirks` angepasst werden.
-- **Druck kommt nicht oder fehlerhaft:** `log_level: debug` setzen, Add-on neu
+- **Druck kommt nicht oder fehlerhaft:** **Log-Level** `debug` setzen, Add-on neu
   starten, erneut drucken und das Log ansehen.
 - **Scanner fehlt:** Im Log nach „Scanner:“ suchen. Fehlt der Treiber, siehe
-  Abschnitt Scanner. Mit `log_level: debug` schreibt AirSane Details ins Log.
+  Abschnitt Scanner. Mit **Log-Level** `debug` schreibt AirSane Details ins Log.
 - **Windows meldet beim Scannen „Papierstau“:** Die gewählte Auflösung ist zu
-  hoch. `scan_max_resolution` auf 600 lassen (Standard), das ist die echte
+  hoch. **Scanner → Höchste Auflösung** auf 600 lassen (Standard), das ist die echte
   Auflösung des Geräts.
 - **Display zeigt „PC-Anschluss“ und reagiert nicht:** Ein Scan wurde
   unterbrochen. Am Gerät „Stopp“ drücken. Im Log steht ggf., warum der
@@ -194,7 +216,7 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   MFC-260C aus seinem Speicher zu Ende – dann am Gerät „Stopp“ drücken.
 - **Add-on hängt:** Im Add-on-Tab den **Watchdog** einschalten – der Supervisor
   startet das Add-on dann neu, wenn Port 631 nicht mehr antwortet.
-- **Im Modus `printer_app` klappt es nicht:** `mode: cups` setzen, das Add-on
+- **Im Modus `printer_app` klappt es nicht:** **Drucker → Modus** auf `cups` setzen, das Add-on
   neu starten und den Drucker dort einrichten.
 
 ## Umstieg von Version 1.x

@@ -10,7 +10,7 @@ readonly SCRIPT="/usr/local/lib/cups-addon/scan-button.sh"
 # Hierhin speichern Brothers eigene Skripte (falls sie doch einmal laufen)
 readonly BROTHER_OUT="${HOME:-/root}/brscan"
 
-if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_button'; then
+if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_menu.enabled'; then
     s6-svc -O .
     exit 0
 fi
@@ -50,7 +50,7 @@ fi
 # Sicherheitsnetz: Landet doch ein Scan in Brothers Standardordner, in den
 # Scan-Ordner verschieben
 # ------------------------------------------------------------------------------
-scan_folder=$(bashio::config 'scan_folder')
+scan_folder=$(bashio::config 'scan_menu.folder')
 mkdir -p "${BROTHER_OUT}" "${scan_folder}"
 (
     inotifywait -m -q -e close_write -e moved_to --format '%w%f' "${BROTHER_OUT}" 2>/dev/null \

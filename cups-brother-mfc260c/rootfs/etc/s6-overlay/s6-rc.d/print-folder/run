@@ -4,7 +4,7 @@
 # Druckordner: Dateien, die dort abgelegt werden, automatisch drucken
 # ==============================================================================
 
-if ! bashio::config.true 'print_folder'; then
+if ! bashio::config.true 'folder_printing.enabled'; then
     s6-svc -O .
     exit 0
 fi

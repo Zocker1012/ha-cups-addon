@@ -5,11 +5,11 @@
 # Gedruckte Dateien wandern nach "gedruckt/", fehlerhafte nach "fehler/".
 # ==============================================================================
 
-FOLDER=$(bashio::config 'print_folder_path')
+FOLDER=$(bashio::config 'folder_printing.path')
 readonly FOLDER
 readonly DONE_DIR="${FOLDER}/gedruckt"
 readonly FAILED_DIR="${FOLDER}/fehler"
-MODE=$(bashio::config 'mode')
+MODE=$(bashio::config 'printer.mode')
 readonly MODE
 
 mkdir -p "${FOLDER}" "${DONE_DIR}" "${FAILED_DIR}"
