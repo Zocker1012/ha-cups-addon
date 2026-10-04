@@ -20,6 +20,8 @@ readonly BROTHER_VENDOR_ID="04f9"
 readonly USB_SYSFS="${USB_SYSFS:-/sys/bus/usb/devices}"
 readonly POLL_INTERVAL=5
 readonly MAX_TRIES=3
+# Merker: Papier wurde einmal auf A4 gestellt (danach gilt die eigene Einstellung)
+readonly A4_MARKER="${STATE_DIR:-/data/legacy-printer-app}/.media-a4"
 
 # ------------------------------------------------------------------------------
 # Warten, bis der Server fertig gestartet ist und Anfragen beantwortet.
@@ -90,12 +92,32 @@ setup_printer() {
 
     if "${APP}" add -d "${PRINTER_NAME}" -m "${driver}" -v "${device_uri}"; then
         "${APP}" default -d "${PRINTER_NAME}" || true
+        set_a4_once
         bashio::log.info "Auto-Einrichtung: Drucker '${PRINTER_NAME}' ist eingerichtet"
         return 0
     fi
 
     bashio::log.error "Auto-Einrichtung: Anlegen des Druckers fehlgeschlagen"
     return 1
+}
+
+# Eingelegtes Papier und Standardformat einmalig auf A4 stellen. Die
+# Brother-PPD gibt Letter vor – Aufträge ohne Formatangabe (z. B. aus dem
+# Druckordner) würden sonst als Letter gedruckt.
+set_a4_once() {
+    local printer
+
+    [[ -e "${A4_MARKER}" ]] && return 0
+    while IFS= read -r printer; do
+        [[ -n "${printer}" ]] || continue
+        if "${APP}" options -d "${printer}" 2>/dev/null \
+            | grep -q 'media=na_letter_8.5x11in .*(default)'; then
+            if "${APP}" modify -d "${printer}" -o media-ready=iso_a4_210x297mm; then
+                bashio::log.info "Auto-Einrichtung: Papierformat von '${printer}' auf A4 gestellt"
+            fi
+        fi
+    done < <("${APP}" printers 2>/dev/null)
+    touch "${A4_MARKER}"
 }
 
 # Fertig: Dienst nicht von s6 neu starten lassen
@@ -107,6 +129,7 @@ finish() {
 wait_for_server || finish
 
 if [[ -n "$("${APP}" printers 2>/dev/null)" ]]; then
+    set_a4_once
     bashio::log.info "Auto-Einrichtung: Drucker bereits eingerichtet – keine USB-Überwachung nötig"
     finish
 fi

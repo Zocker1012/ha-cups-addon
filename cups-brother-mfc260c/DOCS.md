@@ -43,7 +43,9 @@ Manuell geht es in der Weboberfläche über **Add Printer**: Gerät „Brother
 MFC-260C“ (USB) und Treiber „Brother MFC-260C, CUPS v1.1“ wählen.
 
 Die Brother-Optionen (Qualität, Medientyp, Graustufen, Helligkeit …) stehen
-unter **Printing Defaults** des Druckers zur Verfügung.
+unter **Printing Defaults** des Druckers zur Verfügung. Das Papierformat stellt
+die automatische Einrichtung auf A4 (unter **Media** änderbar); das Format, das
+ein Gerät beim Drucken wählt, wird an den Brother-Treiber weitergegeben.
 
 ### Modus `cups`
 
@@ -128,8 +130,9 @@ prüfen.
 Mit **Druckordner → Druckordner nutzen** wird alles gedruckt, was im
 eingestellten Ordner (Standard `/share/print`) landet – z. B. per Samba vom PC oder aus einer
 Home-Assistant-Automation. Unterstützt werden PDF, PostScript, JPEG und PNG.
-Gedruckte Dateien wandern nach `gedruckt/`, nicht unterstützte oder
-fehlgeschlagene nach `fehler/`.
+Gedruckt wird immer auf A4, Farbe (Farbe/Graustufen) und Qualität (Entwurf,
+Normal, Fein) stehen in den Einstellungen. Gedruckte Dateien wandern nach
+`gedruckt/`, nicht unterstützte oder fehlgeschlagene nach `fehler/`.
 
 ## Druckerstatus in Home Assistant
 
@@ -184,6 +187,8 @@ scan_menu:        # Scan-Menü am Gerät
 folder_printing:  # Druckordner
   enabled: false
   path: /share/print      # unter /share oder /media
+  color: color            # color | gray
+  quality: normal         # draft | normal | fine
 log_level: info           # debug | info | warning | error
 ```
 

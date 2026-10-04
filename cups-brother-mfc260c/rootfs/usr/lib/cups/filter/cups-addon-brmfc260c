@@ -1,0 +1,37 @@
+#!/bin/bash
+# ==============================================================================
+# Vorschalt-Filter für den Brother-Treiber (Modus "printer_app")
+#
+# Die Legacy Printer Application übergibt das Papierformat nur als
+# "media-col={... media-size={x-dimension=21000 y-dimension=29700} ...}".
+# Der Brother-Filter liest aber nur "PageSize=..." und nimmt sonst den
+# PPD-Standard – A5, Fotopapier usw. würden dann falsch gedruckt.
+# Hier wird das passende PPD-Format anhand der Maße gesucht und ergänzt.
+# Aufruf wie jeder CUPS-Filter: job user title copies options [datei]
+# ==============================================================================
+
+readonly BROTHER="/usr/lib/cups/filter/brlpdwrappermfc260c"
+options="${5:-}"
+
+if [[ "${options}" != *PageSize=* && -r "${PPD:-}" \
+    && "${options}" =~ x-dimension=([0-9]+)\ y-dimension=([0-9]+) ]]; then
+    # Maße in 1/100 mm; PPD-Maße in Punkt (1/72 Zoll) – Toleranz 1 mm
+    size=$(awk -F'"' -v x="${BASH_REMATCH[1]}" -v y="${BASH_REMATCH[2]}" '
+        /^\*PaperDimension / {
+            name = $1
+            sub(/^\*PaperDimension /, "", name)
+            sub(/[\/:].*$/, "", name)
+            split($2, d, " ")
+            w = d[1] * 2540 / 72
+            h = d[2] * 2540 / 72
+            if (w - x < 100 && x - w < 100 && h - y < 100 && y - h < 100) {
+                print name
+                exit
+            }
+        }' "${PPD}")
+    if [[ -n "${size}" ]]; then
+        options="${options} PageSize=${size}"
+    fi
+fi
+
+exec "${BROTHER}" "${1}" "${2}" "${3}" "${4}" "${options}" "${@:6}"

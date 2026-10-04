@@ -11,6 +11,10 @@ readonly DONE_DIR="${FOLDER}/gedruckt"
 readonly FAILED_DIR="${FOLDER}/fehler"
 MODE=$(bashio::config 'printer.mode')
 readonly MODE
+COLOR=$(bashio::config 'folder_printing.color' 'color')
+readonly COLOR
+QUALITY=$(bashio::config 'folder_printing.quality' 'normal')
+readonly QUALITY
 
 mkdir -p "${FOLDER}" "${DONE_DIR}" "${FAILED_DIR}"
 
@@ -28,12 +32,26 @@ printer_name() {
     echo "${name}"
 }
 
+# Druckoptionen: immer A4, Farbe und Qualität aus den Einstellungen
+# (Modus "cups": PPD-Optionen des Brother-Treibers, sonst IPP-Attribute)
 submit() {
-    local file="$1" printer="$2"
+    local file="$1" printer="$2" opts=()
     if [[ "${MODE}" == "cups" ]]; then
-        lp -d "${printer}" -t "${file##*/}" -- "${file}" > /dev/null
+        opts+=(-o media=A4)
+        [[ "${COLOR}" == "gray" ]] && opts+=(-o BRMonoColor=BrMono)
+        case "${QUALITY}" in
+            draft) opts+=(-o Resolution=Draft) ;;
+            fine) opts+=(-o Resolution=Fine) ;;
+        esac
+        lp -d "${printer}" -t "${file##*/}" "${opts[@]}" -- "${file}" > /dev/null
     else
-        legacy-printer-app submit -d "${printer}" "${file}" > /dev/null
+        opts+=(-o media=iso_a4_210x297mm)
+        [[ "${COLOR}" == "gray" ]] && opts+=(-o print-color-mode=monochrome)
+        case "${QUALITY}" in
+            draft) opts+=(-o quality=fast) ;;
+            fine) opts+=(-o quality=fine) ;;
+        esac
+        legacy-printer-app submit -d "${printer}" "${opts[@]}" "${file}" > /dev/null
     fi
 }
 
@@ -68,7 +86,7 @@ handle() {
     fi
 }
 
-bashio::log.info "Druckordner aktiv: ${FOLDER}"
+bashio::log.info "Druckordner aktiv: ${FOLDER} (A4, ${COLOR}, Qualität ${QUALITY})"
 
 # Erst vorhandene Dateien, dann neue (fertig geschrieben oder hineinverschoben)
 for file in "${FOLDER}"/*; do

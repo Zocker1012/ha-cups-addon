@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.6.0
+
+### Behoben
+
+- Papierformat (Modus `printer_app`): Der Brother-Treiber bekam das Format
+  des Auftrags nicht mit und druckte immer mit dem Standard „Letter“. Ein
+  kleiner Vorschalt-Filter gibt das Format jetzt weiter (A4, A5, randlos,
+  Fotoformate …). Standard ist A4; ein schon eingerichteter Drucker wird
+  einmalig auf A4 gestellt.
+
+### Neu
+
+- Druckordner: Einstellungen für Farbe (Farbe/Graustufen) und Qualität
+  (Entwurf/Normal/Fein); gedruckt wird immer auf A4.
+
 ## 2.5.0
 
 ### Geändert

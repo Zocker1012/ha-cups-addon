@@ -68,6 +68,12 @@ configuration:
         description: >-
           Below /share or /media. PDF, PostScript, JPEG, PNG; moved to
           "gedruckt/" afterwards.
+      color:
+        name: Color
+        description: '"gray" prints with black ink only.'
+      quality:
+        name: Quality
+        description: '"draft" saves ink, "fine" is slower. Paper is always A4.'
   log_level:
     name: Log level
     description: >-

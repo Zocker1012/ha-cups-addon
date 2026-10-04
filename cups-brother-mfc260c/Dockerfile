@@ -148,13 +148,21 @@ RUN mkdir -p /var/spool/lpd \
     && rm -rf /tmp/drivers /etc/cups/printers.conf* /etc/cups/ppd/* /run/cups/* /var/log/cups/* \
     # Doppelte PPD vermeiden (der Brother-Installer kopiert sie zusätzlich nach /usr/share/ppd)
     && rm -f /usr/share/ppd/brmfc260c.ppd \
-    # PPD-Kopie für die Legacy Printer Application: Die Brother-PPD benennt
-    # Auflösungen nur "Draft/Normal/…", PAPPL braucht aber eine DPI-Angabe
-    # (sonst "Invalid driver raster resolution 0x0dpi"). 600 dpi = "Normal".
+    # PPD-Kopie für die Legacy Printer Application:
+    # - Die Brother-PPD benennt Auflösungen nur "Draft/Normal/…", PAPPL braucht
+    #   eine DPI-Angabe (sonst "Invalid driver raster resolution 0x0dpi").
+    # - Standardformat A4 statt Letter.
+    # - Vorschalt-Filter, der das Papierformat jedes Auftrags an den
+    #   Brother-Filter weitergibt (siehe rootfs/usr/lib/cups/filter).
     && mkdir -p /usr/share/cups-addon/ppd \
-    && sed 's/^\*DefaultResolution: Normal$/*DefaultResolution: 600dpi/' \
+    && sed -E \
+        -e 's/^\*DefaultResolution: Normal$/*DefaultResolution: 600dpi/' \
+        -e 's/^\*Default(PageSize|PageRegion|ImageableArea|PaperDimension): Letter$/*Default\1: A4/' \
+        -e 's/^(\*cupsFilter: ".* )brlpdwrappermfc260c"$/\1cups-addon-brmfc260c"/' \
         /usr/share/cups/model/brmfc260c.ppd > /usr/share/cups-addon/ppd/brmfc260c.ppd \
-    && grep -q '^\*DefaultResolution: 600dpi$' /usr/share/cups-addon/ppd/brmfc260c.ppd
+    && grep -q '^\*DefaultResolution: 600dpi$' /usr/share/cups-addon/ppd/brmfc260c.ppd \
+    && grep -q '^\*DefaultPageSize: A4$' /usr/share/cups-addon/ppd/brmfc260c.ppd \
+    && grep -q '^\*cupsFilter: .* cups-addon-brmfc260c"$' /usr/share/cups-addon/ppd/brmfc260c.ppd
 
 # Build-Checks: bricht ab, wenn der Treiber auf dieser Basis nicht sauber installiert ist
 RUN set -e; \

@@ -68,6 +68,12 @@ configuration:
         description: >-
           Unter /share oder /media. PDF, PostScript, JPEG, PNG; danach nach
           "gedruckt/" verschoben.
+      color:
+        name: Farbe
+        description: '"gray" druckt nur mit schwarzer Tinte.'
+      quality:
+        name: Qualität
+        description: '"draft" spart Tinte, "fine" ist langsamer. Papier ist immer A4.'
   log_level:
     name: Log-Level
     description: >-
