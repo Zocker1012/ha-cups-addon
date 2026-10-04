@@ -69,12 +69,20 @@ des MFC-260C in den Ordner `drivers/` des Repositorys legen.
 
 ### Scan-Taste am Gerät (experimentell)
 
-Mit `scan_button: true` scannt die Taste **Scan → Datei** am MFC-260C direkt in
-den `scan_folder` (Standard `/share/scans`, im Netzwerk über die Samba-Freigabe
-„share“ erreichbar). Format, Auflösung und Farbe stellen `scan_format`,
-`scan_resolution` und `scan_mode` ein. Nach jedem Scan sendet das Add-on das
-Ereignis `cups_addon_scan` an Home Assistant (`status`, `file`) – z. B. für eine
-Benachrichtigung:
+Mit `scan_button: true` scannt das Menü **Scan** am MFC-260C direkt in den
+`scan_folder` (Standard `/share/scans`, im Netzwerk über die Samba-Freigabe
+„share“ erreichbar):
+
+| Menüpunkt am Gerät | Ergebnis |
+|---|---|
+| **Datei** (sowie OCR, E-Mail) | Format, Auflösung und Farbe aus `scan_format`, `scan_resolution`, `scan_mode` |
+| **Bild** | JPEG in Farbe, Auflösung aus `scan_resolution` |
+
+`scan_source` wählt Vorlagenglas (`flatbed`) oder Vorlageneinzug (`adf`). Der
+Scan selbst läuft über AirSane – denselben Weg wie in der Weboberfläche.
+
+Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` an Home
+Assistant (`status`, `file`, `target`) – z. B. für eine Benachrichtigung:
 
 ```yaml
 triggers:
@@ -88,8 +96,9 @@ actions:
       message: "Neuer Scan: {{ trigger.event.data.file }}"
 ```
 
-Die Scan-Taste nutzt Brothers Scan-Key-Tool. Ob es mit dem MFC-260C über USB
-zuverlässig funktioniert, ist noch nicht am echten Gerät getestet.
+Die Menü-Erkennung übernimmt Brothers Scan-Key-Tool. Erscheint nach der Wahl
+am Gerät nichts im Log, mit `log_level: debug` erneut versuchen und das Log
+prüfen.
 
 ## Druckordner
 
@@ -142,6 +151,7 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
 | `scan_format` | `pdf`, `jpeg` oder `png` |
 | `scan_resolution` | 100, 150, 200, 300 oder 600 dpi |
 | `scan_mode` | `color` oder `gray` |
+| `scan_source` | `flatbed` (Vorlagenglas) oder `adf` (Vorlageneinzug) |
 | `print_folder` | Druckordner aktivieren |
 | `print_folder_path` | Pfad des Druckordners (unter `/share` oder `/media`) |
 | `log_level` | `debug`, `info`, `warning`, `error`. `debug` schreibt zusätzlich das Debug-Log des Brother-Treibers ins Add-on-Log. |
@@ -156,6 +166,10 @@ Drucken selbst braucht in keinem Fall eine Anmeldung.
   starten, erneut drucken und das Log ansehen.
 - **Scanner fehlt:** Im Log nach „Scanner:“ suchen. Fehlt der Treiber, siehe
   Abschnitt Scanner. Mit `log_level: debug` schreibt AirSane Details ins Log.
+- **Druckauftrag lässt sich nicht abbrechen:** Ein Auftrag, der schon komplett
+  an den Drucker übertragen wurde, druckt der MFC-260C aus seinem Speicher zu
+  Ende – dann am Gerät „Stopp“ drücken. Solange das Add-on noch rechnet,
+  bricht es den Auftrag sofort ab.
 - **Add-on hängt:** Im Add-on-Tab den **Watchdog** einschalten – der Supervisor
   startet das Add-on dann neu, wenn Port 631 nicht mehr antwortet.
 - **Im Modus `printer_app` klappt es nicht:** `mode: cups` setzen, das Add-on

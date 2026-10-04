@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.3.0
+
+### Behoben
+
+- Druckaufträge abbrechen (Modus `printer_app`): Die Legacy Printer Application
+  ließ den Brother-Filter nach dem Abbruch weiterlaufen, die Seite wurde
+  trotzdem gedruckt. Ein Wächter beendet die Filterkette jetzt sofort.
+- Scan-Taste: scannt jetzt über AirSane (wie die Weboberfläche) statt über
+  einen eigenen Zugriff auf den Scanner – Scans landen zuverlässig im
+  Scan-Ordner. Menüpunkt „Bild“ liefert JPEG in Farbe.
+- `build.yaml` entfernt (vom Supervisor abgekündigt); das Basis-Image steht
+  jetzt im Dockerfile.
+
+### Neu
+
+- Option `scan_source`: Vorlagenglas oder Vorlageneinzug für die Scan-Taste.
+
+### Geändert
+
+- mDNS/AirPrint nur noch auf den LAN-Schnittstellen statt auch auf internen
+  Docker-/Home-Assistant-Netzen (weniger Log, keine internen Ankündigungen).
+
 ## 2.2.0
 
 ### Neu

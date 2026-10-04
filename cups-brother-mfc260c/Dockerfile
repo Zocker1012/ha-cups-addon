@@ -1,4 +1,5 @@
-ARG BUILD_FROM
+# Basis-Image (früher in build.yaml, das der Supervisor nicht mehr verwenden möchte)
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-ubuntu:26.04
 
 # ==============================================================================
 # AirSane: stellt den Scanner treiberlos per AirScan/eSCL bereit
@@ -86,14 +87,6 @@ RUN fetch() { \
 # Add-on
 # ==============================================================================
 FROM ${BUILD_FROM}
-
-ARG BUILD_ARCH=amd64
-ARG BUILD_VERSION
-
-LABEL \
-  io.hass.version="${BUILD_VERSION}" \
-  io.hass.type="addon" \
-  io.hass.arch="${BUILD_ARCH}"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 

@@ -1,0 +1,13 @@
+# Status eines Druckauftrags abfragen (für cancel-watch.sh)
+{
+    NAME "Job-Status"
+    OPERATION Get-Job-Attributes
+    GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR naturalLanguage attributes-natural-language en
+    ATTR uri printer-uri $uri
+    ATTR integer job-id $job_id
+    ATTR keyword requested-attributes job-state,job-state-reasons
+    STATUS successful-ok
+    DISPLAY job-state-reasons
+}

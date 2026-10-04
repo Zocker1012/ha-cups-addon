@@ -93,6 +93,25 @@ add_admin_account ingress
 : > "${RUN_DIR}/ingress-cookie.conf"
 
 # ------------------------------------------------------------------------------
+# Avahi nur auf echten Netzwerkschnittstellen (nicht auf internen Docker-/
+# Home-Assistant-Netzen) – weniger Log, keine Ankündigung in internen Netzen
+# ------------------------------------------------------------------------------
+interfaces=()
+for iface in /sys/class/net/*; do
+    iface="${iface##*/}"
+    case "${iface}" in
+        lo | docker* | hassio | veth* | br-* | virbr* | tun* | tap* | wg* | dummy*) continue ;;
+    esac
+    [[ -e "/sys/class/net/${iface}/device" || -d "/sys/class/net/${iface}/wireless" ]] || continue
+    interfaces+=("${iface}")
+done
+if [[ "${#interfaces[@]}" -gt 0 ]]; then
+    allow=$(IFS=,; echo "${interfaces[*]}")
+    sed -i "s/^#\?allow-interfaces=.*/allow-interfaces=${allow}/" /etc/avahi/avahi-daemon.conf
+    bashio::log.info "mDNS/AirPrint auf: ${allow}"
+fi
+
+# ------------------------------------------------------------------------------
 # Brother-Treiber: Debug-Log bei log_level "debug" einschalten
 # ------------------------------------------------------------------------------
 if [[ "$(bashio::config 'log_level')" == "debug" ]]; then
@@ -122,6 +141,7 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_button'; then
         printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_format')"
         printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_resolution')"
         printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_mode')"
+        printf 'SCAN_SOURCE=%q\n' "$(bashio::config 'scan_source' 'flatbed')"
     } > "${RUN_DIR}/scan.env"
 fi
 

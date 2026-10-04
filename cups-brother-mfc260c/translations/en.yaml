@@ -33,8 +33,9 @@ configuration:
   scan_button:
     name: Scan button on the device (experimental)
     description: >-
-      The "Scan" button on the MFC-260C scans straight into the scan folder.
-      Requires the Brother scan-key-tool, see documentation.
+      The "Scan" menu on the MFC-260C scans straight into the scan folder
+      ("File" with the settings below, "Image" as color JPEG). Requires the
+      Brother scan-key-tool, see documentation.
   scan_folder:
     name: Scan folder
     description: Target folder for button scans (below /share or /media).
@@ -47,6 +48,10 @@ configuration:
   scan_mode:
     name: Scan color mode
     description: Color or grayscale for button scans.
+  scan_source:
+    name: Scan source
+    description: >-
+      Flatbed or automatic document feeder (adf) for button scans.
   print_folder:
     name: Print folder
     description: >-

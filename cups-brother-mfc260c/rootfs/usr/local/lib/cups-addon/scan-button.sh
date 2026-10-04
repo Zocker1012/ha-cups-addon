@@ -1,14 +1,16 @@
 #!/bin/bash
 # ==============================================================================
-# Wird vom Brother Scan-Key-Tool aufgerufen, wenn am Gerät "Scan" gedrückt wird.
-# Aufruf: scan-button.sh <ziel: file|image|ocr|email> <SANE-Gerät>
-# Scannt mit den Einstellungen aus den Add-on-Optionen in den Scan-Ordner und
-# meldet das Ergebnis als Ereignis "cups_addon_scan" an Home Assistant.
+# Wird vom Brother Scan-Key-Tool aufgerufen, wenn am Gerät im Menü "Scan" ein
+# Ziel gewählt wird. Aufruf: scan-button.sh <ziel: file|image|ocr|email> [gerät]
+#
+# Gescannt wird über AirSane (eSCL auf 127.0.0.1:8090) – derselbe Weg wie in
+# der Weboberfläche, der Scanner bleibt so in einer Hand. Das Ergebnis landet
+# im Scan-Ordner; Home Assistant bekommt das Ereignis "cups_addon_scan".
 # ==============================================================================
 set -u
 
+readonly ESCL="http://127.0.0.1:8090/eSCL"
 target="${1:-file}"
-device="${2:-}"
 
 # shellcheck source=/dev/null
 source /run/cups-addon/scan.env
@@ -29,73 +31,93 @@ notify() {
             "${SUPERVISOR_API:-http://supervisor}/core/api/events/cups_addon_scan" || true
 }
 
-# Ohne Gerätenamen den ersten Brother-Scanner nehmen
-if [[ -z "${device}" ]]; then
-    device=$(scanimage -f '%d%n' 2>/dev/null | grep -m1 '^brother' || true)
-fi
-if [[ -z "${device}" ]]; then
-    log "Kein Scanner gefunden"
+fail() {
+    log "Scan fehlgeschlagen: $*"
     notify "error" ""
     exit 1
+}
+
+# Menüpunkt "Bild" am Gerät: immer JPEG in Farbe, sonst die Einstellungen
+format="${SCAN_FORMAT}"
+mode="${SCAN_MODE}"
+if [[ "${target}" == "image" ]]; then
+    format="jpeg"
+    mode="color"
 fi
 
-# Passenden Farbmodus aus den vom Treiber angebotenen Modi wählen
-# (brother2 z. B.: "Black & White|Gray[Error Diffusion]|True Gray|24bit Color")
-mode=""
-choices=$(scanimage -d "${device}" -A 2>/dev/null \
-    | sed -n 's/^ *--mode \(.*\) \[.*$/\1/p' | head -n1 || true)
-if [[ -n "${choices}" ]]; then
-    IFS='|' read -ra available <<<"${choices}"
-    if [[ "${SCAN_MODE}" == "gray" ]]; then
-        preferred=("True Gray" "Gray" "Grayscale")
-        pattern="Gray"
-    else
-        preferred=("24bit Color" "Color")
-        pattern="Color"
-    fi
-    for want in "${preferred[@]}"; do
-        for have in "${available[@]}"; do
-            if [[ "${have}" == "${want}" ]]; then
-                mode="${have}"
-                break 2
-            fi
-        done
-    done
-    if [[ -z "${mode}" ]]; then
-        for have in "${available[@]}"; do
-            if [[ "${have}" == *"${pattern}"* ]]; then
-                mode="${have}"
-                break
-            fi
-        done
-    fi
-fi
-
-case "${SCAN_FORMAT}" in
-    jpeg) ext="jpg" ;;
-    png) ext="png" ;;
-    *) ext="pdf" ;;
+case "${format}" in
+    jpeg) mime="image/jpeg"; ext="jpg"; intent="Photo" ;;
+    png) mime="image/png"; ext="png"; intent="Photo" ;;
+    *) mime="application/pdf"; ext="pdf"; intent="Document" ;;
 esac
 
-mkdir -p "${SCAN_FOLDER}"
-name="scan_$(date +%Y-%m-%d_%H-%M-%S).${ext}"
-tmp="${SCAN_FOLDER}/.${name}.part"
-out="${SCAN_FOLDER}/${name}"
-
-log "Scanne (${target}) von ${device}: ${SCAN_RESOLUTION} dpi, ${mode:-Standardmodus}, ${SCAN_FORMAT}"
-
-args=(-d "${device}" --resolution "${SCAN_RESOLUTION}" --format="${SCAN_FORMAT}" -o "${tmp}")
-if [[ -n "${mode}" ]]; then
-    args+=(--mode "${mode}")
-fi
-
-if scanimage "${args[@]}" && [[ -s "${tmp}" ]]; then
-    mv "${tmp}" "${out}"
-    log "Gespeichert: ${out}"
-    notify "ok" "${out}"
+if [[ "${mode}" == "gray" ]]; then
+    color="Grayscale8"
 else
-    rm -f "${tmp}"
-    log "Scan fehlgeschlagen"
-    notify "error" ""
-    exit 1
+    color="RGB24"
 fi
+
+if [[ "${SCAN_SOURCE}" == "adf" ]]; then
+    source_xml="<pwg:InputSource>Feeder</pwg:InputSource><scan:ConcatIfPossible>1</scan:ConcatIfPossible>"
+else
+    source_xml="<pwg:InputSource>Platen</pwg:InputSource>"
+fi
+
+settings="<?xml version='1.0' encoding='UTF-8'?>
+<scan:ScanSettings xmlns:scan='http://schemas.hp.com/imaging/escl/2011/05/03' xmlns:pwg='http://www.pwg.org/schemas/2010/12/sm'>
+  <pwg:Version>2.6</pwg:Version>
+  <scan:Intent>${intent}</scan:Intent>
+  ${source_xml}
+  <scan:ColorMode>${color}</scan:ColorMode>
+  <scan:XResolution>${SCAN_RESOLUTION}</scan:XResolution>
+  <scan:YResolution>${SCAN_RESOLUTION}</scan:YResolution>
+  <pwg:DocumentFormat>${mime}</pwg:DocumentFormat>
+</scan:ScanSettings>"
+
+log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}, Quelle ${SCAN_SOURCE}"
+
+# Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
+job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
+        -H "Content-Type: text/xml" --data-binary "${settings}" \
+        "${ESCL}/ScanJobs" \
+    | tr -d '\r' | sed -n 's/^[Ll]ocation: *//p' | head -n1) || job=""
+[[ -n "${job}" ]] || fail "Scanner nicht erreichbar oder Auftrag abgelehnt (läuft der Scanner-Dienst?)"
+job="${job#http://*/}"
+job="/${job#/}"
+
+mkdir -p "${SCAN_FOLDER}"
+base="scan_$(date +%Y-%m-%d_%H-%M-%S)"
+saved=()
+page=1
+while true; do
+    if [[ "${page}" -eq 1 ]]; then
+        name="${base}.${ext}"
+    else
+        name="${base}_${page}.${ext}"
+    fi
+    tmp="${SCAN_FOLDER}/.${name}.part"
+
+    status=$(curl -s --max-time 600 -o "${tmp}" -w '%{http_code}' \
+        "http://127.0.0.1:8090${job}/NextDocument") || status="000"
+
+    if [[ "${status}" == "200" && -s "${tmp}" ]]; then
+        mv "${tmp}" "${SCAN_FOLDER}/${name}"
+        saved+=("${SCAN_FOLDER}/${name}")
+        log "Gespeichert: ${SCAN_FOLDER}/${name}"
+        page=$((page + 1))
+        continue
+    fi
+
+    rm -f "${tmp}"
+    # 404 = keine weiteren Seiten
+    if [[ "${status}" != "404" ]]; then
+        log "Unerwartete Antwort des Scanners: HTTP ${status}"
+    fi
+    break
+done
+
+[[ "${#saved[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
+
+for file in "${saved[@]}"; do
+    notify "ok" "${file}"
+done
