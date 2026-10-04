@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.0
+
+### Neu
+
+- Scan-Menü am Gerät: Der Menüpunkt „Bild“ hat jetzt eigene Einstellungen
+  für Format, Auflösung und Farbe (Standard JPEG, 300 dpi, Farbe). Datei,
+  OCR und E-Mail teilen sich die übrigen (Standard PDF, 300 dpi, Farbe).
+
 ## 2.7.0
 
 ### Neu

@@ -37,12 +37,15 @@ fail() {
     exit 1
 }
 
-# Menüpunkt "Bild" am Gerät: immer JPEG, Farbe aus eigener Einstellung
+# Menüpunkt "Bild" am Gerät hat eigene Einstellungen, alle anderen
+# (Datei, OCR, E-Mail) teilen sich eine
 format="${SCAN_FORMAT}"
 mode="${SCAN_MODE}"
+resolution="${SCAN_RESOLUTION}"
 if [[ "${target}" == "image" ]]; then
-    format="jpeg"
+    format="${SCAN_IMAGE_FORMAT:-jpeg}"
     mode="${SCAN_IMAGE_MODE:-color}"
+    resolution="${SCAN_IMAGE_RESOLUTION:-${SCAN_RESOLUTION}}"
 fi
 
 case "${format}" in
@@ -101,12 +104,12 @@ scan_from() {
   <pwg:InputSource>${input}</pwg:InputSource>
   ${extra}
   <scan:ColorMode>${color}</scan:ColorMode>
-  <scan:XResolution>${SCAN_RESOLUTION}</scan:XResolution>
-  <scan:YResolution>${SCAN_RESOLUTION}</scan:YResolution>
+  <scan:XResolution>${resolution}</scan:XResolution>
+  <scan:YResolution>${resolution}</scan:YResolution>
   <pwg:DocumentFormat>${mime}</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${target}): ${SCAN_RESOLUTION} dpi, ${mode}, ${format}, Quelle ${input}"
+    log "Scanne (${target}): ${resolution} dpi, ${mode}, ${format}, Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \

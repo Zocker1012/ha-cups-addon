@@ -51,15 +51,22 @@ configuration:
         description: Unter /share oder /media.
       format:
         name: Format
-        description: Für "Datei", "OCR" und "E-Mail". "Bild" ist immer JPEG.
+        description: Für "Datei", "OCR" und "E-Mail".
       resolution:
         name: Auflösung (dpi)
+        description: Für "Datei", "OCR" und "E-Mail".
       color:
         name: Farbe
-        description: '"color" oder "gray" für "Datei", "OCR" und "E-Mail".'
+        description: Für "Datei", "OCR" und "E-Mail". "gray" = Graustufen.
+      image_format:
+        name: Format bei Bild
+        description: Für den Menüpunkt "Bild".
+      image_resolution:
+        name: Auflösung bei Bild (dpi)
+        description: Für den Menüpunkt "Bild".
       image_color:
         name: Farbe bei Bild
-        description: Farbe für den Menüpunkt "Bild".
+        description: Für den Menüpunkt "Bild".
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.

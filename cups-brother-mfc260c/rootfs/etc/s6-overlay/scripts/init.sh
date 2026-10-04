@@ -182,6 +182,8 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
         printf 'SCAN_FORMAT=%q\n' "$(bashio::config 'scan_menu.format')"
         printf 'SCAN_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.resolution')"
         printf 'SCAN_MODE=%q\n' "$(bashio::config 'scan_menu.color')"
+        printf 'SCAN_IMAGE_FORMAT=%q\n' "$(bashio::config 'scan_menu.image_format' 'jpeg')"
+        printf 'SCAN_IMAGE_RESOLUTION=%q\n' "$(bashio::config 'scan_menu.image_resolution' '300')"
         printf 'SCAN_IMAGE_MODE=%q\n' "$(bashio::config 'scan_menu.image_color' 'color')"
     } > "${RUN_DIR}/scan.env"
 fi

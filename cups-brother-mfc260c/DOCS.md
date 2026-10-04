@@ -59,12 +59,10 @@ Schaltest du **Scan-Menü am Gerät → Scan-Menü nutzen** ein, speichert das M
 per Samba unter „share“ erreichbar). Das Gerät meldet nur den gewählten
 Menüpunkt, alles andere stellst du im Add-on ein:
 
-| Menüpunkt | Format | Farbe |
+| Menüpunkt | Einstellungen | Standard |
 |---|---|---|
-| Datei, OCR, E-Mail | Einstellung „Format“ | Einstellung „Farbe“ |
-| Bild | immer JPEG | Einstellung „Farbe bei Bild“ |
-
-Die Auflösung gilt für alle Menüpunkte.
+| Datei, OCR, E-Mail | Format, Auflösung, Farbe | PDF, 300 dpi, Farbe |
+| Bild | Format, Auflösung, Farbe bei Bild | JPEG, 300 dpi, Farbe |
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
@@ -118,7 +116,9 @@ scan_menu:
   format: pdf             # pdf | jpeg | png
   resolution: "300"       # 100 | 150 | 200 | 300 | 600
   color: color            # color | gray
-  image_color: color      # color | gray (Menüpunkt "Bild")
+  image_format: jpeg      # wie oben, für den Menüpunkt "Bild"
+  image_resolution: "300"
+  image_color: color
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media

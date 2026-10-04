@@ -51,15 +51,22 @@ configuration:
         description: Below /share or /media.
       format:
         name: Format
-        description: For "File", "OCR" and "E-mail". "Image" is always JPEG.
+        description: For "File", "OCR" and "E-mail".
       resolution:
         name: Resolution (dpi)
+        description: For "File", "OCR" and "E-mail".
       color:
         name: Color
-        description: '"color" or "gray" for "File", "OCR" and "E-mail".'
+        description: For "File", "OCR" and "E-mail". "gray" = grayscale.
+      image_format:
+        name: Format for Image
+        description: For the "Image" menu item.
+      image_resolution:
+        name: Resolution for Image (dpi)
+        description: For the "Image" menu item.
       image_color:
-        name: Color for "Image"
-        description: Color for the "Image" menu item.
+        name: Color for Image
+        description: For the "Image" menu item.
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.
