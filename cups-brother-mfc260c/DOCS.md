@@ -70,22 +70,27 @@ Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
 verschickt das Add-on nicht.
 
-**Verkleinern** (je Menüpunkt, Standard aus): Ohne Verkleinern enthält ein
-PDF die Seiten verlustfrei, so wie der Scanner sie liefert – eine Farbseite
-mit 300 dpi hat rund 26 MB. Verkleinert werden die Seiten im PDF als JPEG
-gespeichert: etwa 0,6 MB, kaum sichtbarer Qualitätsverlust, gleiche Auflösung.
-JPEGs haben sonst Qualität 90, verkleinert 75 (etwa ein Drittel kleiner). PNG
-bleibt immer verlustfrei, dort hat der Schalter keine Wirkung. Ideal für
-Dokumente; bei Fotos mit feinen Farbverläufen lieber aus lassen.
+**Qualität und Dateigröße:**
 
-**Texterkennung:** Als PDF bekommst du ein durchsuchbares PDF – du kannst
-darin Text suchen und kopieren, und z. B. Paperless findet den Inhalt. Das PDF
-ist dabei meist deutlich kleiner als ohne. Bei JPEG/PNG kommt der erkannte
-Text als `.txt`-Datei dazu. Verkehrt herum oder quer eingelegte Seiten dreht
-das Add-on vorher automatisch (nicht bei PNG). Sprache und Drehen stellst du
-einmal unter **Scan-Menü am Gerät** ein. Die Erkennung braucht je Seite etwa
-eine bis ein paar Sekunden. Bei „Bild“ gibt es sie nicht – Fotos enthalten
-kaum Text, und das Drehen könnte sie falsch herum stellen.
+| Stellschraube | Wirkung |
+|---|---|
+| Auflösung, Farbe | bestimmen die Datenmenge (Graustufen etwa ⅓) |
+| Format | PDF und PNG verlustfrei, JPEG Qualität 90 (JPEG ist immer verlustbehaftet) |
+| Verkleinern (Standard aus) | einziger Schalter mit Qualitätsverlust: Seiten als JPEG Qualität 75 |
+| Texterkennung | fügt nur Text hinzu, die Bildqualität bleibt gleich |
+
+Eine Farbseite mit 300 dpi hat als verlustfreies PDF etwa 8–10 MB, verkleinert
+etwa 1 MB. Verkleinern lohnt sich vor allem bei Dokumenten; bei Fotos mit
+feinen Farbverläufen lieber aus lassen. Bei PNG hat der Schalter keine
+Wirkung.
+
+**Texterkennung:** Ein PDF bekommt eine unsichtbare Textebene – du kannst
+darin suchen und Text kopieren, und z. B. Paperless findet den Inhalt. Bei
+JPEG/PNG kommt der erkannte Text als `.txt`-Datei dazu. Verkehrt herum oder
+quer eingelegte Seiten dreht das Add-on vorher verlustfrei gerade. Sprache und
+Drehen stellst du einmal unter **Scan-Menü am Gerät** ein. Die Erkennung
+braucht je Seite einige Sekunden. Bei „Bild“ gibt es sie nicht – Fotos
+enthalten kaum Text, und das Drehen könnte sie falsch herum stellen.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
@@ -210,5 +215,6 @@ pushen, Workflow abwarten, dann in HA updaten.
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
 Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
-Anpassungen in `patches/`), Tesseract (Apache 2.0) sowie Ghostscript, SANE,
+Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL)
+sowie Ghostscript, SANE,
 Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das CUPS-Logo ist eine Marke von OpenPrinting/Apple.

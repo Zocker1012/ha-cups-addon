@@ -62,7 +62,7 @@ configuration:
         name: Text recognition – rotate pages automatically
         description: >-
           On: upside-down or sideways pages are straightened before text
-          recognition (not for png).
+          recognition (lossless).
   scan_file:
     name: "Scan menu: File"
     description: Settings for the "File" menu item.
@@ -79,15 +79,15 @@ configuration:
       ocr:
         name: Text recognition
         description: >-
-          On: searchable PDF or an extra .txt file (a few seconds per page,
-          PDF usually smaller). Off: plain scan.
+          On: searchable PDF or an extra .txt file, image quality is
+          unchanged. A few seconds per page.
       compress:
         name: Compress
         description: >-
-          On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
-          MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same – ideal for documents. Off: PDF lossless,
-          JPEG quality 90. No effect for png (always lossless).
+          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
+          JPEG about a third smaller; hardly visible loss, ideal for
+          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          (always lossless).
   scan_image:
     name: "Scan menu: Image"
     description: Settings for the "Image" menu item.
@@ -104,10 +104,10 @@ configuration:
       compress:
         name: Compress
         description: >-
-          On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
-          MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same – ideal for documents. Off: PDF lossless,
-          JPEG quality 90. No effect for png (always lossless).
+          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
+          JPEG about a third smaller; hardly visible loss, ideal for
+          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          (always lossless).
   scan_text:
     name: "Scan menu: Text"
     description: '"Text" menu item – with text recognition.'
@@ -124,15 +124,16 @@ configuration:
       ocr:
         name: Text recognition
         description: >-
-          On: the text is recognized – a PDF becomes searchable, jpeg/png get
-          an extra .txt file (a few seconds per page). Off: plain scan.
+          On: the text is recognized – a PDF gets an invisible text layer
+          (searchable), jpeg/png get an extra .txt file. Image quality is
+          unchanged. A few seconds per page.
       compress:
         name: Compress
         description: >-
-          On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
-          MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same – ideal for documents. Off: PDF lossless,
-          JPEG quality 90. No effect for png (always lossless).
+          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
+          JPEG about a third smaller; hardly visible loss, ideal for
+          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          (always lossless).
   scan_email:
     name: "Scan menu: E-mail"
     description: '"E-mail" menu item – only saves to the folder, sends no mail.'
@@ -149,15 +150,15 @@ configuration:
       ocr:
         name: Text recognition
         description: >-
-          On: searchable PDF or an extra .txt file (a few seconds per page,
-          PDF usually smaller). Off: plain scan.
+          On: searchable PDF or an extra .txt file, image quality is
+          unchanged. A few seconds per page.
       compress:
         name: Compress
         description: >-
-          On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
-          MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same – ideal for documents. Off: PDF lossless,
-          JPEG quality 90. No effect for png (always lossless).
+          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
+          JPEG about a third smaller; hardly visible loss, ideal for
+          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          (always lossless).
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.

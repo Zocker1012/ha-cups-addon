@@ -130,8 +130,12 @@ RUN dpkg --add-architecture i386 \
         libusb-0.1-4 \
         libusb-1.0-0 \
         sane-utils \
-        # Texterkennung (Scan-Menü "OCR"), jpegtran zum verlustfreien Drehen
+        # Scan-Menü: Texterkennung (tesseract), PDF verlustfrei aus Seiten-
+        # bildern (img2pdf), Textebene/Drehen/Zusammenfügen (qpdf),
+        # JPEG verlustfrei optimieren (jpegtran)
+        img2pdf \
         libjpeg-turbo-progs \
+        qpdf \
         tesseract-ocr \
         tesseract-ocr-deu \
         tesseract-ocr-eng \
@@ -177,7 +181,7 @@ RUN set -e; \
     test -s /usr/share/cups/model/brmfc260c.ppd; \
     test -x /usr/lib/cups/filter/brlpdwrappermfc260c; \
     test -x /usr/lib/cups/backend/usb; \
-    for cmd in gs pdf2ps file psnup a2ps tesseract jpegtran; do command -v "${cmd}"; done; \
+    for cmd in gs pdf2ps file psnup a2ps tesseract jpegtran img2pdf qpdf; do command -v "${cmd}"; done; \
     tesseract --list-langs 2>&1 | grep -qx deu; \
     tesseract --list-langs 2>&1 | grep -qx osd; \
     rc=0; \

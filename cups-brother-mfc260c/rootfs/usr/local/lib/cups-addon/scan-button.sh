@@ -8,8 +8,10 @@
 # immer ein PDF mit allen Seiten in einem Durchgang: Nur dieser Weg läuft am
 # MFC-260C zuverlässig (Seite für Seite als Bild bleibt das Gerät bei
 # "PC-Anschluss" hängen). JPEG/PNG und Texterkennung entstehen danach aus dem
-# PDF (Ghostscript, Tesseract). Das Ergebnis landet im Scan-Ordner; Home
-# Assistant bekommt das Ereignis "cups_addon_scan".
+# PDF. Qualität: PDF und PNG verlustfrei, JPEG Qualität 90; nur "Verkleinern"
+# speichert die Seiten als JPEG mit Qualität 75. Texterkennung fügt lediglich
+# eine unsichtbare Textebene (PDF) bzw. eine .txt-Datei hinzu. Das Ergebnis
+# landet im Scan-Ordner; Home Assistant bekommt das Ereignis "cups_addon_scan".
 # ==============================================================================
 set -u
 
@@ -61,8 +63,8 @@ if [[ "${target}" != "image" && "${!var:-false}" == "true" ]]; then
     ocr=true
 fi
 
-# Verkleinern (PDF und JPEG): Seiten als JPEG mit Qualität 75 statt 90 bzw.
-# statt unkomprimiert, Auflösung bleibt gleich
+# Verkleinern (PDF und JPEG): Seiten als JPEG mit Qualität 75 statt
+# verlustfrei (PDF) bzw. Qualität 90 (JPEG), Auflösung bleibt gleich
 compress=false
 var="${prefix}_COMPRESS"
 if [[ "${!var:-false}" == "true" ]]; then
@@ -208,120 +210,102 @@ name_for() {
     fi
 }
 
-# Alle Seiten der gescannten PDFs als Bilder (Seite für Seite) ausgeben
-# $1: jpeg | png – die Auflösung entspricht der Scan-Auflösung
-render_pages() {
-    local kind="$1" device ext
-    case "${kind}:${mode}" in
-        png:gray) device="pnggray"; ext="png" ;;
-        png:*) device="png16m"; ext="png" ;;
-        jpeg:gray) device="jpeggray"; ext="jpg" ;;
-        *) device="jpeg"; ext="jpg" ;;
-    esac
-    nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE="${device}" \
-        -dJPEGQ="${jpeg_quality}" -r"${resolution}" \
-        -sOutputFile="${work_dir}/page_%04d.${ext}" "${scanned[@]}" > /dev/null 2>&1 \
-        || return 1
-    compgen -G "${work_dir}/page_*.${ext}"
-}
+# 1. Alle Dokumente des Scans zu einem PDF zusammenfassen (meist nur eins)
+raw="${scanned[0]}"
+if [[ "${#scanned[@]}" -gt 1 ]]; then
+    qpdf --empty --pages "${scanned[@]}" -- "${work_dir}/raw.pdf" \
+        || fail "Zusammenfassen der Seiten fehlgeschlagen"
+    raw="${work_dir}/raw.pdf"
+fi
 
-# Verkehrt herum oder quer liegende Seite drehen (nur JPEG, verlustfrei).
-# Tesseract meldet "Rotate: <Grad im Uhrzeigersinn>"; gedreht wird nur bei
-# ausreichender Sicherheit, sonst bleibt die Seite wie gescannt.
-rotate_page() {
-    local page="$1" osd angle confidence
-    osd=$(nice -n 10 tesseract "${page}" - --psm 0 2> /dev/null) || return 0
-    angle=$(sed -n 's/^Rotate: *//p' <<< "${osd}")
-    confidence=$(sed -n 's/^Orientation confidence: *//p' <<< "${osd}")
-    [[ -n "${angle}" && "${angle}" != "0" ]] || return 0
-    if awk -v c="${confidence:-0}" 'BEGIN { exit !(c >= 2) }'; then
-        jpegtran -copy all -rotate "${angle}" -outfile "${page}.rot" "${page}" \
-            && mv "${page}.rot" "${page}" \
-            && log "Seite ${page##*/} um ${angle}° gedreht"
-    fi
-}
-
-# PDF verkleinern: Bilder als JPEG (Qualität ca. 75) neu einbetten,
-# ohne die Auflösung zu verringern
-compress_pdf() {
-    local src="$1" dst="$2" q="/QFactor 0.76 /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2]"
-    nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
-        -dAutoFilterColorImages=false -dColorImageFilter=/DCTEncode -dDownsampleColorImages=false \
-        -dAutoFilterGrayImages=false -dGrayImageFilter=/DCTEncode -dDownsampleGrayImages=false \
-        -sOutputFile="${dst}" \
-        -c "<< /ColorACSImageDict << ${q} >> /GrayACSImageDict << ${q} >>
-              /ColorImageDict << ${q} >> /GrayImageDict << ${q} >> >> setdistillerparams" \
-        -f "${src}" > /dev/null 2>&1 && [[ -s "${dst}" ]]
-}
-
-if [[ "${format}" == "pdf" && "${ocr}" != "true" ]]; then
-    # PDF übernehmen (umbenennen), auf Wunsch vorher verkleinern
+# 2. Bei Texterkennung verkehrt herum oder quer liegende Seiten erkennen und
+#    verlustfrei drehen (Seitenattribut im PDF, die Pixel bleiben unverändert).
+#    Die Lageerkennung braucht etwa 300 dpi; gedreht wird nur bei
+#    ausreichender Sicherheit.
+if [[ "${ocr}" == "true" && "${SCAN_OCR_ROTATE:-true}" == "true" ]]; then
+    rotations=()
+    nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=jpeggray -r300 \
+        -sOutputFile="${work_dir}/osd_%04d.jpg" "${raw}" > /dev/null 2>&1
     n=1
-    for doc in "${scanned[@]}"; do
-        name=$(name_for "${n}" pdf)
-        if [[ "${compress}" == "true" ]] && compress_pdf "${doc}" "${work_dir}/${name}"; then
-            file=$(publish "${work_dir}/${name}" "${name}") && saved+=("${file}")
-        else
-            [[ "${compress}" == "true" ]] && log "Verkleinern fehlgeschlagen – PDF bleibt unverändert"
-            file="${SCAN_FOLDER}/${name}"
-            mv "${doc}" "${file}" && saved+=("${file}")
+    while [[ -f "$(printf '%s/osd_%04d.jpg' "${work_dir}" "${n}")" ]]; do
+        osd=$(nice -n 10 tesseract "$(printf '%s/osd_%04d.jpg' "${work_dir}" "${n}")" - --psm 0 2> /dev/null) || osd=""
+        angle=$(sed -n 's/^Rotate: *//p' <<< "${osd}")
+        confidence=$(sed -n 's/^Orientation confidence: *//p' <<< "${osd}")
+        if [[ -n "${angle}" && "${angle}" != "0" ]] \
+            && awk -v c="${confidence:-0}" 'BEGIN { exit !(c >= 2) }'; then
+            rotations+=("--rotate=+${angle}:${n}")
+            log "Seite ${n} wird um ${angle}° gedreht"
         fi
         n=$((n + 1))
     done
+    if [[ "${#rotations[@]}" -gt 0 ]] \
+        && qpdf "${raw}" "${rotations[@]}" "${work_dir}/rotated.pdf"; then
+        raw="${work_dir}/rotated.pdf"
+    fi
+fi
+
+# 3. Seitenbilder in der Scan-Auflösung erzeugen: verlustfrei als PNG, als
+#    JPEG mit Qualität 90 bzw. 75 (Verkleinern). Für PDF dienen sie als Seiten.
+if [[ "${format}" == "png" || ( "${format}" == "pdf" && "${compress}" != "true" ) ]]; then
+    kind="png"
 else
-    # Seitenbilder erzeugen: für die Texterkennung mit PDF-Ziel als JPEG
-    kind="${format}"
-    [[ "${kind}" == "pdf" ]] && kind="jpeg"
-    mapfile -t pages < <(render_pages "${kind}" | sort)
-    [[ "${#pages[@]}" -gt 0 ]] || fail "Umwandlung der Seiten fehlgeschlagen"
+    kind="jpeg"
+fi
+case "${kind}:${mode}" in
+    png:gray) device="pnggray"; ext="png" ;;
+    png:*) device="png16m"; ext="png" ;;
+    jpeg:gray) device="jpeggray"; ext="jpg" ;;
+    *) device="jpeg"; ext="jpg" ;;
+esac
+nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE="${device}" \
+    -dJPEGQ="${jpeg_quality}" -r"${resolution}" \
+    -sOutputFile="${work_dir}/page_%04d.${ext}" "${raw}" > /dev/null 2>&1
+mapfile -t pages < <(compgen -G "${work_dir}/page_*.${ext}" | sort)
+[[ "${#pages[@]}" -gt 0 ]] || fail "Umwandlung der Seiten fehlgeschlagen"
 
-    # Verkleinern: JPEG-Seiten zusätzlich verlustfrei optimieren
-    if [[ "${compress}" == "true" && "${kind}" == "jpeg" ]]; then
-        for page in "${pages[@]}"; do
-            jpegtran -copy all -optimize -outfile "${page}.opt" "${page}" \
-                && mv "${page}.opt" "${page}"
-        done
-    fi
+# Verkleinern: JPEG-Seiten zusätzlich verlustfrei optimieren
+if [[ "${compress}" == "true" && "${kind}" == "jpeg" ]]; then
+    for page in "${pages[@]}"; do
+        jpegtran -copy all -optimize -outfile "${page}.opt" "${page}" \
+            && mv "${page}.opt" "${page}"
+    done
+fi
 
+# 4. Texterkennung: unsichtbare Textebene als eigenes PDF und Text als .txt
+if [[ "${ocr}" == "true" ]]; then
+    case "${SCAN_OCR_LANG:-deu_eng}" in
+        deu) lang="deu" ;;
+        eng) lang="eng" ;;
+        *) lang="deu+eng" ;;
+    esac
+    log "Texterkennung (${lang}) für ${#pages[@]} Seite(n) ..."
+    printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
+    nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/text" \
+        -l "${lang}" -c textonly_pdf=1 pdf txt > /dev/null 2>&1 \
+        || fail "Texterkennung fehlgeschlagen"
+fi
+
+# 5. Ergebnis speichern
+if [[ "${format}" == "pdf" ]]; then
+    # Seitenbilder unverändert ins PDF übernehmen (PNG verlustfrei, JPEG wie
+    # erzeugt), bei Texterkennung die Textebene darüberlegen
+    img2pdf "${pages[@]}" -o "${work_dir}/pages.pdf" > /dev/null 2>&1 \
+        || fail "PDF konnte nicht erstellt werden"
+    result="${work_dir}/pages.pdf"
     if [[ "${ocr}" == "true" ]]; then
-        case "${SCAN_OCR_LANG:-deu_eng}" in
-            deu) lang="deu" ;;
-            eng) lang="eng" ;;
-            *) lang="deu+eng" ;;
-        esac
-        log "Texterkennung (${lang}) für ${#pages[@]} Seite(n) ..."
-        if [[ "${SCAN_OCR_ROTATE:-true}" == "true" && "${kind}" == "jpeg" ]]; then
-            for page in "${pages[@]}"; do
-                rotate_page "${page}"
-            done
-        fi
+        qpdf "${result}" --overlay "${work_dir}/text.pdf" -- "${work_dir}/result.pdf" \
+            || fail "Textebene konnte nicht eingefügt werden"
+        result="${work_dir}/result.pdf"
     fi
-
-    if [[ "${format}" == "pdf" ]]; then
-        # Alle Seiten in ein durchsuchbares PDF (Bild + unsichtbarer Text)
-        printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
-        # Tesseract übernimmt die JPEG-Seiten unverändert ins PDF
-        if nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/${base}" \
-                -l "${lang}" pdf > /dev/null 2>&1 \
-            && file=$(publish "${work_dir}/${base}.pdf" "${base}.pdf"); then
-            saved+=("${file}")
-        else
-            fail "Texterkennung fehlgeschlagen"
-        fi
-    else
-        # Bilder; bei Texterkennung dazu der erkannte Text als .txt
-        n=1
-        for page in "${pages[@]}"; do
-            file=$(publish "${page}" "$(name_for "${n}" "${page##*.}")") && saved+=("${file}")
-            if [[ "${ocr}" == "true" ]]; then
-                nice -n 10 tesseract "${page}" - -l "${lang}" 2> /dev/null >> "${work_dir}/${base}.txt"
-                printf '\f' >> "${work_dir}/${base}.txt"
-            fi
-            n=$((n + 1))
-        done
-        if [[ "${ocr}" == "true" ]]; then
-            file=$(publish "${work_dir}/${base}.txt" "${base}.txt") && saved+=("${file}")
-        fi
+    file=$(publish "${result}" "${base}.pdf") && saved+=("${file}")
+else
+    n=1
+    for page in "${pages[@]}"; do
+        file=$(publish "${page}" "$(name_for "${n}" "${ext}")") && saved+=("${file}")
+        n=$((n + 1))
+    done
+    if [[ "${ocr}" == "true" ]]; then
+        file=$(publish "${work_dir}/text.txt" "${base}.txt") && saved+=("${file}")
     fi
 fi
 

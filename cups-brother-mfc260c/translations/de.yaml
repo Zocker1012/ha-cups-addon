@@ -62,7 +62,7 @@ configuration:
         name: Texterkennung – Seiten automatisch drehen
         description: >-
           An: Verkehrt herum oder quer eingelegte Seiten werden vor der
-          Texterkennung gerade gedreht (nicht bei png).
+          Texterkennung gerade gedreht (verlustfrei).
   scan_file:
     name: "Scan-Menü: Datei"
     description: Einstellungen für den Menüpunkt „Datei“.
@@ -79,15 +79,15 @@ configuration:
       ocr:
         name: Texterkennung
         description: >-
-          An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
-          Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
+          An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
+          Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
         name: Verkleinern
         description: >-
-          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
-          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
-          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
+          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
+          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
+          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Wirkung (immer verlustfrei).
   scan_image:
     name: "Scan-Menü: Bild"
     description: Einstellungen für den Menüpunkt „Bild“.
@@ -104,10 +104,10 @@ configuration:
       compress:
         name: Verkleinern
         description: >-
-          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
-          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
-          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
+          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
+          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
+          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Wirkung (immer verlustfrei).
   scan_text:
     name: "Scan-Menü: Text"
     description: Menüpunkt „Text“ – mit Texterkennung.
@@ -124,16 +124,16 @@ configuration:
       ocr:
         name: Texterkennung
         description: >-
-          An: Der Text wird erkannt – ein PDF wird durchsuchbar, bei jpeg/png
-          kommt eine .txt-Datei dazu (ein paar Sekunden je Seite). Aus:
-          normaler Scan.
+          An: Der Text wird erkannt – ein PDF bekommt eine unsichtbare
+          Textebene (durchsuchbar), bei jpeg/png kommt eine .txt-Datei dazu.
+          Die Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
         name: Verkleinern
         description: >-
-          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
-          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
-          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
+          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
+          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
+          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Wirkung (immer verlustfrei).
   scan_email:
     name: "Scan-Menü: E-Mail"
     description: Menüpunkt „E-Mail“ – speichert nur im Ordner, verschickt keine Mail.
@@ -150,15 +150,15 @@ configuration:
       ocr:
         name: Texterkennung
         description: >-
-          An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
-          Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
+          An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
+          Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
         name: Verkleinern
         description: >-
-          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
-          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
-          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
+          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
+          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
+          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Wirkung (immer verlustfrei).
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.

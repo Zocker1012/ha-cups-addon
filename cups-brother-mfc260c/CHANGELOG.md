@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.14.0
+
+### Geändert
+
+- Klare Qualitätsregel im Scan-Menü: PDF und PNG sind verlustfrei, JPEG hat
+  Qualität 90. Nur „Verkleinern“ speichert die Seiten als JPEG mit Qualität
+  75. Die Texterkennung fügt nur Text hinzu und ändert die Bildqualität nicht
+  mehr (vorher JPEG 90 im PDF).
+- PDF ohne Verkleinern ist jetzt verlustfrei komprimiert statt unkomprimiert:
+  gleiche Pixel, etwa 9 statt 26 MB pro Farbseite (300 dpi).
+- Automatisches Drehen funktioniert jetzt bei allen Formaten, auch PNG, und
+  ist verlustfrei.
+- Neue Pakete im Image: img2pdf und qpdf.
+
 ## 2.13.1
 
 ### Geändert
