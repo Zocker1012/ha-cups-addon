@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.16.3
+
+### Behoben
+
+- Scan-Menü: Scheitert ein Verarbeitungsschritt (z. B. Umwandlung oder
+  PDF-Erstellung), wird der Scan unverändert als PDF gespeichert, statt
+  verloren zu gehen. Scheitert nur die Texterkennung, wird der Scan ohne Text
+  gespeichert.
+- Scan-Menü: Warnungen von qpdf bei ungewöhnlichen PDFs gelten nicht mehr als
+  Fehler.
+
+### Geändert
+
+- Scan-Menü: Log-Meldungen mit Uhrzeit und Stufe (INFO/WARNING) wie die
+  übrigen Add-on-Meldungen, Farbe auf Deutsch.
+- Unnötiges Sicherheitsnetz für Brothers eigene Scan-Skripte entfernt (sie
+  laufen nie, weil alle Menüpunkte auf das Add-on umgelenkt sind).
+- Fertige Images (GitHub-Workflow): Der Build bricht ab, wenn die
+  Brother-Scanpakete fehlen, statt still ein Image ohne Scanner zu
+  veröffentlichen. Der Build in Home Assistant bleibt unverändert.
+- Beschreibungen für „Bild“ auf Fotos zugeschnitten, Dokumentation ergänzt.
+
 ## 2.16.2
 
 ### Geändert

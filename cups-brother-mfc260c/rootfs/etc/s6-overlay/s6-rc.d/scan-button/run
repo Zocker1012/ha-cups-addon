@@ -7,8 +7,6 @@
 
 readonly SKEY_DIR="/opt/brother/scanner/brscan-skey"
 readonly SCRIPT="/usr/local/lib/cups-addon/scan-button.sh"
-# Hierhin speichern Brothers eigene Skripte (falls sie doch einmal laufen)
-readonly BROTHER_OUT="${HOME:-/root}/brscan"
 
 if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_menu.enabled'; then
     s6-svc -O .
@@ -22,7 +20,9 @@ if [[ ! -e /usr/share/cups-addon-scan-button ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-# Alle Ziele des Scan-Menüs (Datei, Bild, OCR, E-Mail) auf unser Skript lenken.
+# Alle Ziele des Scan-Menüs auf unser Skript lenken (Brothers eigene Skripte
+# laufen dann nie). Das Tool nennt sie FILE, IMAGE, OCR und EMAIL – am Gerät
+# heißen sie Datei, Bild, Text und E-Mail.
 # Version 0.3.x: brscan-skey.config, Version 0.2.x: brscan-skey-<version>.cfg
 # ------------------------------------------------------------------------------
 configured=false
@@ -46,22 +46,7 @@ if [[ "${configured}" != "true" ]]; then
     exit 0
 fi
 
-# ------------------------------------------------------------------------------
-# Sicherheitsnetz: Landet doch ein Scan in Brothers Standardordner, in den
-# Scan-Ordner verschieben
-# ------------------------------------------------------------------------------
-scan_folder=$(bashio::config 'scan_menu.folder')
-mkdir -p "${BROTHER_OUT}" "${scan_folder}"
-(
-    inotifywait -m -q -e close_write -e moved_to --format '%w%f' "${BROTHER_OUT}" 2>/dev/null \
-        | while IFS= read -r file; do
-            [[ -f "${file}" ]] || continue
-            mv -f "${file}" "${scan_folder}/" \
-                && echo "[scan-button] Brother-Standardscan verschoben: ${scan_folder}/${file##*/}" > /proc/1/fd/1
-        done
-) &
-
-bashio::log.info "Scan-Menü am Gerät wird überwacht (Ziel: ${scan_folder})"
+bashio::log.info "Scan-Menü am Gerät wird überwacht (Ziel: $(bashio::config 'scan_menu.folder'))"
 
 # Version 0.3.x kann im Vordergrund laufen (-f) – ideal für s6
 if [[ -x "${SKEY_DIR}/brscan-skey-exe" ]]; then

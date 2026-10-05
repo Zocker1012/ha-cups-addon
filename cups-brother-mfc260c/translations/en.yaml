@@ -108,17 +108,18 @@ configuration:
         description: pdf, jpeg or png.
       resolution:
         name: Resolution (dpi)
-        description: 300 is enough for documents, 600 is the device maximum.
+        description: >-
+          300 is enough for viewing, 600 (device maximum) for photos you want
+          to enlarge or print.
       color:
         name: Color
         description: color or gray (grayscale, smaller file).
       compress:
         name: Compress (off = best quality)
         description: >-
-          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
-          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
-          JPEG about a third smaller, ideal for documents. No effect for png
-          (always lossless).
+          Off: best quality – PDF lossless (like PNG), JPEG quality 90. On:
+          JPEG quality 75, about a third smaller. Better left off for photos –
+          fine color gradients suffer first. No effect for png.
   scan_text:
     name: "Scan menu: Text"
     description: '"Text" menu item – with text recognition.'

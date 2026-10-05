@@ -120,8 +120,7 @@ gelten; wer nichts riskieren will, lässt die Funktion aus.
 
 Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` (`status`,
 `file`, `target` = `file`, `image`, `ocr` für Text oder `email`) an Home
-Assistant, z. B. für
-eine Benachrichtigung:
+Assistant, z. B. für eine Benachrichtigung:
 
 ```yaml
 triggers:
@@ -254,6 +253,9 @@ Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Po
 - **Display zeigt „PC-Anschluss“ und reagiert nicht:** Ist **Scan-Menü
   nutzen** an? Sonst wartet das Gerät vergeblich. Ansonsten wurde ein Scan
   unterbrochen – drück am Gerät „Stopp“.
+- **Scan liegt als PDF statt im eingestellten Format vor:** Ein
+  Verarbeitungsschritt ist fehlgeschlagen. Damit nichts verloren geht,
+  speichert das Add-on den Scan dann unverändert; den Grund findest du im Log.
 - **Windows meldet beim Scannen „Papierstau“:** Die Auflösung ist zu hoch.
   Wähl höchstens 600 dpi.
 - **Druck abbrechen:** Die angefangene Seite wird fertig gedruckt und
@@ -265,7 +267,8 @@ Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Po
 ## Für Entwickler
 
 **Fertige Images:** Ohne weitere Einstellung baut Home Assistant das Add-on
-selbst (einige Minuten). Alternativ baut der Workflow
+bei jeder Installation und jedem Update selbst (mehrere Minuten, AirSane wird
+dabei kompiliert). Alternativ baut der Workflow
 `.github/workflows/build.yaml` bei jedem Push auf `main` das Image
 `ghcr.io/zocker1012/amd64-cups-brother-mfc260c:<version>`. Stell das Paket
 auf GitHub auf **Public** und ergänze in `config.yaml`
@@ -273,7 +276,10 @@ auf GitHub auf **Public** und ergänze in `config.yaml`
 pushen, Workflow abwarten, dann in HA updaten.
 
 **Scannertreiber:** `brscan2` und das Scan-Key-Tool lädt der Build von Brother
-(mit Prüfsumme). Liegen die `.rpm`-Dateien in `drivers/`, nimmt er diese.
+(mit Prüfsumme). Liegen die `.rpm`-Dateien in `drivers/`, nimmt er diese – dann
+hängt der Build nicht mehr an Brothers Server. Ist Brother nicht erreichbar,
+baut HA das Add-on ohne Scanner (Hinweis im Log); der Workflow bricht dagegen
+ab, damit kein Image ohne Scanner veröffentlicht wird.
 
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
 Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),

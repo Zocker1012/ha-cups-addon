@@ -201,6 +201,10 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 COPY --from=airsane /out/ /
 COPY --from=brother-scan /out/ /
 
+# 1 = Build abbrechen, wenn die Brother-Scanpakete fehlen (für veröffentlichte
+# Images, damit nicht still ein Image ohne Scanner entsteht)
+ARG REQUIRE_SCAN_DRIVERS=0
+
 RUN set -e; \
     if [ -e /usr/lib64/sane/libsane-brother2.so.1 ]; then \
         echo /usr/lib64 > /etc/ld.so.conf.d/brother-scan.conf; \
@@ -216,6 +220,10 @@ RUN set -e; \
     if [ -f /opt/brother/scanner/brscan-skey/brscan-skey.config ] \
         || ls /opt/brother/scanner/brscan-skey/brscan-skey-*.cfg > /dev/null 2>&1; then \
         touch /usr/share/cups-addon-scan-button; \
+    fi; \
+    if [ "${REQUIRE_SCAN_DRIVERS}" = "1" ] && { [ ! -e /usr/share/cups-addon-scan-driver ] \
+        || [ ! -e /usr/share/cups-addon-scan-button ]; }; then \
+        echo "Brother-Scanpakete fehlen (brscan2/brscan-skey) – Build abgebrochen"; exit 1; \
     fi
 
 COPY rootfs /

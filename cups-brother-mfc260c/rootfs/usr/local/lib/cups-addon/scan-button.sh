@@ -21,9 +21,14 @@ target="${1:-file}"
 # shellcheck source=/dev/null
 source /run/cups-addon/scan.env
 
-log() {
-    { echo "[scan-button] $*" > /proc/1/fd/1; } 2>/dev/null || echo "[scan-button] $*"
+# Log im gleichen Format wie die übrigen Add-on-Meldungen
+log_line() {
+    local line
+    line="[$(date +%H:%M:%S)] $1: Scan-Menü: $2"
+    { echo "${line}" > /proc/1/fd/1; } 2> /dev/null || echo "${line}"
 }
+log() { log_line INFO "$*"; }
+log_warn() { log_line WARNING "$*"; }
 
 notify() {
     local status="$1" file="$2"
@@ -38,7 +43,7 @@ notify() {
 }
 
 fail() {
-    log "Scan fehlgeschlagen: $*"
+    log_warn "Scan fehlgeschlagen: $*"
     notify "error" ""
     exit 1
 }
@@ -84,8 +89,10 @@ esac
 
 if [[ "${mode}" == "gray" ]]; then
     color="Grayscale8"
+    mode_text="Graustufen"
 else
     color="RGB24"
+    mode_text="Farbe"
 fi
 
 # Auf Wunsch je Menüpunkt ein Unterordner (Datei, Bild, Text, E-Mail)
@@ -147,7 +154,7 @@ scan_from() {
   <pwg:DocumentFormat>application/pdf</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung")$([[ "${compress}" == "true" ]] && echo ", verkleinert"), Quelle ${input}"
+    log "Scanne (${label}): ${resolution} dpi, ${mode_text}, ${format^^}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung")$([[ "${compress}" == "true" ]] && echo ", verkleinert"), Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
@@ -155,7 +162,7 @@ scan_from() {
             "${ESCL}/ScanJobs" \
         | tr -d '\r' | sed -n 's/^[Ll]ocation: *//p' | head -n1) || job=""
     if [[ -z "${job}" ]]; then
-        log "Scanner nicht erreichbar oder Auftrag abgelehnt (Quelle ${input})"
+        log_warn "Scanner nicht erreichbar oder Auftrag abgelehnt (Quelle ${input})"
         return 1
     fi
     job="${job#http://*/}"
@@ -174,7 +181,7 @@ scan_from() {
         rm -f "${file}"
         # 404 = keine weiteren Seiten
         if [[ "${status}" != "404" ]]; then
-            log "Antwort des Scanners: HTTP ${status} (Quelle ${input})"
+            log_warn "Antwort des Scanners: HTTP ${status} (Quelle ${input})"
         fi
         break
     done
@@ -214,12 +221,46 @@ name_for() {
     fi
 }
 
+# Gespeicherte Dateien melden (Log und Ereignis an Home Assistant)
+report() {
+    local file
+    [[ "${#saved[@]}" -gt 0 ]] || fail "Scan konnte nicht gespeichert werden"
+    for file in "${saved[@]}"; do
+        log "Gespeichert: ${file}"
+    done
+    for file in "${saved[@]}"; do
+        notify "ok" "${file}"
+    done
+}
+
+# Notfall: Scheitert ein Verarbeitungsschritt, den Scan wenigstens unverändert
+# als PDF speichern – ein Scan soll nie verloren gehen
+save_raw() {
+    local part file n=1
+    log_warn "$1 – Scan wird unverändert als PDF gespeichert"
+    if [[ "${raw}" == "${scanned[0]}" ]]; then
+        # Noch die Dateien vom Scanner: nur umbenennen
+        for part in "${scanned[@]}"; do
+            file="${SCAN_FOLDER}/$(name_for "${n}" pdf)"
+            mv "${part}" "${file}" && saved+=("${file}")
+            n=$((n + 1))
+        done
+    else
+        file=$(publish "${raw}" "${base}.pdf") && saved+=("${file}")
+    fi
+    report
+    exit 0
+}
+
 # 1. Alle Dokumente des Scans zu einem PDF zusammenfassen (meist nur eins)
+#    (qpdf: Warnungen sind kein Fehler, daher --warning-exit-0)
 raw="${scanned[0]}"
 if [[ "${#scanned[@]}" -gt 1 ]]; then
-    qpdf --empty --pages "${scanned[@]}" -- "${work_dir}/raw.pdf" \
-        || fail "Zusammenfassen der Seiten fehlgeschlagen"
-    raw="${work_dir}/raw.pdf"
+    if qpdf --warning-exit-0 --empty --pages "${scanned[@]}" -- "${work_dir}/raw.pdf"; then
+        raw="${work_dir}/raw.pdf"
+    else
+        save_raw "Zusammenfassen der Seiten fehlgeschlagen"
+    fi
 fi
 
 # 1b. Leere Seiten entfernen (nur bei mehreren Seiten, nie alle). Geprüft wird
@@ -234,7 +275,7 @@ if [[ "${SCAN_REMOVE_BLANK:-false}" == "true" ]]; then
         nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=ppmraw -r150 \
             -sOutputFile="${work_dir}/blank_%04d.ppm" "${raw}" > /dev/null 2>&1
         # Ausgabe: "keep 1,3,4" und "blank 2"
-        result=$(python3 - "${work_dir}" "${count}" <<'PY'
+        blank_check=$(python3 - "${work_dir}" "${count}" <<'PY'
 import re, sys
 work, count = sys.argv[1], int(sys.argv[2])
 keep, blank = [], []
@@ -270,11 +311,11 @@ if not keep:  # nie alle Seiten entfernen
 print("keep " + ",".join(map(str, keep)))
 print("blank " + ",".join(map(str, blank)))
 PY
-        ) || result=""
-        keep=$(sed -n 's/^keep //p' <<< "${result}")
-        blank=$(sed -n 's/^blank //p' <<< "${result}")
+        ) || blank_check=""
+        keep=$(sed -n 's/^keep //p' <<< "${blank_check}")
+        blank=$(sed -n 's/^blank //p' <<< "${blank_check}")
         if [[ -n "${blank}" && -n "${keep}" ]] \
-            && qpdf "${raw}" --pages "${raw}" "${keep}" -- "${work_dir}/noblank.pdf"; then
+            && qpdf --warning-exit-0 "${raw}" --pages "${raw}" "${keep}" -- "${work_dir}/noblank.pdf"; then
             raw="${work_dir}/noblank.pdf"
             log "Leere Seite(n) entfernt: ${blank//,/, }"
         fi
@@ -302,7 +343,7 @@ if [[ "${ocr}" == "true" && "${SCAN_OCR_ROTATE:-true}" == "true" ]]; then
         n=$((n + 1))
     done
     if [[ "${#rotations[@]}" -gt 0 ]] \
-        && qpdf "${raw}" "${rotations[@]}" "${work_dir}/rotated.pdf"; then
+        && qpdf --warning-exit-0 "${raw}" "${rotations[@]}" "${work_dir}/rotated.pdf"; then
         raw="${work_dir}/rotated.pdf"
     fi
 fi
@@ -324,7 +365,7 @@ nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE="${device}" \
     -dJPEGQ="${jpeg_quality}" -r"${resolution}" \
     -sOutputFile="${work_dir}/page_%04d.${ext}" "${raw}" > /dev/null 2>&1
 mapfile -t pages < <(compgen -G "${work_dir}/page_*.${ext}" | sort)
-[[ "${#pages[@]}" -gt 0 ]] || fail "Umwandlung der Seiten fehlgeschlagen"
+[[ "${#pages[@]}" -gt 0 ]] || save_raw "Umwandlung der Seiten fehlgeschlagen"
 
 # Verkleinern: JPEG-Seiten zusätzlich verlustfrei optimieren
 if [[ "${compress}" == "true" && "${kind}" == "jpeg" ]]; then
@@ -343,9 +384,11 @@ if [[ "${ocr}" == "true" ]]; then
     esac
     log "Texterkennung (${lang}) für ${#pages[@]} Seite(n) ..."
     printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
-    nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/text" \
-        -l "${lang}" -c textonly_pdf=1 pdf txt > /dev/null 2>&1 \
-        || fail "Texterkennung fehlgeschlagen"
+    if ! nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/text" \
+        -l "${lang}" -c textonly_pdf=1 pdf txt > /dev/null 2>&1; then
+        log_warn "Texterkennung fehlgeschlagen – Scan wird ohne Text gespeichert"
+        ocr=false
+    fi
 fi
 
 # 5. Ergebnis speichern
@@ -353,12 +396,15 @@ if [[ "${format}" == "pdf" ]]; then
     # Seitenbilder unverändert ins PDF übernehmen (PNG verlustfrei, JPEG wie
     # erzeugt), bei Texterkennung die Textebene darüberlegen
     img2pdf "${pages[@]}" -o "${work_dir}/pages.pdf" > /dev/null 2>&1 \
-        || fail "PDF konnte nicht erstellt werden"
+        || save_raw "PDF konnte nicht erstellt werden"
     result="${work_dir}/pages.pdf"
     if [[ "${ocr}" == "true" ]]; then
-        qpdf "${result}" --overlay "${work_dir}/text.pdf" -- "${work_dir}/result.pdf" \
-            || fail "Textebene konnte nicht eingefügt werden"
-        result="${work_dir}/result.pdf"
+        if qpdf --warning-exit-0 "${result}" --overlay "${work_dir}/text.pdf" \
+            -- "${work_dir}/result.pdf"; then
+            result="${work_dir}/result.pdf"
+        else
+            log_warn "Textebene konnte nicht eingefügt werden – PDF ohne Text gespeichert"
+        fi
     fi
     file=$(publish "${result}" "${base}.pdf") && saved+=("${file}")
 else
@@ -372,11 +418,4 @@ else
     fi
 fi
 
-[[ "${#saved[@]}" -gt 0 ]] || fail "Scan konnte nicht gespeichert werden"
-for file in "${saved[@]}"; do
-    log "Gespeichert: ${file}"
-done
-
-for file in "${saved[@]}"; do
-    notify "ok" "${file}"
-done
+report
