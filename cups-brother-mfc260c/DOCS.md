@@ -240,9 +240,11 @@ log_level: info           # debug | info | warning | error
 
 **Modus:** `printer_app` ist der CUPS-3-Weg (Legacy Printer Application von
 OpenPrinting) und der Normalfall. `cups` ist der klassische CUPS-Server als
-Rückfallebene. Dort legst du den Drucker einmal selbst an (Administration →
-Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Port
-631.
+Rückfallebene, falls die Printer Application einmal Probleme macht. Beide
+laufen auf Port 631, richten den Drucker automatisch ein (A4, freigegeben) und
+funktionieren mit Druckordner, Scanner und Scan-Menü gleich. Nach dem
+Umschalten den Drucker auf deinen Geräten einmal neu hinzufügen, falls er
+nicht mehr gefunden wird.
 
 ## Fehlersuche
 
@@ -263,6 +265,10 @@ Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Po
   brichst du mit „Stopp“ am Gerät ab.
 - **Add-on hängt:** Schalte im Add-on-Tab den **Watchdog** ein.
 - **Im Modus `printer_app` klappt es nicht:** Probier den Modus `cups`.
+- **Nach einem Update geht etwas nicht mehr:** Mit „Vor dem Update ein Backup
+  erstellen“ (Häkchen beim Update) sicherst du die alte Version. Über
+  Einstellungen → System → Backups stellst du sie wieder her – Version und
+  Einstellungen des Add-ons kommen dann zurück.
 
 ## Für Entwickler
 

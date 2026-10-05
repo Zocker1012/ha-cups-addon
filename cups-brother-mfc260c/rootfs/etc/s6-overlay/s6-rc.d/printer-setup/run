@@ -3,10 +3,10 @@
 # Copyright (C) 2026 Zocker1012
 # shellcheck shell=bash
 # ==============================================================================
-# Automatische Druckereinrichtung (nur Modus "printer_app" mit auto_setup)
+# Automatische Druckereinrichtung (beide Modi, Option auto_setup)
 # ==============================================================================
 
-if [[ "$(bashio::config 'printer.mode')" != "printer_app" ]] || ! bashio::config.true 'printer.auto_setup'; then
+if ! bashio::config.true 'printer.auto_setup'; then
     s6-svc -O .
     exit 0
 fi

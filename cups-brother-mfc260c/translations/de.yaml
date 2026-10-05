@@ -12,8 +12,8 @@ configuration:
         name: Automatisch einrichten
         description: >-
           An: Der Drucker wird angelegt, sobald er per USB verbunden und
-          eingeschaltet ist (Papier A4). Aus: in der Weboberfläche selbst
-          anlegen. Nur Modus printer_app.
+          eingeschaltet ist (Papier A4), in beiden Modi. Aus: in der
+          Weboberfläche selbst anlegen.
   login:
     name: Anmeldung
     description: Wer die Druckerverwaltung im Browser bedienen darf.

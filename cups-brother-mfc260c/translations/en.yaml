@@ -12,8 +12,8 @@ configuration:
         name: Automatic setup
         description: >-
           On: the printer is added as soon as it is connected via USB and
-          switched on (paper A4). Off: add it yourself in the web interface.
-          printer_app mode only.
+          switched on (paper A4), in both modes. Off: add it yourself in the
+          web interface.
   login:
     name: Login
     description: Who may use the printer administration in the browser.

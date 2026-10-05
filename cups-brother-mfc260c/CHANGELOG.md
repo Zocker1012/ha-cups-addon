@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.19.0
+
+### Neu
+
+- Modus `cups`: Automatische Einrichtung wie im Modus `printer_app` – der
+  Drucker wird per USB gefunden, mit Papier A4 angelegt, freigegeben und als
+  Standard gesetzt. Eine schon vorhandene Warteschlange mit Letter wird
+  einmalig auf A4 gestellt. Damit ist `cups` ein vollwertiger Ersatz, falls die
+  Printer Application einmal Probleme macht.
+
 ## 2.18.2
 
 ### Geändert

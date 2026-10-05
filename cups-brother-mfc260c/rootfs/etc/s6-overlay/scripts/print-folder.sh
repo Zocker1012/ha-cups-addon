@@ -39,8 +39,8 @@ mkdir -p "${FOLDER}" "${DONE_DIR}" "${FAILED_DIR}"
 printer_name() {
     local name=""
     if [[ "${MODE}" == "cups" ]]; then
-        name=$(lpstat -d 2>/dev/null | sed -n 's/^.*: //p')
-        [[ -n "${name}" ]] || name=$(lpstat -p 2>/dev/null | awk 'NR==1 {print $2}')
+        name=$(LC_ALL=C lpstat -d 2>/dev/null | sed -n 's/^.*: //p')
+        [[ -n "${name}" ]] || name=$(LC_ALL=C lpstat -p 2>/dev/null | awk '$1 == "printer" {print $2; exit}')
     else
         # shellcheck source=printer-app-env.sh
         source /etc/s6-overlay/scripts/printer-app-env.sh
