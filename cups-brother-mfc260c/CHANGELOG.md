@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.20.0
+
+### Neu
+
+- Drucker-Überwachung in beiden Modi: Das Log meldet, wenn der Drucker aus-
+  oder eingeschaltet wird und wenn ein Auftrag auf den ausgeschalteten Drucker
+  wartet. Aufträge bleiben dabei in der Warteschlange.
+- Ereignis `cups_addon_printer` an Home Assistant (`job_queued`, `jobs_done`,
+  `printer_on`, `printer_off`), z. B. um eine Steckdose bei einem Auftrag
+  sofort ein- und nach einer Pause wieder auszuschalten. Beispiel in der
+  Dokumentation.
+
+### Behoben
+
+- Auto-Einrichtung: Ein Fehler beim Anlegen des Druckers beendete den Dienst,
+  statt es erneut zu versuchen.
+
 ## 2.19.2
 
 ### Geändert

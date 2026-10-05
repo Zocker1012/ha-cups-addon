@@ -180,6 +180,52 @@ Die **IPP-Integration** findet den Drucker automatisch (Einstellungen →
 Geräte & Dienste) und zeigt seinen Status. Tintenstände meldet der
 Brother-Treiber nicht.
 
+Ist der Drucker aus, bleiben Aufträge in der Warteschlange und werden nach dem
+Einschalten gedruckt – in beiden Modi. Das Log meldet Ein/Aus und wartende
+Aufträge, und Home Assistant bekommt sofort das Ereignis `cups_addon_printer`:
+
+| `status` | Bedeutung |
+|---|---|
+| `job_queued` | ein Auftrag ist angekommen (vorher war keiner da) |
+| `jobs_done` | alle Aufträge sind erledigt |
+| `printer_on` / `printer_off` | Drucker eingeschaltet / ausgeschaltet (USB) |
+
+Dazu kommen `jobs` (Zahl der Aufträge) und `printer_on` (`true`/`false`).
+Beispiel für eine schaltbare Steckdose – an bei einem Auftrag, aus 15 Minuten
+nach dem letzten:
+
+```yaml
+mode: restart
+triggers:
+  - trigger: event
+    event_type: cups_addon_printer
+    event_data: {status: job_queued}
+    id: an
+  - trigger: event
+    event_type: cups_addon_printer
+    event_data: {status: jobs_done}
+    id: aus
+actions:
+  - choose:
+      - conditions: {condition: trigger, id: an}
+        sequence:
+          - action: switch.turn_on
+            target: {entity_id: switch.drucker_steckdose}
+      - conditions: {condition: trigger, id: aus}
+        sequence:
+          - delay: "00:15:00"
+          - action: switch.turn_off
+            target: {entity_id: switch.drucker_steckdose}
+```
+
+Kommt während der 15 Minuten ein neuer Auftrag, startet die Automation neu und
+der Drucker bleibt an. Zum Scannen muss der Drucker eingeschaltet sein.
+
+Statt der Ereignisse geht auch der Status der IPP-Integration (Abfrage etwa
+jede Minute): Wartet ein Auftrag auf den ausgeschalteten Drucker, zeigt sie im
+Modus `printer_app` „Angehalten“ und im Modus `cups` „Druckt“; danach wieder
+„Untätig“.
+
 ## Einstellungen
 
 So sehen die Gruppen in der YAML-Ansicht aus:

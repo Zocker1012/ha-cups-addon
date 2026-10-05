@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
+# Zustand des Druckers und Zahl der wartenden Aufträge (für printer-watch.sh)
+{
+    NAME "Drucker-Status"
+    OPERATION Get-Printer-Attributes
+    GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR naturalLanguage attributes-natural-language en
+    ATTR uri printer-uri $uri
+    ATTR keyword requested-attributes printer-state,queued-job-count
+    STATUS successful-ok
+    DISPLAY printer-state
+    DISPLAY queued-job-count
+}

@@ -152,8 +152,9 @@ setup_printer() {
         return 1
     fi
 
-    add_printer "${device_uri}"
-    rc=$?
+    # bashio bricht bei Fehlern ab (errexit) – Rückgabewert deshalb so abholen
+    rc=0
+    add_printer "${device_uri}" || rc=$?
     case "${rc}" in
         0) bashio::log.info "Auto-Einrichtung: Drucker '${PRINTER_NAME}' ist eingerichtet (Papier A4)" ;;
         2) return 0 ;;
