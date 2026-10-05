@@ -6,13 +6,14 @@ configuration:
       mode:
         name: Mode
         description: >-
-          "printer_app" (recommended, CUPS 3 style) or "cups" (classic CUPS
-          server as a fallback).
+          printer_app = recommended (CUPS 3 style). cups = classic CUPS server,
+          only if printer_app causes problems.
       auto_setup:
         name: Automatic setup
         description: >-
-          Add the printer as soon as it is connected via USB and switched on
-          ("printer_app" only).
+          On: the printer is added as soon as it is connected via USB and
+          switched on (paper A4). Off: add it yourself in the web interface.
+          printer_app mode only.
   login:
     name: Login
     description: Who may use the printer administration in the browser.
@@ -20,93 +21,127 @@ configuration:
       method:
         name: Method
         description: >-
-          "homeassistant": with a HA user account. "manual": with the username
-          and password from here.
+          homeassistant = with a HA account (printer_app: only via the HA
+          sidebar). manual = with the username and password from here.
       username:
         name: Username
-        description: Only for "manual" in "cups" mode. Empty = print.
+        description: Only for manual in cups mode. Empty = print.
       password:
         name: Password
-        description: >-
-          Only for "manual". Empty = random password, shown in the log.
+        description: Only for manual. Empty = random password, shown in the log.
   scanning:
     name: Scanner
-    description: Scanning via AirScan/eSCL (Windows, macOS, Android, Linux, HA).
+    description: Network scanning (Windows, macOS, Android, Linux, HA).
     fields:
       enabled:
         name: Provide scanner
+        description: >-
+          On: scan from PCs, phones and the HA sidebar. Off: scanner switched
+          off completely, including the scan menu on the device.
       max_resolution:
         name: Maximum resolution (dpi)
         description: >-
-          600 = the device's real resolution. 1200 is interpolated and very
-          slow.
+          Limit for all programs. 600 = the device's real resolution, 1200 =
+          interpolated and very slow.
   scan_menu:
     name: Scan menu on the device
-    description: >-
-      The "Scan" menu on the MFC-260C saves directly to a folder. Each menu
-      item has its own settings.
+    description: '"Scan" key on the MFC-260C, targets File, Image, Text, E-mail.'
     fields:
       enabled:
         name: Use scan menu
+        description: >-
+          On: a scan from the "Scan" menu on the device is saved to the folder
+          below. Off: the device stays at "PC connection" after selecting.
       folder:
         name: Folder
-        description: Below /share or /media.
+        description: Target for all menu items, below /share or /media.
+  scan_file:
+    name: "Scan menu: File"
+    description: Settings for the "File" menu item.
+    fields:
       format:
-        name: File – format
+        name: Format
+        description: pdf, jpeg or png.
       resolution:
-        name: File – resolution (dpi)
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
       color:
-        name: File – color
-      image_format:
-        name: Image – format
-      image_resolution:
-        name: Image – resolution (dpi)
-      image_color:
-        name: Image – color
-      ocr_format:
-        name: Text (OCR) – format
-      ocr_resolution:
-        name: Text (OCR) – resolution (dpi)
-      ocr_color:
-        name: Text (OCR) – color
-      ocr_text:
-        name: Text (OCR) – text recognition
+        name: Color
+        description: color or gray (grayscale, smaller file).
+  scan_image:
+    name: "Scan menu: Image"
+    description: Settings for the "Image" menu item.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+  scan_text:
+    name: "Scan menu: Text"
+    description: '"Text" menu item – with text recognition.'
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
         description: >-
-          Recognizes the text: PDFs become searchable, JPEG/PNG get an extra
-          .txt file. Off = plain scan.
-      ocr_language:
-        name: Text (OCR) – language
-        description: '"deu_eng" = German and English.'
-      ocr_rotate:
-        name: Text (OCR) – rotate pages automatically
-        description: Rotates upside-down or sideways pages (PDF, JPEG).
-      email_format:
-        name: E-mail – format
-      email_resolution:
-        name: E-mail – resolution (dpi)
-      email_color:
-        name: E-mail – color
+          On: the text is recognized – a PDF becomes searchable, jpeg/png get
+          an extra .txt file (a few seconds per page). Off: plain scan like
+          "File".
+      language:
+        name: Recognition language
+        description: deu_eng = German and English.
+      rotate:
+        name: Rotate pages automatically
+        description: >-
+          On: upside-down or sideways pages are straightened. Only with text
+          recognition, not for png.
+  scan_email:
+    name: "Scan menu: E-mail"
+    description: '"E-mail" menu item – only saves to the folder, sends no mail.'
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.
     fields:
       enabled:
         name: Use print folder
+        description: >-
+          On: every file (PDF, PostScript, JPEG, PNG) in the folder is printed
+          and then moved to "gedruckt/", failures to "fehler/".
       path:
         name: Folder
-        description: >-
-          Below /share or /media. PDF, PostScript, JPEG, PNG; moved to
-          "gedruckt/" afterwards.
+        description: Below /share or /media.
       paper:
         name: Paper size
-        description: Default A4. Photo sizes in cm (10x15, 13x18, 9x13).
+        description: Default a4. Photo sizes in cm (10x15, 13x18, 9x13).
       color:
         name: Color
-        description: '"gray" prints with black ink only.'
+        description: color or gray (black ink only).
       quality:
         name: Quality
-        description: '"draft" saves ink, "fine" is slower.'
+        description: draft saves ink, fine is slower.
   log_level:
     name: Log level
-    description: >-
-      "info" for everyday use, "debug" for troubleshooting (very verbose).
+    description: info for everyday use, debug for troubleshooting (very verbose).

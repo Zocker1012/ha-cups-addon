@@ -28,40 +28,71 @@ mkdir -p \
 mkdir -m 700 "${RUN_DIR}"
 
 # ------------------------------------------------------------------------------
-# Einstellungen von 2.4.x (flach) einmalig in die Gruppen von 2.5.0 übernehmen
+# Ältere Einstellungen einmalig ins aktuelle Format übernehmen:
+#   2.4.x (flach) -> Gruppen (2.5.0), Scan-Menü in einer Gruppe -> je
+#   Menüpunkt eine Gruppe (2.11.0). Werte bleiben erhalten, auch "aus" (false).
 # ------------------------------------------------------------------------------
 migrate_options() {
     local old new
     old=$(bashio::addon.options) || return 0
-    jq -e 'has("mode") or has("auth") or has("scanner") or has("scan_button")
-        or has("print_folder") or has("auto_setup")' <<< "${old}" > /dev/null \
-        || return 0
+    new="${old}"
 
-    new=$(jq -c '
-        def pick(k; d): if (.[k] // null) != null then .[k] else d end;
-        {
-          printer: {mode: pick("mode"; "printer_app"),
-                    auto_setup: pick("auto_setup"; true)},
-          login: ({method: pick("auth"; "homeassistant")}
-                  + (if (.admin_username // "") != "" then {username: .admin_username} else {} end)
-                  + (if (.admin_password // "") != "" then {password: .admin_password} else {} end)),
-          scanning: {enabled: pick("scanner"; true),
-                     max_resolution: (pick("scan_max_resolution"; "600")
-                                      | if . == "1200" then . else "600" end)},
-          scan_menu: {enabled: pick("scan_button"; false),
-                       folder: pick("scan_folder"; "/share/scans"),
-                       format: pick("scan_format"; "pdf"),
-                       resolution: pick("scan_resolution"; "300"),
-                       color: pick("scan_mode"; "color")},
-          folder_printing: {enabled: pick("print_folder"; false),
-                            path: pick("print_folder_path"; "/share/print")},
-          log_level: pick("log_level"; "info")
-        }' <<< "${old}") || return 0
+    if jq -e 'has("mode") or has("auth") or has("scanner") or has("scan_button")
+        or has("print_folder") or has("auto_setup")' <<< "${new}" > /dev/null; then
+        new=$(jq -c '
+            def pick(k; d): if has(k) and .[k] != null then .[k] else d end;
+            {
+              printer: {mode: pick("mode"; "printer_app"),
+                        auto_setup: pick("auto_setup"; true)},
+              login: ({method: pick("auth"; "homeassistant")}
+                      + (if (.admin_username // "") != "" then {username: .admin_username} else {} end)
+                      + (if (.admin_password // "") != "" then {password: .admin_password} else {} end)),
+              scanning: {enabled: pick("scanner"; true),
+                         max_resolution: (pick("scan_max_resolution"; "600")
+                                          | if . == "1200" then . else "600" end)},
+              scan_menu: {enabled: pick("scan_button"; true),
+                           folder: pick("scan_folder"; "/share/scans"),
+                           format: pick("scan_format"; "pdf"),
+                           resolution: pick("scan_resolution"; "300"),
+                           color: pick("scan_mode"; "color")},
+              folder_printing: {enabled: pick("print_folder"; false),
+                                path: pick("print_folder_path"; "/share/print")},
+              log_level: pick("log_level"; "info")
+            }' <<< "${new}") || return 0
+    fi
 
+    if jq -e '(.scan_menu // {}) | has("format") or has("image_format")
+        or has("ocr_format") or has("email_format") or has("ocr_text")' <<< "${new}" > /dev/null; then
+        new=$(jq -c '
+            def pick(o; k; d): if (o | has(k)) and o[k] != null then o[k] else d end;
+            .scan_menu as $m
+            | del(.scan_file, .scan_image, .scan_text, .scan_email)
+            + {
+                scan_menu: {enabled: pick($m; "enabled"; true),
+                            folder: pick($m; "folder"; "/share/scans")},
+                scan_file: {format: pick($m; "format"; "pdf"),
+                            resolution: pick($m; "resolution"; "300"),
+                            color: pick($m; "color"; "color")},
+                scan_image: {format: pick($m; "image_format"; "jpeg"),
+                             resolution: pick($m; "image_resolution"; "300"),
+                             color: pick($m; "image_color"; "color")},
+                scan_text: {format: pick($m; "ocr_format"; "pdf"),
+                            resolution: pick($m; "ocr_resolution"; "300"),
+                            color: pick($m; "ocr_color"; "gray"),
+                            ocr: pick($m; "ocr_text"; true),
+                            language: pick($m; "ocr_language"; "deu_eng"),
+                            rotate: pick($m; "ocr_rotate"; true)},
+                scan_email: {format: pick($m; "email_format"; "pdf"),
+                             resolution: pick($m; "email_resolution"; "150"),
+                             color: pick($m; "email_color"; "color")}
+              }' <<< "${new}") || return 0
+    fi
+
+    [[ "${new}" != "${old}" ]] || return 0
     if bashio::api.supervisor POST /addons/self/options \
         "$(jq -c -n --argjson o "${new}" '{options: $o}')" > /dev/null; then
         bashio::cache.flush_all
-        bashio::log.info "Einstellungen ins neue Format (Gruppen) übernommen"
+        bashio::log.info "Einstellungen ins neue Format übernommen"
     else
         bashio::log.warning "Alte Einstellungen konnten nicht übernommen werden – bitte in der Konfiguration neu setzen"
     fi
@@ -179,17 +210,17 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
     mkdir -p "${scan_folder}"
     {
         printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
-        # Menüpunkt: Präfix der Option, Standard für Format, Auflösung, Farbe
-        for entry in "FILE::pdf:300:color" "IMAGE:image_:jpeg:300:color" \
-            "OCR:ocr_:pdf:300:gray" "EMAIL:email_:pdf:150:color"; do
-            IFS=: read -r name key def_format def_res def_color <<< "${entry}"
-            printf 'SCAN_%s_FORMAT=%q\n' "${name}" "$(bashio::config "scan_menu.${key}format" "${def_format}")"
-            printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "scan_menu.${key}resolution" "${def_res}")"
-            printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "scan_menu.${key}color" "${def_color}")"
+        # Menüpunkt (Name im Skript, Gruppe), Standard für Format, Auflösung, Farbe
+        for entry in "FILE:scan_file:pdf:300:color" "IMAGE:scan_image:jpeg:300:color" \
+            "OCR:scan_text:pdf:300:gray" "EMAIL:scan_email:pdf:150:color"; do
+            IFS=: read -r name group def_format def_res def_color <<< "${entry}"
+            printf 'SCAN_%s_FORMAT=%q\n' "${name}" "$(bashio::config "${group}.format" "${def_format}")"
+            printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "${group}.resolution" "${def_res}")"
+            printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "${group}.color" "${def_color}")"
         done
-        printf 'SCAN_OCR_TEXT=%q\n' "$(bashio::config 'scan_menu.ocr_text' 'true')"
-        printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_menu.ocr_language' 'deu_eng')"
-        printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_menu.ocr_rotate' 'true')"
+        printf 'SCAN_OCR_TEXT=%q\n' "$(bashio::config 'scan_text.ocr' 'true')"
+        printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_text.language' 'deu_eng')"
+        printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_text.rotate' 'true')"
     } > "${RUN_DIR}/scan.env"
 fi
 

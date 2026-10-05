@@ -126,21 +126,25 @@ scanning:
 scan_menu:
   enabled: true
   folder: /share/scans    # unter /share oder /media
-  format: pdf             # Datei: pdf | jpeg | png
-  resolution: "300"       # Datei: 100 | 150 | 200 | 300 | 600
-  color: color            # Datei: color | gray
-  image_format: jpeg      # Bild, Text und E-Mail genauso mit
-  image_resolution: "300" # image_, ocr_ und email_ davor
-  image_color: color
-  ocr_format: pdf         # ocr_ = Menüpunkt "Text"
-  ocr_resolution: "300"
-  ocr_color: gray
-  ocr_text: true          # Texterkennung
-  ocr_language: deu_eng   # deu_eng | deu | eng
-  ocr_rotate: true        # Seiten automatisch drehen
-  email_format: pdf
-  email_resolution: "150"
-  email_color: color
+scan_file:                # Menüpunkt "Datei"
+  format: pdf             # pdf | jpeg | png
+  resolution: "300"       # 100 | 150 | 200 | 300 | 600
+  color: color            # color | gray
+scan_image:               # Menüpunkt "Bild" (Felder wie oben)
+  format: jpeg
+  resolution: "300"
+  color: color
+scan_text:                # Menüpunkt "Text"
+  format: pdf
+  resolution: "300"
+  color: gray
+  ocr: true               # Texterkennung
+  language: deu_eng       # deu_eng | deu | eng
+  rotate: true            # Seiten automatisch drehen
+scan_email:               # Menüpunkt "E-Mail"
+  format: pdf
+  resolution: "150"
+  color: color
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media

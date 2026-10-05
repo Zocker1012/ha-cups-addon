@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.11.0
+
+### Geändert
+
+- Einstellungen übersichtlicher: Jeder Menüpunkt des Scan-Menüs hat eine
+  eigene Gruppe („Scan-Menü: Datei“, „Bild“, „Text“, „E-Mail“). Bei jedem
+  Schalter steht direkt dabei, was „an“ und „aus“ bewirken.
+- Bisherige Einstellungen werden beim ersten Start automatisch übernommen.
+
+### Behoben
+
+- Übernahme alter Einstellungen (2.4.x): Ausgeschaltete Optionen sprangen
+  dabei auf den Standard zurück.
+
 ## 2.10.3
 
 ### Behoben
