@@ -1,6 +1,6 @@
 # Baut das Add-on-Image und lädt es nach ghcr.io (GitHub Packages).
-# Home Assistant nutzt es erst, wenn in config.yaml "image:" eingetragen ist –
-# siehe DOCS.md, Abschnitt "Fertige Images".
+# Home Assistant lädt es über den Eintrag "image:" in config.yaml – siehe
+# DOCS.md, Abschnitt "Fertige Images".
 name: Build
 
 on:

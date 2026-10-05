@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.17.3
+
+### Geändert
+
+- Home Assistant lädt das fertige Image von ghcr.io, statt das Add-on bei
+  jeder Installation und jedem Update selbst zu bauen. Updates dauern damit
+  Sekunden statt Minuten.
+
 ## 2.17.2
 
 ### Geändert

@@ -266,14 +266,12 @@ Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Po
 
 ## Für Entwickler
 
-**Fertige Images:** Ohne weitere Einstellung baut Home Assistant das Add-on
-bei jeder Installation und jedem Update selbst (mehrere Minuten, AirSane wird
-dabei kompiliert). Alternativ baut der Workflow
-`.github/workflows/build.yaml` bei jedem Push auf `main` das Image
-`ghcr.io/zocker1012/amd64-cups-brother-mfc260c:<version>`. Stell das Paket
-auf GitHub auf **Public** und ergänze in `config.yaml`
-`image: "ghcr.io/zocker1012/{arch}-cups-brother-mfc260c"`. Danach gilt: erst
-pushen, Workflow abwarten, dann in HA updaten.
+**Fertige Images:** Home Assistant baut das Add-on nicht selbst, sondern lädt
+das fertige Image `ghcr.io/zocker1012/amd64-cups-brother-mfc260c:<version>`
+(Eintrag `image:` in `config.yaml`). Es entsteht bei jedem Push auf `main`
+durch den Workflow `.github/workflows/build.yaml`. Deshalb gilt bei Änderungen:
+Version erhöhen, pushen, Workflow abwarten, erst dann in HA updaten. Zum
+Selbstbauen in HA die Zeile `image:` entfernen.
 
 **Brother-Treiber:** Alle vier Pakete (Drucker: LPR und CUPS-Wrapper als
 `.deb`, Scanner: `brscan2` und Scan-Key-Tool `brscan-skey` als `.rpm`) liegen
