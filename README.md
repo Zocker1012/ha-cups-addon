@@ -34,7 +34,17 @@ Nur für amd64. Alle Details stehen in der
 ## Lizenzen
 
 Die Brother-Treiber stehen teils unter der GPL-2.0, teils unter Brothers
-eigener Lizenz; beide erlauben die Weitergabe (siehe
-[`drivers/LICENSE-Brother.txt`](cups-brother-mfc260c/drivers/LICENSE-Brother.txt)).
-Die übrigen Bestandteile und ihre Lizenzen stehen in der Dokumentation unter
-„Für Entwickler“. Privates Projekt, nicht mit Brother verbunden.
+eigener Lizenz; beide erlauben die Weitergabe. Die Lizenztexte liegen bei den
+Treibern:
+
+- [`drivers/LICENSE-Brother.txt`](cups-brother-mfc260c/drivers/LICENSE-Brother.txt)
+  – Lizenz je Paket, Brothers Lizenztexte und was das Add-on anpasst
+- [`drivers/LICENSE-GPL-2.0.txt`](cups-brother-mfc260c/drivers/LICENSE-GPL-2.0.txt)
+  – GNU GPL Version 2
+- [`drivers/source/`](cups-brother-mfc260c/drivers/source/) – Brothers
+  Quellcode der GPL-Teile
+
+Beide Lizenzdateien sind auch im Image enthalten
+(`/usr/share/doc/brother-drivers/`). Die übrigen Bestandteile (CUPS, AirSane,
+Tesseract …) und ihre Lizenzen stehen in der Dokumentation unter „Für
+Entwickler“. Privates Projekt, nicht mit Brother verbunden.
