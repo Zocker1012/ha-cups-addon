@@ -65,7 +65,13 @@ fi
 # statt unkomprimiert, Auflösung bleibt gleich
 compress=false
 var="${prefix}_COMPRESS"
-[[ "${!var:-false}" == "true" ]] && compress=true
+if [[ "${!var:-false}" == "true" ]]; then
+    if [[ "${format}" == "png" ]]; then
+        log "Hinweis: Verkleinern hat bei PNG keine Wirkung (PNG ist immer verlustfrei)"
+    else
+        compress=true
+    fi
+fi
 jpeg_quality=90
 [[ "${compress}" == "true" ]] && jpeg_quality=75
 
@@ -135,7 +141,7 @@ scan_from() {
   <pwg:DocumentFormat>application/pdf</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung")$([[ "${compress}" == "true" && "${format}" != "png" ]] && echo ", verkleinert"), Quelle ${input}"
+    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung")$([[ "${compress}" == "true" ]] && echo ", verkleinert"), Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \

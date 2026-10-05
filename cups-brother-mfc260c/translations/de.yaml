@@ -86,7 +86,8 @@ configuration:
         description: >-
           An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
           JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt. Nur bei pdf und jpeg.
+          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
+          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
   scan_image:
     name: "Scan-Menü: Bild"
     description: Einstellungen für den Menüpunkt „Bild“.
@@ -105,7 +106,8 @@ configuration:
         description: >-
           An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
           JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt. Nur bei pdf und jpeg.
+          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
+          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
   scan_text:
     name: "Scan-Menü: Text"
     description: Menüpunkt „Text“ – mit Texterkennung.
@@ -130,7 +132,8 @@ configuration:
         description: >-
           An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
           JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt. Nur bei pdf und jpeg.
+          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
+          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
   scan_email:
     name: "Scan-Menü: E-Mail"
     description: Menüpunkt „E-Mail“ – speichert nur im Ordner, verschickt keine Mail.
@@ -154,7 +157,8 @@ configuration:
         description: >-
           An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
           JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
-          Auflösung bleibt. Nur bei pdf und jpeg.
+          Auflösung bleibt – ideal für Dokumente. Aus: PDF verlustfrei, JPEG
+          Qualität 90. Bei png ohne Wirkung (immer verlustfrei).
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.

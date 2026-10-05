@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.13.1
+
+### Geändert
+
+- „Verkleinern“: Beschreibung nennt jetzt auch, was ohne gilt (PDF
+  verlustfrei, JPEG Qualität 90). Bei PNG steht ein Hinweis im Log, dass der
+  Schalter dort keine Wirkung hat.
+
 ## 2.13.0
 
 ### Neu

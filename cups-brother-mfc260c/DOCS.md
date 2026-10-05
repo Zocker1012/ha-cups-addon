@@ -70,11 +70,13 @@ Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
 verschickt das Add-on nicht.
 
-**Verkleinern** (je Menüpunkt, Standard aus): Ein PDF vom Scanner enthält die
-Seiten unkomprimiert – eine Farbseite mit 300 dpi hat rund 26 MB. Verkleinert
-sind es etwa 0,6 MB, bei kaum sichtbarem Qualitätsverlust und gleicher
-Auflösung. JPEGs werden etwa ein Drittel kleiner. Bei PNG hat der Schalter
-keine Wirkung.
+**Verkleinern** (je Menüpunkt, Standard aus): Ohne Verkleinern enthält ein
+PDF die Seiten verlustfrei, so wie der Scanner sie liefert – eine Farbseite
+mit 300 dpi hat rund 26 MB. Verkleinert werden die Seiten im PDF als JPEG
+gespeichert: etwa 0,6 MB, kaum sichtbarer Qualitätsverlust, gleiche Auflösung.
+JPEGs haben sonst Qualität 90, verkleinert 75 (etwa ein Drittel kleiner). PNG
+bleibt immer verlustfrei, dort hat der Schalter keine Wirkung. Ideal für
+Dokumente; bei Fotos mit feinen Farbverläufen lieber aus lassen.
 
 **Texterkennung:** Als PDF bekommst du ein durchsuchbares PDF – du kannst
 darin Text suchen und kopieren, und z. B. Paperless findet den Inhalt. Das PDF

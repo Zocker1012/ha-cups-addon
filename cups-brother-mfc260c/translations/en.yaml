@@ -86,7 +86,8 @@ configuration:
         description: >-
           On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
           MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same. Only for pdf and jpeg.
+          resolution stays the same – ideal for documents. Off: PDF lossless,
+          JPEG quality 90. No effect for png (always lossless).
   scan_image:
     name: "Scan menu: Image"
     description: Settings for the "Image" menu item.
@@ -105,7 +106,8 @@ configuration:
         description: >-
           On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
           MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same. Only for pdf and jpeg.
+          resolution stays the same – ideal for documents. Off: PDF lossless,
+          JPEG quality 90. No effect for png (always lossless).
   scan_text:
     name: "Scan menu: Text"
     description: '"Text" menu item – with text recognition.'
@@ -129,7 +131,8 @@ configuration:
         description: >-
           On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
           MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same. Only for pdf and jpeg.
+          resolution stays the same – ideal for documents. Off: PDF lossless,
+          JPEG quality 90. No effect for png (always lossless).
   scan_email:
     name: "Scan menu: E-mail"
     description: '"E-mail" menu item – only saves to the folder, sends no mail.'
@@ -153,7 +156,8 @@ configuration:
         description: >-
           On: the file gets much smaller (color page as PDF e.g. 26 MB → 0.6
           MB, JPEG about a third smaller), hardly visible quality loss,
-          resolution stays the same. Only for pdf and jpeg.
+          resolution stays the same – ideal for documents. Off: PDF lossless,
+          JPEG quality 90. No effect for png (always lossless).
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.
