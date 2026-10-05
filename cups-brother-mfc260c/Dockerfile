@@ -151,6 +151,7 @@ RUN printf '%s  %s\n' \
     #   Brother-Filter weitergibt (siehe rootfs/usr/lib/cups/filter).
     && mkdir -p /usr/share/cups-addon/ppd \
     && sed -E \
+        -e '1a *% Angepasst 2026 vom Home-Assistant-Add-on cups-brother-mfc260c (GPL-2.0, siehe dessen Dockerfile): A4, 600dpi, Vorschalt-Filter' \
         -e 's/^\*DefaultResolution: Normal$/*DefaultResolution: 600dpi/' \
         -e 's/^\*Default(PageSize|PageRegion|ImageableArea|PaperDimension): Letter$/*Default\1: A4/' \
         -e 's/^(\*cupsFilter: ".* )brlpdwrappermfc260c"$/\1cups-addon-brmfc260c"/' \

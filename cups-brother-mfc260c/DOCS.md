@@ -277,14 +277,15 @@ pushen, Workflow abwarten, dann in HA updaten.
 
 **Brother-Treiber:** Alle vier Pakete (Drucker: LPR und CUPS-Wrapper als
 `.deb`, Scanner: `brscan2` und Scan-Key-Tool `brscan-skey` als `.rpm`) liegen
-unverändert in `drivers/`. Der Build prüft ihre Prüfsummen und lädt nichts von
-Brother. Die Scannerpakete werden nur ausgepackt, die Einrichtung übernimmt das
+unverändert in `drivers/`, Brothers Quellcode der GPL-Teile in
+`drivers/source/`. Der Build prüft die Prüfsummen und lädt nichts von Brother.
+Die Scannerpakete werden nur ausgepackt, die Einrichtung übernimmt das
 Dockerfile.
 
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
-Brother-Treiber (teils GPL, teils Brother-Lizenz, unverändert weitergebbar,
-siehe `drivers/LICENSE-Brother.txt`),
-CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
-Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL)
-sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das
-CUPS-Logo ist eine Marke von OpenPrinting/Apple.
+Brother-Treiber (teils GPL, teils Brother-Lizenz, weitergeben erlaubt; je Paket
+in `drivers/LICENSE-Brother.txt`), CUPS, PAPPL und die Legacy Printer
+Application (Apache 2.0), AirSane (GPL-3.0, Anpassungen in `patches/`),
+Tesseract und qpdf (Apache 2.0), img2pdf (LGPL) sowie Ghostscript, SANE, Avahi
+und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das Add-on-Symbol ist selbst
+gezeichnet.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.17.2
+
+### Geändert
+
+- Lizenzen der Brother-Treiber je Paket mit den Texten von Brothers
+  Download-Seite belegt; Brothers Quellcode der GPL-Teile liegt in
+  `drivers/source/`. Die angepasste Druckerbeschreibung trägt einen Hinweis
+  auf die Änderung.
+- Eigenes Add-on-Symbol statt des CUPS-Logos (Markenzeichen).
+
 ## 2.17.1
 
 ### Geändert

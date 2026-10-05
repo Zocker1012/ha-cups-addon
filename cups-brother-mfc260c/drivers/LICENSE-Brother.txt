@@ -2,39 +2,45 @@ Lizenzhinweise zu den Brother-Treibern in diesem Add-on
 =======================================================
 
 Die Dateien in diesem Ordner sind die offiziellen Linux-Pakete von Brother für
-den MFC-260C, unverändert (Prüfsummen im Dockerfile).
+den MFC-260C, unverändert (Prüfsummen im Dockerfile), dazu in source/ Brothers
+Quellcode-Pakete für die GPL-Teile.
 Copyright: Brother Industries, Ltd.
 
-- mfc260clpr-1.0.1-1.i386.deb, mfc260ccupswrapper-1.0.1-1.i386.deb
-  (Druckertreiber). Die Shell-Skripte darin (cupswrappermfc260c,
-  filtermfc260c, psconvertij2, setupPrintcapij) stehen laut ihrem Kopf unter
-  der GPL Version 2 oder später (LICENSE-GPL-2.0.txt). Die Programme
-  brmfc260cfilter, brcupsconfpt1 und brprintconf_mfc260c gibt es nur als
-  Binärdateien; für sie gilt die Lizenz, die Brother beim Download anzeigt
-  (Text 3 unten).
-- brscan2-0.2.5-1.x86_64.rpm (Scannertreiber): Lizenz von der
-  Brother-Download-Seite, Text 1 unten. Die GPL-Module (SANE-Backend,
-  LICENSE-GPL-2.0.txt) gibt es bei Brother als Quellcode ("Scanner Driver
-  Source Code"); die übrigen Module (u. a. libbrscandec2, libbrcolm2) nur als
-  Binärdateien.
-- brscan-skey-0.3.5-0.x86_64.rpm (Scan-Key-Tool): Lizenz von der
-  Brother-Download-Seite, Text 2 unten (liegt dem Paket auch als
-  LICENSE_ENG.txt bei).
+Lizenz je Paket (Texte von der Brother-Download-Seite, siehe unten):
 
-Nach diesen Lizenzen dürfen die Dateien vervielfältigt und weitergegeben
-werden. Empfänger erhalten dieselben Lizenzen (diese Datei und
-LICENSE-GPL-2.0.txt).
+- mfc260clpr-1.0.1-1.i386.deb (LPR-Druckertreiber): Text 2, gleicher
+  Wortlaut wie beim Scan-Key-Tool. Die Skripte darin (filtermfc260c,
+  psconvertij2, setupPrintcapij) tragen zusätzlich einen GPL-Hinweis
+  (Version 2 oder später). Das Druckprogramm brmfc260cfilter gibt es nur als
+  Binärdatei; Brother muss dafür keinen Quellcode herausgeben.
+- mfc260ccupswrapper-1.0.1-1.i386.deb (CUPS-Wrapper): GNU GPL Version 2
+  (LICENSE-GPL-2.0.txt). Quellcode: source/ink3_GPL_src_101-1.tar.gz, Ordner
+  cupswrappermfc260c_src (Skript cupswrappermfc260c, byte-identisch mit dem
+  Paket, und brcupsconfig.c für das Programm brcupsconfpt1).
+- brscan2-0.2.5-1.x86_64.rpm (Scannertreiber): Text 1 – GPL-Module (SANE-
+  Backend, LICENSE-GPL-2.0.txt) und Brother-Module (u. a. libbrscandec2,
+  libbrcolm2, nur als Binärdateien). Quellcode der GPL-Module:
+  source/brscan2-src-0.2.5-1.tar.gz.
+- brscan-skey-0.3.5-0.x86_64.rpm (Scan-Key-Tool): Text 2 (liegt dem Paket
+  auch als LICENSE_ENG.txt bei).
+
+Alle Lizenzen erlauben, die Dateien zu vervielfältigen und weiterzugeben.
+Empfänger erhalten dieselben Lizenzen (diese Datei und LICENSE-GPL-2.0.txt).
+Den Quellcode der GPL-Teile gibt es am selben Ort wie das Add-on (dieses
+Repository, Ordner source/); das gilt auch für fertige Images.
 
 Was das Add-on beim Bauen bzw. Starten verändert – die Pakete in diesem
 Ordner selbst bleiben unverändert:
-- Druckertreiber: Die Druckerbeschreibung (PPD) und das Filter-Skript
-  brlpdwrappermfc260c, die das GPL-Skript cupswrappermfc260c erzeugt, werden
-  angepasst (Standard A4, Auflösungsangabe, Vorschalt-Filter, Debug-Schalter).
-  Die Änderungen stehen im Dockerfile bzw. in rootfs/.
+- CUPS-Wrapper (GPL): Die Druckerbeschreibung (PPD), die das Skript
+  cupswrappermfc260c erzeugt, wird für die Printer Application kopiert und
+  angepasst (Standard A4, Auflösungsangabe, Vorschalt-Filter); die Kopie
+  trägt einen entsprechenden Hinweis. Im erzeugten Filter-Skript
+  brlpdwrappermfc260c schaltet das Add-on den Debug-Schalter (DEBUG=0/1) je
+  nach Log-Level um. Alle Änderungen stehen im Dockerfile bzw. in rootfs/
+  (seit 2026).
 - Scan-Key-Tool: Die Konfigurationsdatei brscan-skey.config wird so
   geändert, dass die Menüpunkte das Add-on aufrufen (erlaubt nach Text 2).
 - Alle Binärdateien bleiben unverändert.
-
 
 ==============================================================================
 Text 1 – brscan2 (Scannertreiber)
@@ -111,7 +117,7 @@ verloren und ist passend zum Verweis "subparagraph 3(ii)" ergänzt.)
 
 
 ==============================================================================
-Text 2 – brscan-skey (Scan-Key-Tool)
+Text 2 – brscan-skey (Scan-Key-Tool) und LPR-Druckertreiber
 ==============================================================================
 
 License Agreement
@@ -154,9 +160,12 @@ to disclose and/or distribute the source code of the Software.
 
 
 ==============================================================================
-Text 3 – Druckertreiber (LPR und CUPS-Wrapper)
+Text 3 – CUPS-Wrapper-Druckertreiber
 ==============================================================================
 
-(Noch einzutragen: Lizenztext, den Brother beim Download von "LPR-Drucker-
-treiber (deb)" und "CUPSwrapper-Druckertreiber (deb)" für den MFC-260C
-anzeigt.)
+Brother zeigt beim Download:
+
+  "This Software may be used in accordance with GNU General Public License
+  (GPL)."
+
+gefolgt vom vollständigen Text der GNU GPL Version 2 (LICENSE-GPL-2.0.txt).
