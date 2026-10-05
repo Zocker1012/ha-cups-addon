@@ -242,6 +242,37 @@ if bashio::config.true 'folder_printing.enabled'; then
 fi
 
 # ------------------------------------------------------------------------------
+# Startseite in der HA-Seitenleiste: Adressen und Ordner passend zu den
+# Einstellungen. IP = Adresse, über die der Rechner ins Netz geht.
+# ------------------------------------------------------------------------------
+ip=$(python3 -c 'import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("192.0.2.1", 9)); print(s.getsockname()[0])' 2> /dev/null) \
+    || ip="IP-von-HA"
+
+# Ordner als Samba-Pfad: /share/scans -> \\<ip>\share\scans
+smb_path() {
+    local path="${1//\//\\}"
+    printf '\\\\%s%s' "${ip}" "${path}"
+}
+scan_smb=""
+if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
+    scan_smb=$(smb_path "$(bashio::config 'scan_menu.folder')")
+fi
+print_smb=""
+if bashio::config.true 'folder_printing.enabled'; then
+    print_smb=$(smb_path "$(bashio::config 'folder_printing.path')")
+fi
+
+bashio::var.json \
+    mode "$(bashio::config 'printer.mode')" \
+    scanner "^${scanner}" \
+    ip "${ip}" \
+    scan_smb "${scan_smb}" \
+    print_smb "${print_smb}" \
+    | tempio \
+        -template /usr/share/cups-addon/www/index.gtpl \
+        -out /usr/share/cups-addon/www/index.html
+
+# ------------------------------------------------------------------------------
 # nginx-Konfiguration für Ingress erzeugen
 # ------------------------------------------------------------------------------
 ingress_port=$(bashio::addon.ingress_port)

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.18.0
+
+### Geändert
+
+- Startseite in der HA-Seitenleiste überarbeitet: Symbole im Stil des
+  Add-on-Symbols (Drucker, Scanner mit offenem Deckel), kürzere
+  Beschreibungen und ein Bereich „Geräte verbinden“ mit den Adressen von
+  Drucker und Scanner sowie den Samba-Pfaden von Scan- und Druckordner zum
+  Kopieren. Die Startseite erscheint jetzt auch ohne Scanner.
+- Kurzbeschreibung für den Add-on-Store (`README.md`).
+
 ## 2.17.3
 
 ### Geändert

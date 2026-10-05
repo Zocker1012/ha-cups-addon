@@ -1,6 +1,6 @@
 # Ingress-Proxy: Home Assistant -> Weboberflächen des Add-ons
 #
-#   /          Startseite (Drucker / Scanner) bzw. direkt zum Drucker
+#   /          Startseite (Drucker, Scanner, Adressen)
 #   /printer/  CUPS (Modus "cups") oder Legacy Printer Application auf Port 631
 #   /scan/     AirSane (Scanner) auf Port 8090
 #
@@ -20,12 +20,8 @@ server {
     absolute_redirect    off;
 
     location = / {
-{{- if .scanner }}
         root      /usr/share/cups-addon/www;
         try_files /index.html =404;
-{{- else }}
-        return    302 {{ .entry }}/printer/;
-{{- end }}
     }
 
     location = /printer {

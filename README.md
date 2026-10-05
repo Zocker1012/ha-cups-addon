@@ -1,35 +1,42 @@
 # CUPS Addon (Brother MFC-260C)
 
-Home-Assistant-Add-on, das einen per USB angeschlossenen **Brother MFC-260C**
-ins Netzwerk bringt – ohne Treiber auf deinen Geräten:
+[![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FZocker1012%2Fha-cups-addon%2Fmain%2Fcups-brother-mfc260c%2Fconfig.yaml&query=%24.version&label=Version)](cups-brother-mfc260c/CHANGELOG.md)
+![Architektur](https://img.shields.io/badge/arch-amd64-blue)
+[![Build](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/build.yaml/badge.svg)](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/build.yaml)
+
+Home-Assistant-Add-on-Repository für den per USB angeschlossenen
+**Brother MFC-260C**: Drucken und Scannen im ganzen Heimnetz, ohne Treiber auf
+deinen Geräten.
+
+## Funktionen
 
 - **Drucken** per AirPrint / IPP Everywhere (Legacy Printer Application im
   CUPS-3-Stil, klassisches CUPS als Rückfallebene)
-- **Scannen** per AirScan / eSCL (Windows, macOS, Android, Linux, Browser)
+- **Scannen** per AirScan / eSCL – Windows, macOS, Android, Linux und Browser
 - **Scan-Menü am Gerät** (Datei, Bild, Text, E-Mail) speichert direkt in einen
   Ordner, auf Wunsch mit Texterkennung
-- **Druckordner**: Dateien hineinlegen, sie werden gedruckt
+- **Druckordner**: Datei hineinlegen, sie wird gedruckt
 - Weboberfläche in der HA-Seitenleiste, Anmeldung mit HA-Konten
 
 ## Installation
 
-1. In Home Assistant: Einstellungen → Add-ons → Add-on-Store → ⋮ →
-   **Repositories** → `https://github.com/Zocker1012/ha-cups-addon` hinzufügen.
-2. **CUPS Addon (Brother MFC-260C)** installieren und starten. Der Drucker
-   wird automatisch eingerichtet.
+[![Repository zu Home Assistant hinzufügen](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FZocker1012%2Fha-cups-addon)
 
-Nur für amd64. Alle Details stehen in der
-[Dokumentation](cups-brother-mfc260c/DOCS.md), Änderungen im
-[Changelog](cups-brother-mfc260c/CHANGELOG.md).
+Oder von Hand: Einstellungen → Add-ons → Add-on-Store → ⋮ → **Repositories** →
+`https://github.com/Zocker1012/ha-cups-addon` hinzufügen. Danach
+**CUPS Addon (Brother MFC-260C)** installieren, Drucker per USB anschließen und
+das Add-on starten – der Drucker wird automatisch eingerichtet.
+
+Einrichtung, Einstellungen und Fehlersuche: [Dokumentation](cups-brother-mfc260c/DOCS.md).
 
 ## Aufbau
 
 | Pfad | Inhalt |
 |---|---|
-| `cups-brother-mfc260c/` | das Add-on (Dockerfile, Skripte in `rootfs/`, Einstellungen) |
-| `cups-brother-mfc260c/drivers/` | Brother-Treiber, unverändert, mit Lizenzen und GPL-Quellcode |
-| `cups-brother-mfc260c/patches/` | Anpassungen an AirSane |
-| `.github/workflows/build.yaml` | baut das fertige Image nach `ghcr.io` |
+| [`cups-brother-mfc260c/`](cups-brother-mfc260c/) | das Add-on: Dockerfile, Skripte (`rootfs/`), Einstellungen, Übersetzungen |
+| [`cups-brother-mfc260c/drivers/`](cups-brother-mfc260c/drivers/) | Brother-Treiber (unverändert) mit Lizenzen und GPL-Quellcode |
+| [`cups-brother-mfc260c/patches/`](cups-brother-mfc260c/patches/) | Anpassungen an AirSane |
+| [`.github/workflows/build.yaml`](.github/workflows/build.yaml) | baut das fertige Image nach `ghcr.io` |
 
 ## Lizenzen
 
@@ -46,5 +53,7 @@ Treibern:
 
 Beide Lizenzdateien sind auch im Image enthalten
 (`/usr/share/doc/brother-drivers/`). Die übrigen Bestandteile (CUPS, AirSane,
-Tesseract …) und ihre Lizenzen stehen in der Dokumentation unter „Für
-Entwickler“. Privates Projekt, nicht mit Brother verbunden.
+Tesseract …) und ihre Lizenzen nennt die Dokumentation unter „Für
+Entwickler“.
+
+Privates Projekt, nicht mit Brother verbunden.
