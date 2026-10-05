@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.19.1
+
+### Behoben
+
+- Modus `cups`: Ein Klick in der CUPS-Oberfläche öffnete sie ohne HA-Rahmen
+  und Seitenleiste. Der Rahmenschutz von CUPS wird in der Seitenleiste jetzt
+  entschärft.
+- Druckordner: Eine Datei wandert erst nach `gedruckt/`, wenn der Drucker mit
+  ihr fertig ist – abgebrochene Aufträge landen in `fehler/`. Bei einem
+  Neustart mitten im Druck wird die Datei nicht doppelt gedruckt.
+- Scan-Menü: Die Datei während des Scans heißt neutral `.scan_…_1.part`
+  statt `….pdf.part` – das Ergebnis kann ja auch JPEG oder PNG sein.
+
+### Geändert
+
+- Modus `cups`: Ruhigeres Log wie im Modus `printer_app` – bei `info` nur
+  Warnungen, Zugriffe nur bei Konfigurationsänderungen. Die unnötige
+  Braille-Druckerunterstützung (Fehlermeldung „cups-brf must be called as
+  root“) ist entfernt.
+
 ## 2.19.0
 
 ### Neu

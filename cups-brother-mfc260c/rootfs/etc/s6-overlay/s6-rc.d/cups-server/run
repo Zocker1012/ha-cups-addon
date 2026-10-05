@@ -39,7 +39,7 @@ wait_for_avahi() {
 # cupsd.conf/cups-files.conf bei jedem Start aus dem Image
 # ------------------------------------------------------------------------------
 prepare_cups_config() {
-    local log_level
+    local log_level access_level
 
     if [[ ! -L /etc/cups ]]; then
         if [[ ! -e /data/cups/.initialized ]]; then
@@ -54,13 +54,15 @@ prepare_cups_config() {
     cp /usr/share/cups-addon/cupsd.conf /data/cups/cupsd.conf
     cp /usr/share/cups-addon/cups-files.conf /data/cups/cups-files.conf
 
+    # Bei "info" wie im Modus printer_app nur Warnungen; Zugriffe nur bei
+    # Konfigurationsänderungen. Alle Details mit log_level "debug".
     case "$(bashio::config 'log_level')" in
-        debug) log_level="debug" ;;
-        info) log_level="info" ;;
-        warning) log_level="warn" ;;
-        *) log_level="error" ;;
+        debug) log_level="debug" access_level="all" ;;
+        info | warning) log_level="warn" access_level="config" ;;
+        *) log_level="error" access_level="config" ;;
     esac
-    sed -i "s/^LogLevel .*/LogLevel ${log_level}/" /data/cups/cupsd.conf
+    sed -i -e "s/^LogLevel .*/LogLevel ${log_level}/" \
+        -e "s/^AccessLogLevel .*/AccessLogLevel ${access_level}/" /data/cups/cupsd.conf
 }
 
 wait_for_avahi

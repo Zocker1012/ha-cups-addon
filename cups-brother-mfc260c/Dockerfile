@@ -180,6 +180,9 @@ RUN set -e; \
         legacy-printer-app drivers | grep -i 'mfc-\?260c'
 
 RUN rm -f /etc/nginx/sites-enabled/default \
+    # Braille-Backend aus cups-filters: unnötig und meldet bei jeder
+    # Gerätesuche "cups-brf must be called as root"
+    && rm -f /usr/lib/cups/backend/cups-brf \
     # PAM-Modul für die Anmeldung (siehe rootfs/etc/pam.d)
     && test -f /usr/lib/x86_64-linux-gnu/security/pam_exec.so
 

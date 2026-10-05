@@ -69,6 +69,9 @@ server {
         sub_filter         'URL=/'     'URL={{ .entry }}/printer/';
         sub_filter         "href='/"   "href='{{ .entry }}/printer/";
         sub_filter         "action='/" "action='{{ .entry }}/printer/";
+        # CUPS bricht sonst aus dem HA-Rahmen aus ("top.location = self.location")
+        # und öffnet sich ohne Seitenleiste – in der Seitenleiste ist das gewollt
+        sub_filter         'top.location = self.location;' 'document.documentElement.style.display = "block";';
     }
 {{- if .scanner }}
 

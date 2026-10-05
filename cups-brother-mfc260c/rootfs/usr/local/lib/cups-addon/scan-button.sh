@@ -116,7 +116,7 @@ fi
 # Arbeitsordner für Zwischenschritte (wird am Ende gelöscht). Der Scan selbst
 # landet als .part-Datei im Scan-Ordner – so sieht man, dass er läuft.
 work_dir=$(mktemp -d /tmp/scan.XXXXXX)
-trap 'rm -rf "${work_dir}"; rm -f "${SCAN_FOLDER}/.${base}"_*.pdf.part' EXIT
+trap 'rm -rf "${work_dir}"; rm -f "${SCAN_FOLDER}/.${base}"_*.part' EXIT
 scanned=()
 saved=()
 
@@ -171,7 +171,8 @@ scan_from() {
     job="/${job#/}"
 
     while true; do
-        file="${SCAN_FOLDER}/.${base}_$(( ${#scanned[@]} + 1 )).pdf.part"
+        # Ohne Dateiendung: Das Ergebnis kann auch JPEG oder PNG werden
+        file="${SCAN_FOLDER}/.${base}_$(( ${#scanned[@]} + 1 )).part"
         status=$(curl -s --max-time 900 -o "${file}" -w '%{http_code}' \
             "http://127.0.0.1:8090${job}/NextDocument") || status="000"
 

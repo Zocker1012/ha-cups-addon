@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Zocker1012
-# Status eines Druckauftrags abfragen (für cancel-watch.sh)
+# Status eines Druckauftrags abfragen (für cancel-watch.sh und print-folder.sh)
 {
     NAME "Job-Status"
     OPERATION Get-Job-Attributes
@@ -11,5 +11,6 @@
     ATTR integer job-id $job_id
     ATTR keyword requested-attributes job-state,job-state-reasons
     STATUS successful-ok
+    DISPLAY job-state
     DISPLAY job-state-reasons
 }

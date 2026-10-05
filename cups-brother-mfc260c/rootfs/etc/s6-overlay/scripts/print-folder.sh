@@ -4,13 +4,17 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Druckordner: Neue Dateien automatisch drucken
-# Gedruckte Dateien wandern nach "gedruckt/", fehlerhafte nach "fehler/".
+# Eine Datei bleibt im Ordner, bis der Drucker mit ihr fertig ist, und wandert
+# dann nach "gedruckt/" – abgebrochene oder fehlerhafte nach "fehler/".
 # ==============================================================================
 
 FOLDER=$(bashio::config 'folder_printing.path')
 readonly FOLDER
 readonly DONE_DIR="${FOLDER}/gedruckt"
 readonly FAILED_DIR="${FOLDER}/fehler"
+# Merker: Name der Datei, die gerade gedruckt wird (für einen Neustart)
+readonly MARKER="${FOLDER}/.wird-gedruckt"
+readonly STATE_TEST="/usr/share/cups-addon/ipptool/job-state.test"
 MODE=$(bashio::config 'printer.mode')
 readonly MODE
 COLOR=$(bashio::config 'folder_printing.color' 'color')
@@ -50,9 +54,10 @@ printer_name() {
 }
 
 # Druckoptionen: Papierformat, Farbe und Qualität aus den Einstellungen
-# (Modus "cups": PPD-Optionen des Brother-Treibers, sonst IPP-Attribute)
+# (Modus "cups": PPD-Optionen des Brother-Treibers, sonst IPP-Attribute).
+# Gibt die Auftragsnummer aus.
 submit() {
-    local file="$1" printer="$2" opts=()
+    local file="$1" printer="$2" opts=() out
     if [[ "${MODE}" == "cups" ]]; then
         opts+=(-o "media=${MEDIA_PPD}")
         [[ "${COLOR}" == "gray" ]] && opts+=(-o BRMonoColor=BrMono)
@@ -60,7 +65,10 @@ submit() {
             draft) opts+=(-o Resolution=Draft) ;;
             fine) opts+=(-o Resolution=Fine) ;;
         esac
-        lp -d "${printer}" -t "${file##*/}" "${opts[@]}" -- "${file}" > /dev/null
+        # "request id is MFC260C-12 (1 file(s))"
+        out=$(LC_ALL=C lp -d "${printer}" -t "${file##*/}" "${opts[@]}" -- "${file}") || return 1
+        out="${out#request id is }"
+        out="${out%% *}"
     else
         opts+=(-o "media=${MEDIA_IPP}")
         [[ "${COLOR}" == "gray" ]] && opts+=(-o print-color-mode=monochrome)
@@ -68,8 +76,45 @@ submit() {
             draft) opts+=(-o quality=fast) ;;
             fine) opts+=(-o quality=fine) ;;
         esac
-        legacy-printer-app submit -d "${printer}" "${opts[@]}" "${file}" > /dev/null
+        # "MFC260C-12"
+        out=$(legacy-printer-app submit -d "${printer}" "${opts[@]}" "${file}") || return 1
     fi
+    out="${out##*-}"
+    [[ "${out}" =~ ^[0-9]+$ ]] || return 1
+    echo "${out}"
+}
+
+# Warten, bis der Auftrag fertig ist. 0 = gedruckt, 1 = abgebrochen/Fehler
+wait_for_job() {
+    local printer="$1" job="$2" uri state waiting=false missing=0
+    if [[ "${MODE}" == "cups" ]]; then
+        uri="ipp://localhost:631/printers/${printer}"
+    else
+        uri="ipp://localhost:631/ipp/print"
+    fi
+    while true; do
+        state=$(ipptool -t -d "job_id=${job}" "${uri}" "${STATE_TEST}" 2> /dev/null \
+            | sed -n 's/.*job-state (enum) = \([a-z-]*\).*/\1/p' | head -n1)
+        case "${state}" in
+            completed) return 0 ;;
+            canceled | aborted) return 1 ;;
+            "")
+                # Auftrag nicht mehr abrufbar (z. B. schon aus der Liste
+                # entfernt): als erledigt werten
+                missing=$((missing + 1))
+                [[ "${missing}" -ge 3 ]] && return 0
+                ;;
+            pending | pending-held | processing-stopped)
+                missing=0
+                if [[ "${waiting}" != "true" ]]; then
+                    bashio::log.info "Druckordner: Auftrag ${job} wartet auf den Drucker (eingeschaltet, Papier?)"
+                    waiting=true
+                fi
+                ;;
+            *) missing=0 ;;
+        esac
+        sleep 5
+    done
 }
 
 # Verschieben und das Datum auf jetzt setzen: Das Aufräumen zählt die Tage ab
@@ -79,7 +124,7 @@ move_to() {
 }
 
 handle() {
-    local file="$1" base printer stamp
+    local file="$1" base printer stamp job
     base="${file##*/}"
 
     [[ -f "${file}" ]] || return 0
@@ -100,14 +145,33 @@ handle() {
         return 0
     fi
 
-    if submit "${file}" "${printer}"; then
-        bashio::log.info "Druckordner: ${base} an ${printer} gesendet"
-        move_to "${file}" "${DONE_DIR}/${stamp}_${base}"
+    printf '%s\n' "${base}" > "${MARKER}"
+    if job=$(submit "${file}" "${printer}"); then
+        bashio::log.info "Druckordner: ${base} an ${printer} gesendet (Auftrag ${job})"
+        if wait_for_job "${printer}" "${job}"; then
+            bashio::log.info "Druckordner: ${base} gedruckt"
+            move_to "${file}" "${DONE_DIR}/${stamp}_${base}"
+        else
+            bashio::log.warning "Druckordner: ${base} wurde abgebrochen oder ist fehlgeschlagen"
+            move_to "${file}" "${FAILED_DIR}/${stamp}_${base}"
+        fi
     else
         bashio::log.error "Druckordner: ${base} konnte nicht gedruckt werden"
         move_to "${file}" "${FAILED_DIR}/${stamp}_${base}"
     fi
+    rm -f "${MARKER}"
 }
+
+# Neustart während eines Drucks: Ob die Datei fertig gedruckt wurde, ist
+# unklar. Nicht noch einmal drucken (doppelte Seiten), sondern nach "fehler/"
+if [[ -s "${MARKER}" ]]; then
+    base=$(<"${MARKER}")
+    if [[ -f "${FOLDER}/${base}" ]]; then
+        bashio::log.warning "Druckordner: Neustart während des Drucks von ${base} – nach fehler/ verschoben, bitte prüfen"
+        move_to "${FOLDER}/${base}" "${FAILED_DIR}/$(date +%Y-%m-%d_%H-%M-%S)_${base}"
+    fi
+fi
+rm -f "${MARKER}"
 
 bashio::log.info "Druckordner aktiv: ${FOLDER} (${MEDIA_PPD}, ${COLOR}, Qualität ${QUALITY})"
 

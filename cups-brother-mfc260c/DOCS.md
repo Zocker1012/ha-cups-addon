@@ -149,9 +149,11 @@ So kommen Dateien in den Ordner:
   `downloader.download_file`, wenn der Download-Ordner der
   Downloader-Integration auf `/share` zeigt (Unterordner `print`).
 
-Gedruckt wird, sobald die Datei vollständig geschrieben ist. Danach liegt sie
-in `gedruckt/`; nicht unterstützte oder fehlgeschlagene Dateien landen in
-`fehler/`.
+Gedruckt wird, sobald die Datei vollständig geschrieben ist. Die Datei bleibt
+im Ordner, bis der Drucker mit ihr fertig ist, und liegt dann in `gedruckt/`.
+Abgebrochene, fehlgeschlagene oder nicht unterstützte Dateien landen in
+`fehler/` – ebenso eine Datei, deren Druck ein Neustart des Add-ons
+unterbrochen hat (sie wird nicht doppelt gedruckt).
 
 ## Aufräumen
 
