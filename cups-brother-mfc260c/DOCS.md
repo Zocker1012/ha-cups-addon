@@ -54,7 +54,7 @@ Weboberfläche unter **Printing Defaults**, das Papierformat unter **Media**.
 
 ### Scan-Menü am Gerät
 
-Schaltest du **Scan-Menü am Gerät → Scan-Menü nutzen** ein, speichert das Menü
+Ist **Scan-Menü am Gerät → Scan-Menü nutzen** an (Standard), speichert das Menü
 **Scan** am MFC-260C direkt in deinen Scan-Ordner (Standard `/share/scans`,
 per Samba unter „share“ erreichbar). Das Gerät meldet nur den gewählten
 Menüpunkt, alles andere stellst du im Add-on ein:
@@ -124,7 +124,7 @@ scanning:
   enabled: true
   max_resolution: "600"   # 600 | 1200
 scan_menu:
-  enabled: false
+  enabled: true
   folder: /share/scans    # unter /share oder /media
   format: pdf             # Datei: pdf | jpeg | png
   resolution: "300"       # Datei: 100 | 150 | 200 | 300 | 600
@@ -163,8 +163,9 @@ Add Printer → Brother MFC-260C, „Share This Printer“). Beide laufen auf Po
   Hast du ihn gelöscht, starte das Add-on einmal neu.
 - **Druck oder Scan klappt nicht:** Setz **Log-Level** auf `debug`, starte das
   Add-on neu, versuch es noch einmal und sieh ins Log.
-- **Display zeigt „PC-Anschluss“ und reagiert nicht:** Ein Scan wurde
-  unterbrochen. Drück am Gerät „Stopp“.
+- **Display zeigt „PC-Anschluss“ und reagiert nicht:** Ist **Scan-Menü
+  nutzen** an? Sonst wartet das Gerät vergeblich. Ansonsten wurde ein Scan
+  unterbrochen – drück am Gerät „Stopp“.
 - **Windows meldet beim Scannen „Papierstau“:** Die Auflösung ist zu hoch.
   Wähl höchstens 600 dpi.
 - **Druck abbrechen:** Die angefangene Seite wird fertig gedruckt und

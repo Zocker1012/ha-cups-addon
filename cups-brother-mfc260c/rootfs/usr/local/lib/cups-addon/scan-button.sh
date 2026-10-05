@@ -4,8 +4,12 @@
 # Ziel gewählt wird. Aufruf: scan-button.sh <ziel: file|image|ocr|email> [gerät]
 #
 # Gescannt wird über AirSane (eSCL auf 127.0.0.1:8090) – derselbe Weg wie in
-# der Weboberfläche, der Scanner bleibt so in einer Hand. Das Ergebnis landet
-# im Scan-Ordner; Home Assistant bekommt das Ereignis "cups_addon_scan".
+# der Weboberfläche, der Scanner bleibt so in einer Hand. Angefordert wird
+# immer ein PDF mit allen Seiten in einem Durchgang: Nur dieser Weg läuft am
+# MFC-260C zuverlässig (Seite für Seite als Bild bleibt das Gerät bei
+# "PC-Anschluss" hängen). JPEG/PNG und Texterkennung entstehen danach aus dem
+# PDF (Ghostscript, Tesseract). Das Ergebnis landet im Scan-Ordner; Home
+# Assistant bekommt das Ereignis "cups_addon_scan".
 # ==============================================================================
 set -u
 
@@ -46,23 +50,16 @@ var="${prefix}_FORMAT" && format="${!var:-pdf}"
 var="${prefix}_MODE" && mode="${!var:-color}"
 var="${prefix}_RESOLUTION" && resolution="${!var:-300}"
 
-# Texterkennung beim Menüpunkt "OCR": Es werden einzelne Seitenbilder gescannt
-# (bei PDF als JPEG) und danach von Tesseract verarbeitet
+# Texterkennung nur beim Menüpunkt "OCR" und wenn eingeschaltet
 ocr=false
 if [[ "${target}" == "ocr" && "${SCAN_OCR_TEXT:-false}" == "true" ]]; then
     ocr=true
 fi
-scan_format="${format}"
-if [[ "${ocr}" == "true" && "${format}" == "pdf" ]]; then
-    scan_format="jpeg"
-fi
 
-case "${scan_format}" in
-    jpeg) mime="image/jpeg"; ext="jpg"; intent="Photo" ;;
-    png) mime="image/png"; ext="png"; intent="Photo" ;;
-    *) mime="application/pdf"; ext="pdf"; intent="Document" ;;
+case "${format}" in
+    jpeg | png) ;;
+    *) format="pdf" ;;
 esac
-[[ "${ocr}" == "true" ]] && intent="Document"
 
 if [[ "${mode}" == "gray" ]]; then
     color="Grayscale8"
@@ -81,16 +78,12 @@ base="scan_$(date +%Y-%m-%d_%H-%M-%S)"
 if compgen -G "${SCAN_FOLDER}/${base}*" > /dev/null; then
     base="${base}_$$"
 fi
-saved=()
 
-# Ziel der gescannten Seiten: direkt der Scan-Ordner, bei Texterkennung ein
-# Arbeitsordner (wird am Ende gelöscht)
-out_dir="${SCAN_FOLDER}"
-if [[ "${ocr}" == "true" ]]; then
-    work_dir=$(mktemp -d /tmp/scan-ocr.XXXXXX)
-    trap 'rm -rf "${work_dir}"' EXIT
-    out_dir="${work_dir}"
-fi
+# Arbeitsordner für den Scan und Zwischenschritte (wird am Ende gelöscht)
+work_dir=$(mktemp -d /tmp/scan.XXXXXX)
+trap 'rm -rf "${work_dir}"' EXIT
+scanned=()
+saved=()
 
 # Warten, bis AirSane läuft und der Scanner frei ist (z. B. nach einem
 # Neustart des Scanner-Dienstes oder direkt nach dem vorigen Scan)
@@ -107,28 +100,28 @@ wait_ready() {
     return 1
 }
 
-# Einen Scan-Auftrag über AirSane ausführen und alle Seiten speichern.
-# $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Vorlageneinzug)
+# Einen Scan-Auftrag über AirSane ausführen und die PDF-Dokumente im
+# Arbeitsordner ablegen. $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Einzug)
 scan_from() {
-    local input="$1" extra="" settings job page name tmp status
+    local input="$1" extra="" settings job file status
     if [[ "${input}" == "Feeder" ]]; then
-        # Mehrere Seiten möglichst in einer Datei (PDF)
+        # Alle Seiten aus dem Einzug in einem Durchgang und einer Datei
         extra="<scan:ConcatIfPossible>1</scan:ConcatIfPossible>"
     fi
 
     settings="<?xml version='1.0' encoding='UTF-8'?>
 <scan:ScanSettings xmlns:scan='http://schemas.hp.com/imaging/escl/2011/05/03' xmlns:pwg='http://www.pwg.org/schemas/2010/12/sm'>
   <pwg:Version>2.6</pwg:Version>
-  <scan:Intent>${intent}</scan:Intent>
+  <scan:Intent>Document</scan:Intent>
   <pwg:InputSource>${input}</pwg:InputSource>
   ${extra}
   <scan:ColorMode>${color}</scan:ColorMode>
   <scan:XResolution>${resolution}</scan:XResolution>
   <scan:YResolution>${resolution}</scan:YResolution>
-  <pwg:DocumentFormat>${mime}</pwg:DocumentFormat>
+  <pwg:DocumentFormat>application/pdf</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${target}): ${resolution} dpi, ${mode}, ${format}, Quelle ${input}"
+    log "Scanne (${target}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung"), Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
@@ -142,27 +135,17 @@ scan_from() {
     job="${job#http://*/}"
     job="/${job#/}"
 
-    page=1
     while true; do
-        if [[ "${#saved[@]}" -eq 0 ]]; then
-            name="${base}.${ext}"
-        else
-            name="${base}_$(( ${#saved[@]} + 1 )).${ext}"
-        fi
-        tmp="${out_dir}/.${name}.part"
-
-        status=$(curl -s --max-time 600 -o "${tmp}" -w '%{http_code}' \
+        file="${work_dir}/scan_$(( ${#scanned[@]} + 1 )).pdf"
+        status=$(curl -s --max-time 900 -o "${file}" -w '%{http_code}' \
             "http://127.0.0.1:8090${job}/NextDocument") || status="000"
 
-        if [[ "${status}" == "200" && -s "${tmp}" ]]; then
-            mv "${tmp}" "${out_dir}/${name}"
-            saved+=("${out_dir}/${name}")
-            [[ "${ocr}" == "true" ]] || log "Gespeichert: ${out_dir}/${name}"
-            page=$((page + 1))
+        if [[ "${status}" == "200" && -s "${file}" ]]; then
+            scanned+=("${file}")
             continue
         fi
 
-        rm -f "${tmp}"
+        rm -f "${file}"
         # 404 = keine weiteren Seiten
         if [[ "${status}" != "404" ]]; then
             log "Antwort des Scanners: HTTP ${status} (Quelle ${input})"
@@ -170,7 +153,7 @@ scan_from() {
         break
     done
 
-    [[ "${page}" -gt 1 ]]
+    [[ "${#scanned[@]}" -gt 0 ]]
 }
 
 wait_ready || fail "Scanner nicht bereit (läuft der Scanner-Dienst? Zeigt das Gerät \"PC-Anschluss\", dort Stopp drücken)"
@@ -181,10 +164,10 @@ wait_ready || fail "Scanner nicht bereit (läuft der Scanner-Dienst? Zeigt das G
 # Seite. Mit "Platen" bliebe das Gerät bei weiteren Seiten im Einzug hängen.
 scan_from Feeder || { wait_ready && scan_from Platen; }
 
-[[ "${#saved[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
+[[ "${#scanned[@]}" -gt 0 ]] || fail "keine Daten vom Scanner erhalten"
 
 # ------------------------------------------------------------------------------
-# Texterkennung
+# Ergebnis erzeugen
 # ------------------------------------------------------------------------------
 
 # Datei über eine .part-Datei in den Scan-Ordner kopieren (Ordner liegt evtl.
@@ -194,6 +177,32 @@ publish() {
     cp "${src}" "${SCAN_FOLDER}/.${name}.part" \
         && mv "${SCAN_FOLDER}/.${name}.part" "${SCAN_FOLDER}/${name}" \
         && echo "${SCAN_FOLDER}/${name}"
+}
+
+# Name der n-ten Datei: scan_<zeit>.<ext>, scan_<zeit>_2.<ext>, ...
+name_for() {
+    if [[ "$1" -eq 1 ]]; then
+        echo "${base}.$2"
+    else
+        echo "${base}_$1.$2"
+    fi
+}
+
+# Alle Seiten der gescannten PDFs als Bilder (Seite für Seite) ausgeben
+# $1: jpeg | png – die Auflösung entspricht der Scan-Auflösung
+render_pages() {
+    local kind="$1" device ext
+    case "${kind}:${mode}" in
+        png:gray) device="pnggray"; ext="png" ;;
+        png:*) device="png16m"; ext="png" ;;
+        jpeg:gray) device="jpeggray"; ext="jpg" ;;
+        *) device="jpeg"; ext="jpg" ;;
+    esac
+    nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE="${device}" \
+        -dJPEGQ=90 -r"${resolution}" \
+        -sOutputFile="${work_dir}/page_%04d.${ext}" "${scanned[@]}" > /dev/null 2>&1 \
+        || return 1
+    compgen -G "${work_dir}/page_*.${ext}"
 }
 
 # Verkehrt herum oder quer liegende Seite drehen (nur JPEG, verlustfrei).
@@ -212,22 +221,34 @@ rotate_page() {
     fi
 }
 
-if [[ "${ocr}" == "true" ]]; then
-    case "${SCAN_OCR_LANG:-deu_eng}" in
-        deu) lang="deu" ;;
-        eng) lang="eng" ;;
-        *) lang="deu+eng" ;;
-    esac
-    log "Texterkennung (${lang}) für ${#saved[@]} Seite(n) ..."
+if [[ "${format}" == "pdf" && "${ocr}" != "true" ]]; then
+    # PDF direkt übernehmen
+    n=1
+    for doc in "${scanned[@]}"; do
+        file=$(publish "${doc}" "$(name_for "${n}" pdf)") && saved+=("${file}")
+        n=$((n + 1))
+    done
+else
+    # Seitenbilder erzeugen: für die Texterkennung mit PDF-Ziel als JPEG
+    kind="${format}"
+    [[ "${kind}" == "pdf" ]] && kind="jpeg"
+    mapfile -t pages < <(render_pages "${kind}" | sort)
+    [[ "${#pages[@]}" -gt 0 ]] || fail "Umwandlung der Seiten fehlgeschlagen"
 
-    if [[ "${SCAN_OCR_ROTATE:-true}" == "true" && "${scan_format}" == "jpeg" ]]; then
-        for page in "${saved[@]}"; do
-            rotate_page "${page}"
-        done
+    if [[ "${ocr}" == "true" ]]; then
+        case "${SCAN_OCR_LANG:-deu_eng}" in
+            deu) lang="deu" ;;
+            eng) lang="eng" ;;
+            *) lang="deu+eng" ;;
+        esac
+        log "Texterkennung (${lang}) für ${#pages[@]} Seite(n) ..."
+        if [[ "${SCAN_OCR_ROTATE:-true}" == "true" && "${kind}" == "jpeg" ]]; then
+            for page in "${pages[@]}"; do
+                rotate_page "${page}"
+            done
+        fi
     fi
 
-    pages=("${saved[@]}")
-    saved=()
     if [[ "${format}" == "pdf" ]]; then
         # Alle Seiten in ein durchsuchbares PDF (Bild + unsichtbarer Text)
         printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
@@ -239,20 +260,26 @@ if [[ "${ocr}" == "true" ]]; then
             fail "Texterkennung fehlgeschlagen"
         fi
     else
-        # Bilder wie eingestellt, dazu der erkannte Text als .txt
-        : > "${work_dir}/${base}.txt"
+        # Bilder; bei Texterkennung dazu der erkannte Text als .txt
+        n=1
         for page in "${pages[@]}"; do
-            file=$(publish "${page}" "${page##*/}") && saved+=("${file}")
-            nice -n 10 tesseract "${page}" - -l "${lang}" 2> /dev/null >> "${work_dir}/${base}.txt"
-            printf '\f' >> "${work_dir}/${base}.txt"
+            file=$(publish "${page}" "$(name_for "${n}" "${page##*.}")") && saved+=("${file}")
+            if [[ "${ocr}" == "true" ]]; then
+                nice -n 10 tesseract "${page}" - -l "${lang}" 2> /dev/null >> "${work_dir}/${base}.txt"
+                printf '\f' >> "${work_dir}/${base}.txt"
+            fi
+            n=$((n + 1))
         done
-        file=$(publish "${work_dir}/${base}.txt" "${base}.txt") && saved+=("${file}")
+        if [[ "${ocr}" == "true" ]]; then
+            file=$(publish "${work_dir}/${base}.txt" "${base}.txt") && saved+=("${file}")
+        fi
     fi
-
-    for file in "${saved[@]}"; do
-        log "Gespeichert: ${file}"
-    done
 fi
+
+[[ "${#saved[@]}" -gt 0 ]] || fail "Scan konnte nicht gespeichert werden"
+for file in "${saved[@]}"; do
+    log "Gespeichert: ${file}"
+done
 
 for file in "${saved[@]}"; do
     notify "ok" "${file}"

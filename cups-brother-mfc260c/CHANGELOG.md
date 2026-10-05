@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.10.1
+
+### Geändert
+
+- Scan-Menü am Gerät: Gescannt wird jetzt immer als PDF in einem Durchgang –
+  der Weg, der am MFC-260C zuverlässig läuft. JPEG/PNG und die Texterkennung
+  entstehen danach aus dem PDF. Vorher wurden Bilder Seite für Seite geholt,
+  wobei das Gerät bei „PC-Anschluss“ hängen bleiben konnte.
+- „Scan-Menü nutzen“ ist jetzt standardmäßig an. Ist es aus, wartet das Gerät
+  nach der Wahl im Menü vergeblich bei „PC-Anschluss“.
+
 ## 2.10.0
 
 ### Neu
