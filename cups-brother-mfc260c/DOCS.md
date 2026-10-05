@@ -1,4 +1,4 @@
-# CUPS Addon (Brother MFC-260C)
+# CUPS Druck- & Scanserver (Brother MFC-260C)
 
 Druck- und Scanserver für deinen per USB angeschlossenen **Brother MFC-260C**.
 Du druckst per **AirPrint / IPP Everywhere** und scannst per **AirScan / eSCL**
@@ -280,10 +280,14 @@ unverändert in `drivers/`, Brothers Quellcode der GPL-Teile in
 Die Scannerpakete werden nur ausgepackt, die Einrichtung übernimmt das
 Dockerfile.
 
-**Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
-Brother-Treiber (teils GPL, teils Brother-Lizenz, weitergeben erlaubt; je Paket
-in `drivers/LICENSE-Brother.txt`), CUPS, PAPPL und die Legacy Printer
-Application (Apache 2.0), AirSane (GPL-3.0, Anpassungen in `patches/`),
-Tesseract und qpdf (Apache 2.0), img2pdf (LGPL) sowie Ghostscript, SANE, Avahi
-und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das Add-on-Symbol ist selbst
-gezeichnet.
+**Lizenzen:** Der eigene Code des Add-ons (Skripte, Dockerfile, Startseite,
+Symbol, Doku) steht unter der GPL-3.0 oder später (`LICENSE` im Repository).
+Enthalten sind außerdem die Brother-Treiber (teils GPL-2.0, teils
+Brother-Lizenz, weitergeben erlaubt; je Paket in `drivers/LICENSE-Brother.txt`),
+CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
+Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL-3.0)
+sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu (AGPL/GPL/LGPL/BSD).
+
+**Marken:** CUPS und AirPrint sind Marken von Apple Inc., Brother und MFC-260C
+von Brother Industries, Ltd. Sie stehen hier nur zur Beschreibung; das Add-on
+ist ein privates Projekt ohne Verbindung zu OpenPrinting, Apple oder Brother.

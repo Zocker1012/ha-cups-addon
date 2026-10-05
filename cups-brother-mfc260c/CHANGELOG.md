@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.18.1
+
+### Geändert
+
+- Neuer Name: „CUPS Druck- & Scanserver (Brother MFC-260C)“. Die interne
+  Kennung bleibt gleich – Einstellungen und Drucker bleiben erhalten.
+- Beschreibung nennt die Grundlage: CUPS/Legacy Printer Application
+  (OpenPrinting), AirSane und SANE.
+- Eigener Code steht jetzt unter der GPL-3.0 oder später (`LICENSE`);
+  Hinweise zu Marken in README und Dokumentation.
+
 ## 2.18.0
 
 ### Geändert

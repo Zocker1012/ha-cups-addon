@@ -1,4 +1,4 @@
-# CUPS Addon (Brother MFC-260C)
+# CUPS Druck- & Scanserver (Brother MFC-260C)
 
 ![Architektur](https://img.shields.io/badge/arch-amd64-blue)
 
@@ -10,5 +10,6 @@ Druck- und Scanserver für den per USB angeschlossenen **Brother MFC-260C**.
   Texterkennung
 - Druckordner: Datei hineinlegen, sie wird gedruckt
 
-Der Drucker wird beim Start automatisch eingerichtet. Alles Weitere steht im
+Basiert auf CUPS / Legacy Printer Application (OpenPrinting), AirSane und
+SANE. Der Drucker wird beim Start automatisch eingerichtet. Alles Weitere steht im
 Tab **Dokumentation**.
