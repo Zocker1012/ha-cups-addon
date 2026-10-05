@@ -56,8 +56,11 @@ Weboberfläche unter **Printing Defaults**, das Papierformat unter **Media**.
 
 Ist **Scan-Menü am Gerät → Scan-Menü nutzen** an (Standard), speichert das Menü
 **Scan** am MFC-260C direkt in deinen Scan-Ordner (Standard `/share/scans`,
-per Samba unter „share“ erreichbar). Das Gerät meldet nur den gewählten
-Menüpunkt, alles andere stellst du im Add-on ein:
+per Samba unter „share“ erreichbar) – je Menüpunkt in einem Unterordner
+`Datei/`, `Bild/`, `Text/` bzw. `E-Mail/` (abschaltbar). Scans vom PC, Handy
+oder aus der Weboberfläche landen nicht hier, sondern direkt auf dem Gerät,
+mit dem du scannst. Das Gerät meldet nur den gewählten Menüpunkt, alles andere
+stellst du im Add-on ein:
 
 | Menüpunkt | Standard (Format, Auflösung, Farbe) | Texterkennung |
 |---|---|---|
@@ -93,7 +96,10 @@ braucht je Seite einige Sekunden. Bei „Bild“ gibt es sie nicht – Fotos
 enthalten kaum Text, und das Drehen könnte sie falsch herum stellen.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
-einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
+einer Datei pro Seite. Mit **Leere Seiten entfernen** (Standard aus) fallen
+komplett leere Seiten weg, etwa leere Rückseiten – schon eine Seitenzahl oder
+ein einzelnes Wort zählt als Inhalt, und es bleibt immer mindestens eine
+Seite. Nach jedem Scan sendet das Add-on das Ereignis
 `cups_addon_scan` (`status`, `file`, `target` = `file`, `image`, `ocr` für Text oder `email`) an Home Assistant, z. B. für
 eine Benachrichtigung:
 
@@ -116,6 +122,22 @@ gedruckt, die du in den Ordner legst (Standard `/share/print`, z. B. per Samba
 oder aus einer Automation). Möglich sind PDF, PostScript, JPEG und PNG.
 Papierformat (Standard A4), Farbe und Qualität stellst du im Add-on ein.
 Danach liegt die Datei in `gedruckt/` bzw. `fehler/`.
+
+## Aufräumen
+
+Mit **Aufräumen → Aufräumen nutzen** (Standard aus) räumt das Add-on einmal
+täglich auf, in zwei Stufen:
+
+1. Dateien, die älter als die eingestellten Tage sind (Standard 30), wandern
+   in den Ordner `Papierkorb/` im Scan- bzw. Druckordner. Die Unterordner
+   bleiben erhalten, du findest also `Papierkorb/Datei/…` wieder.
+2. Was länger als die eingestellten Tage (Standard 30) im Papierkorb liegt,
+   wird endgültig gelöscht.
+
+Die Tage stellst du getrennt für Scans, `gedruckt/` und `fehler/` ein, 0 heißt
+nie. Dateien im Druckordner, die noch gedruckt werden sollen, rührt das
+Aufräumen nie an. Zum Wiederherstellen schiebst du eine Datei einfach aus dem
+Papierkorb zurück.
 
 ## Druckerstatus in Home Assistant
 
@@ -141,6 +163,8 @@ scanning:
 scan_menu:
   enabled: true
   folder: /share/scans    # unter /share oder /media
+  subfolders: true        # Unterordner Datei/, Bild/, Text/, E-Mail/
+  remove_blank: false     # leere Seiten entfernen
   language: deu_eng       # Texterkennung: deu_eng | deu | eng
   rotate: true            # Texterkennung: Seiten automatisch drehen
 scan_file:                # Menüpunkt "Datei"
@@ -173,6 +197,12 @@ folder_printing:
                           # photo_10x15 | photo_13x18 | photo_9x13
   color: color            # color | gray
   quality: normal         # draft | normal | fine
+cleanup:
+  enabled: false
+  scans_days: 30          # Tage bis Papierkorb (0 = nie)
+  printed_days: 30
+  failed_days: 30
+  trash_days: 30          # Tage im Papierkorb bis zum Löschen
 log_level: info           # debug | info | warning | error
 ```
 

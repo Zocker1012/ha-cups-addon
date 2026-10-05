@@ -88,6 +88,10 @@ else
     color="RGB24"
 fi
 
+# Auf Wunsch je Menüpunkt ein Unterordner (Datei, Bild, Text, E-Mail)
+if [[ "${SCAN_SUBFOLDERS:-true}" == "true" ]]; then
+    SCAN_FOLDER="${SCAN_FOLDER}/${label}"
+fi
 mkdir -p "${SCAN_FOLDER}"
 
 # Immer nur ein Scan zur Zeit (Menü am Gerät mehrfach gewählt)
@@ -216,6 +220,54 @@ if [[ "${#scanned[@]}" -gt 1 ]]; then
     qpdf --empty --pages "${scanned[@]}" -- "${work_dir}/raw.pdf" \
         || fail "Zusammenfassen der Seiten fehlgeschlagen"
     raw="${work_dir}/raw.pdf"
+fi
+
+# 1b. Leere Seiten entfernen (nur bei mehreren Seiten, nie alle). Eine Seite
+#     gilt nur dann als leer, wenn sie praktisch keine dunklen Pixel hat –
+#     schon ein kurzes Wort oder eine Seitenzahl reicht, damit sie bleibt.
+if [[ "${SCAN_REMOVE_BLANK:-false}" == "true" ]]; then
+    count=$(qpdf --show-npages "${raw}" 2> /dev/null || echo 0)
+    if [[ "${count}" -gt 1 ]]; then
+        nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pgmraw -r150 \
+            -sOutputFile="${work_dir}/blank_%04d.pgm" "${raw}" > /dev/null 2>&1
+        # Ausgabe: "keep 1,3,4" und "blank 2"
+        result=$(python3 - "${work_dir}" "${count}" <<'PY'
+import re, sys
+work, count = sys.argv[1], int(sys.argv[2])
+keep, blank = [], []
+for n in range(1, count + 1):
+    try:
+        d = open(f"{work}/blank_{n:04d}.pgm", "rb").read()
+        m = re.match(rb"P5\s+(?:#[^\n]*\n\s*)*(\d+)\s+(\d+)\s+(\d+)\s", d)
+        w, h = int(m.group(1)), int(m.group(2))
+        px = d[m.end():]
+    except Exception:
+        keep.append(n)  # im Zweifel behalten
+        continue
+    # Ränder (2 %) ignorieren: dort liegen oft Schatten vom Scanner
+    mx, my = w // 50, h // 50
+    dark = 0
+    dark_values = bytes(range(160))
+    for y in range(my, h - my):
+        row = px[y * w + mx:(y + 1) * w - mx]
+        dark += len(row) - len(row.translate(None, dark_values))
+    # Bei 150 dpi hat schon "Seite 3" in 10 pt rund 100 dunkle Pixel, eine
+    # leere Seite mit Staubkorn nur wenige – im Zweifel bleibt die Seite.
+    (blank if dark <= 20 else keep).append(n)
+if not keep:  # nie alle Seiten entfernen
+    keep, blank = blank, []
+print("keep " + ",".join(map(str, keep)))
+print("blank " + ",".join(map(str, blank)))
+PY
+        ) || result=""
+        keep=$(sed -n 's/^keep //p' <<< "${result}")
+        blank=$(sed -n 's/^blank //p' <<< "${result}")
+        if [[ -n "${blank}" && -n "${keep}" ]] \
+            && qpdf "${raw}" --pages "${raw}" "${keep}" -- "${work_dir}/noblank.pdf"; then
+            raw="${work_dir}/noblank.pdf"
+            log "Leere Seite(n) entfernt: ${blank//,/, }"
+        fi
+    fi
 fi
 
 # 2. Bei Texterkennung verkehrt herum oder quer liegende Seiten erkennen und

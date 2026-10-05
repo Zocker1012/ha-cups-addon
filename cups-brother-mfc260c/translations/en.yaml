@@ -55,6 +55,17 @@ configuration:
       folder:
         name: Folder
         description: Target for all menu items, below /share or /media.
+      subfolders:
+        name: Subfolder per menu item
+        description: >-
+          On: scans are saved to Datei/, Bild/, Text/ or E-Mail/ in the folder
+          above. Off: all directly in the folder.
+      remove_blank:
+        name: Remove blank pages
+        description: >-
+          On: completely blank pages are left out when scanning several pages
+          from the feeder. A page number or a single word counts as content;
+          at least one page always remains.
       language:
         name: Text recognition – language
         description: For all menu items with text recognition. deu_eng = German and English.
@@ -180,6 +191,28 @@ configuration:
       quality:
         name: Quality
         description: draft saves ink, fine is slower.
+  cleanup:
+    name: Cleanup
+    description: Old files go to a trash folder first, deleted later.
+    fields:
+      enabled:
+        name: Use cleanup
+        description: >-
+          On: once a day, old files are moved to the "Papierkorb" (trash)
+          folder (in the scan or print folder) and deleted there later. Files
+          still waiting to be printed are never touched.
+      scans_days:
+        name: Move scans to trash after (days)
+        description: All scans in the scan folder. 0 = never.
+      printed_days:
+        name: Move printed files to trash after (days)
+        description: Print folder, subfolder "gedruckt". 0 = never.
+      failed_days:
+        name: Move failed files to trash after (days)
+        description: Print folder, subfolder "fehler". 0 = never.
+      trash_days:
+        name: Empty trash after (days)
+        description: Delete for good after this long in the trash. 0 = never.
   log_level:
     name: Log level
     description: info for everyday use, debug for troubleshooting (very verbose).

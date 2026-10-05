@@ -55,6 +55,17 @@ configuration:
       folder:
         name: Ordner
         description: Ziel für alle Menüpunkte, unter /share oder /media.
+      subfolders:
+        name: Unterordner je Menüpunkt
+        description: >-
+          An: Scans landen in Datei/, Bild/, Text/ bzw. E-Mail/ im Ordner oben.
+          Aus: alle direkt im Ordner.
+      remove_blank:
+        name: Leere Seiten entfernen
+        description: >-
+          An: Bei mehreren Seiten aus dem Einzug werden komplett leere Seiten
+          weggelassen. Schon eine Seitenzahl oder ein Wort zählt als Inhalt;
+          es bleibt immer mindestens eine Seite.
       language:
         name: Texterkennung – Sprache
         description: Für alle Menüpunkte mit Texterkennung. deu_eng = Deutsch und Englisch.
@@ -180,6 +191,28 @@ configuration:
       quality:
         name: Qualität
         description: draft spart Tinte, fine ist langsamer.
+  cleanup:
+    name: Aufräumen
+    description: Alte Dateien erst in den Papierkorb, später löschen.
+    fields:
+      enabled:
+        name: Aufräumen nutzen
+        description: >-
+          An: Einmal täglich wandern alte Dateien in den Ordner „Papierkorb“
+          (im Scan- bzw. Druckordner) und werden dort später gelöscht.
+          Dateien, die noch gedruckt werden sollen, bleiben unberührt.
+      scans_days:
+        name: Scans in den Papierkorb nach (Tagen)
+        description: Alle Scans im Scan-Ordner. 0 = nie.
+      printed_days:
+        name: Gedruckte Dateien in den Papierkorb nach (Tagen)
+        description: Druckordner, Unterordner „gedruckt“. 0 = nie.
+      failed_days:
+        name: Fehlgeschlagene Dateien in den Papierkorb nach (Tagen)
+        description: Druckordner, Unterordner „fehler“. 0 = nie.
+      trash_days:
+        name: Papierkorb leeren nach (Tagen)
+        description: Endgültig löschen, wenn so lange im Papierkorb. 0 = nie.
   log_level:
     name: Log-Level
     description: info für den Alltag, debug zur Fehlersuche (sehr ausführlich).

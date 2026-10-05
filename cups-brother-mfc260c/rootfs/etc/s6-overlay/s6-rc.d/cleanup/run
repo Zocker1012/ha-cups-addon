@@ -1,0 +1,12 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Aufräumen: alte Scans und gedruckte Dateien in den Papierkorb, später löschen
+# ==============================================================================
+
+if ! bashio::config.true 'cleanup.enabled'; then
+    s6-svc -O .
+    exit 0
+fi
+
+exec /etc/s6-overlay/scripts/cleanup.sh

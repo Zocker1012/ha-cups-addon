@@ -234,6 +234,8 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
             printf 'SCAN_%s_OCR=%q\n' "${name}" "$(bashio::config "${group}.ocr" "${def_ocr}")"
             printf 'SCAN_%s_COMPRESS=%q\n' "${name}" "$(bashio::config "${group}.compress" "${def_compress}")"
         done
+        printf 'SCAN_SUBFOLDERS=%q\n' "$(bashio::config 'scan_menu.subfolders' 'true')"
+        printf 'SCAN_REMOVE_BLANK=%q\n' "$(bashio::config 'scan_menu.remove_blank' 'false')"
         printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_menu.language' 'deu_eng')"
         printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_menu.rotate' 'true')"
     } > "${RUN_DIR}/scan.env"

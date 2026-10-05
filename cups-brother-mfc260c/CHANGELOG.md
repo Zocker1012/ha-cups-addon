@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.16.0
+
+### Neu
+
+- Scan-Menü: Unterordner je Menüpunkt (`Datei/`, `Bild/`, `Text/`,
+  `E-Mail/`), standardmäßig an.
+- Scan-Menü: „Leere Seiten entfernen“ (Standard aus). Vorsichtige Erkennung:
+  Schon eine Seitenzahl zählt als Inhalt, es bleibt immer mindestens eine
+  Seite.
+- Aufräumen (Standard aus): Alte Scans und Dateien aus `gedruckt/` und
+  `fehler/` wandern nach einstellbaren Tagen in einen Papierkorb-Ordner und
+  werden dort nach weiteren Tagen gelöscht.
+
 ## 2.15.0
 
 ### Geändert
