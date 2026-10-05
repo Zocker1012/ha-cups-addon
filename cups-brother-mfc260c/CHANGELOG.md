@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.19.2
+
+### Geändert
+
+- Der Server meldet sich im Netz als `ha-cups-addon.local` statt mit der
+  internen Container-Kennung (z. B. `5cce9f31-cups-brother-mfc260c.local`).
+  Im Modus `cups` heißt der Drucker damit „Brother MFC-260C @ ha-cups-addon“.
+  Geräte, die sich die alte Adresse fest gemerkt haben, den Drucker bzw.
+  Scanner einmal neu hinzufügen.
+
 ## 2.19.1
 
 ### Behoben

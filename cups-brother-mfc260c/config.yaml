@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Zocker1012
 name: "CUPS Druck- & Scanserver (Brother MFC-260C)"
-version: "2.19.1"
+version: "2.19.2"
 slug: cups-brother-mfc260c
 description: >
   Drucken per AirPrint/IPP Everywhere und Scannen per AirScan/eSCL für den

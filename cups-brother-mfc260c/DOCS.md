@@ -11,7 +11,8 @@ Du druckst per **AirPrint / IPP Everywhere** und scannst per **AirScan / eSCL**
 2. Starte das Add-on. Es legt den Drucker automatisch als **MFC260C** an
    (Papier A4) – auch wenn du ihn erst später einschaltest.
 
-Danach finden deine Geräte Drucker und Scanner im Netzwerk von selbst:
+Danach finden deine Geräte Drucker und Scanner im Netzwerk von selbst. Der
+Server meldet sich dabei als `ha-cups-addon.local`:
 
 | Gerät | Drucken | Scannen |
 |---|---|---|
