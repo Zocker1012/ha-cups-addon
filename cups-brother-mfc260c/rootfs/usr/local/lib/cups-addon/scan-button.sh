@@ -41,16 +41,20 @@ fail() {
     exit 1
 }
 
-# Jeder Menüpunkt (Datei, Bild, OCR, E-Mail) hat eigene Einstellungen
+# Jeder Menüpunkt hat eigene Einstellungen. Brothers Scan-Key-Tool meldet
+# die Menüpunkte des MFC-260C als file (Datei), image (Bild), ocr (Text) und
+# email (E-Mail).
 case "${target}" in
-    image | ocr | email) prefix="SCAN_${target^^}" ;;
-    *) prefix="SCAN_FILE" ;;
+    image) prefix="SCAN_IMAGE"; label="Bild" ;;
+    ocr) prefix="SCAN_OCR"; label="Text" ;;
+    email) prefix="SCAN_EMAIL"; label="E-Mail" ;;
+    *) prefix="SCAN_FILE"; label="Datei" ;;
 esac
 var="${prefix}_FORMAT" && format="${!var:-pdf}"
 var="${prefix}_MODE" && mode="${!var:-color}"
 var="${prefix}_RESOLUTION" && resolution="${!var:-300}"
 
-# Texterkennung nur beim Menüpunkt "OCR" und wenn eingeschaltet
+# Texterkennung nur beim Menüpunkt "Text" und wenn eingeschaltet
 ocr=false
 if [[ "${target}" == "ocr" && "${SCAN_OCR_TEXT:-false}" == "true" ]]; then
     ocr=true
@@ -121,7 +125,7 @@ scan_from() {
   <pwg:DocumentFormat>application/pdf</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${target}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung"), Quelle ${input}"
+    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung"), Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \

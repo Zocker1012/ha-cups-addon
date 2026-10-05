@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.2
+
+### Geändert
+
+- Einstellungen und Log heißen jetzt wie die Menüpunkte am MFC-260C: Datei,
+  Bild, Text und E-Mail. „Text“ ist Brothers Menüpunkt für Texterkennung
+  (vorher hier „OCR“ genannt).
+
 ## 2.10.1
 
 ### Geändert

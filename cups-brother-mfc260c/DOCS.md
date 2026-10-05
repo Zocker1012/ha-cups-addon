@@ -63,14 +63,14 @@ Menüpunkt, alles andere stellst du im Add-on ein:
 |---|---|
 | Datei | PDF, 300 dpi, Farbe |
 | Bild | JPEG, 300 dpi, Farbe |
-| OCR | PDF, 300 dpi, Graustufen |
+| Text | PDF, 300 dpi, Graustufen, mit Texterkennung |
 | E-Mail | PDF, 150 dpi, Farbe (kleine Datei) |
 
 Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
 verschickt das Add-on nicht.
 
-**Texterkennung bei „OCR“** (Standard an, Deutsch und Englisch): Als PDF
+**Texterkennung bei „Text“** (Standard an, Deutsch und Englisch): Als PDF
 bekommst du ein durchsuchbares PDF – du kannst darin Text suchen und
 kopieren, und z. B. Paperless findet den Inhalt. Bei JPEG/PNG kommt der
 erkannte Text als `.txt`-Datei dazu. Verkehrt herum oder quer eingelegte
@@ -79,7 +79,7 @@ braucht je Seite etwa eine bis ein paar Sekunden.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
-`cups_addon_scan` (`status`, `file`, `target`) an Home Assistant, z. B. für
+`cups_addon_scan` (`status`, `file`, `target` = `file`, `image`, `ocr` für Text oder `email`) an Home Assistant, z. B. für
 eine Benachrichtigung:
 
 ```yaml
@@ -129,10 +129,10 @@ scan_menu:
   format: pdf             # Datei: pdf | jpeg | png
   resolution: "300"       # Datei: 100 | 150 | 200 | 300 | 600
   color: color            # Datei: color | gray
-  image_format: jpeg      # Bild, OCR und E-Mail genauso mit
+  image_format: jpeg      # Bild, Text und E-Mail genauso mit
   image_resolution: "300" # image_, ocr_ und email_ davor
   image_color: color
-  ocr_format: pdf
+  ocr_format: pdf         # ocr_ = Menüpunkt "Text"
   ocr_resolution: "300"
   ocr_color: gray
   ocr_text: true          # Texterkennung

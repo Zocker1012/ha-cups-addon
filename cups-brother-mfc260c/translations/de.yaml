@@ -64,21 +64,21 @@ configuration:
       image_color:
         name: Bild – Farbe
       ocr_format:
-        name: OCR – Format
+        name: Text – Format
       ocr_resolution:
-        name: OCR – Auflösung (dpi)
+        name: Text – Auflösung (dpi)
       ocr_color:
-        name: OCR – Farbe
+        name: Text – Farbe
       ocr_text:
-        name: OCR – Texterkennung
+        name: Text – Texterkennung
         description: >-
           Erkennt den Text: PDF wird durchsuchbar, bei JPEG/PNG kommt eine
           .txt-Datei dazu. Aus = normaler Scan.
       ocr_language:
-        name: OCR – Sprache
+        name: Text – Sprache
         description: '"deu_eng" = Deutsch und Englisch.'
       ocr_rotate:
-        name: OCR – Seiten automatisch drehen
+        name: Text – Seiten automatisch drehen
         description: Dreht verkehrt herum oder quer liegende Seiten (PDF, JPEG).
       email_format:
         name: E-Mail – Format

@@ -64,21 +64,21 @@ configuration:
       image_color:
         name: Image – color
       ocr_format:
-        name: OCR – format
+        name: Text (OCR) – format
       ocr_resolution:
-        name: OCR – resolution (dpi)
+        name: Text (OCR) – resolution (dpi)
       ocr_color:
-        name: OCR – color
+        name: Text (OCR) – color
       ocr_text:
-        name: OCR – text recognition
+        name: Text (OCR) – text recognition
         description: >-
           Recognizes the text: PDFs become searchable, JPEG/PNG get an extra
           .txt file. Off = plain scan.
       ocr_language:
-        name: OCR – language
+        name: Text (OCR) – language
         description: '"deu_eng" = German and English.'
       ocr_rotate:
-        name: OCR – rotate pages automatically
+        name: Text (OCR) – rotate pages automatically
         description: Rotates upside-down or sideways pages (PDF, JPEG).
       email_format:
         name: E-mail – format
