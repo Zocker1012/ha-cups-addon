@@ -3,6 +3,7 @@
 [![Version](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FZocker1012%2Fha-cups-addon%2Fmain%2Fcups-brother-mfc260c%2Fconfig.yaml&query=%24.version&label=Version)](cups-brother-mfc260c/CHANGELOG.md)
 ![Architektur](https://img.shields.io/badge/arch-amd64-blue)
 [![Build](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/build.yaml/badge.svg)](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/build.yaml)
+[![Prüfung](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/lint.yaml/badge.svg)](https://github.com/Zocker1012/ha-cups-addon/actions/workflows/lint.yaml)
 
 Home-Assistant-Add-on-Repository für den per USB angeschlossenen
 **Brother MFC-260C**: Drucken und Scannen im ganzen Heimnetz, ohne Treiber auf
@@ -36,7 +37,7 @@ Einrichtung, Einstellungen und Fehlersuche: [Dokumentation](cups-brother-mfc260c
 | [`cups-brother-mfc260c/`](cups-brother-mfc260c/) | das Add-on: Dockerfile, Skripte (`rootfs/`), Einstellungen, Übersetzungen |
 | [`cups-brother-mfc260c/drivers/`](cups-brother-mfc260c/drivers/) | Brother-Treiber (unverändert) mit Lizenzen und GPL-Quellcode |
 | [`cups-brother-mfc260c/patches/`](cups-brother-mfc260c/patches/) | Anpassungen an AirSane |
-| [`.github/workflows/build.yaml`](.github/workflows/build.yaml) | baut das fertige Image nach `ghcr.io` |
+| [`.github/workflows/`](.github/workflows/) | `build.yaml` baut das fertige Image nach `ghcr.io`, `lint.yaml` prüft jede Änderung |
 
 ## Lizenzen
 
