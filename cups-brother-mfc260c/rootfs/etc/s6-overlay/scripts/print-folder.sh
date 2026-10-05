@@ -70,23 +70,29 @@ submit() {
     fi
 }
 
+# Verschieben und das Datum auf jetzt setzen: Das Aufräumen zählt die Tage ab
+# dem Drucken, nicht ab dem ursprünglichen Dateidatum
+move_to() {
+    mv -f "$1" "$2" && touch "$2"
+}
+
 handle() {
     local file="$1" base printer stamp
     base="${file##*/}"
 
     [[ -f "${file}" ]] || return 0
+    stamp=$(date +%Y-%m-%d_%H-%M-%S)
     case "${base,,}" in
         .*) return 0 ;;
         *.pdf | *.ps | *.jpg | *.jpeg | *.png) ;;
         *)
             bashio::log.warning "Druckordner: ${base} übersprungen (unterstützt: PDF, PostScript, JPEG, PNG)"
-            mv -f "${file}" "${FAILED_DIR}/" || true
+            move_to "${file}" "${FAILED_DIR}/${stamp}_${base}"
             return 0
             ;;
     esac
 
     printer=$(printer_name)
-    stamp=$(date +%Y-%m-%d_%H-%M-%S)
     if [[ -z "${printer}" ]]; then
         bashio::log.warning "Druckordner: Kein Drucker eingerichtet – ${base} bleibt liegen"
         return 0
@@ -94,10 +100,10 @@ handle() {
 
     if submit "${file}" "${printer}"; then
         bashio::log.info "Druckordner: ${base} an ${printer} gesendet"
-        mv -f "${file}" "${DONE_DIR}/${stamp}_${base}"
+        move_to "${file}" "${DONE_DIR}/${stamp}_${base}"
     else
         bashio::log.error "Druckordner: ${base} konnte nicht gedruckt werden"
-        mv -f "${file}" "${FAILED_DIR}/${stamp}_${base}"
+        move_to "${file}" "${FAILED_DIR}/${stamp}_${base}"
     fi
 }
 

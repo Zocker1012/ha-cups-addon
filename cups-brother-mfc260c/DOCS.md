@@ -118,10 +118,21 @@ actions:
 ## Druckordner
 
 Schaltest du **Druckordner → Druckordner nutzen** ein, wird jede Datei
-gedruckt, die du in den Ordner legst (Standard `/share/print`, z. B. per Samba
-oder aus einer Automation). Möglich sind PDF, PostScript, JPEG und PNG.
-Papierformat (Standard A4), Farbe und Qualität stellst du im Add-on ein.
-Danach liegt die Datei in `gedruckt/` bzw. `fehler/`.
+gedruckt, die du in den Ordner legst (Standard `/share/print`). Möglich sind
+PDF, PostScript, JPEG und PNG. Papierformat (Standard A4), Farbe und Qualität
+stellst du im Add-on ein.
+
+So kommen Dateien in den Ordner:
+
+- **Vom PC** über das Add-on „Samba share“: im Explorer
+  `\\<IP-von-HA>\share\print` öffnen und die Datei hineinkopieren.
+- **Aus Home Assistant**, z. B. per Automation mit der Aktion
+  `downloader.download_file`, wenn der Download-Ordner der
+  Downloader-Integration auf `/share` zeigt (Unterordner `print`).
+
+Gedruckt wird, sobald die Datei vollständig geschrieben ist. Danach liegt sie
+in `gedruckt/`; nicht unterstützte oder fehlgeschlagene Dateien landen in
+`fehler/`.
 
 ## Aufräumen
 
@@ -135,9 +146,11 @@ täglich auf, in zwei Stufen:
    wird endgültig gelöscht.
 
 Die Tage stellst du getrennt für Scans, `gedruckt/` und `fehler/` ein, 0 heißt
-nie. Dateien im Druckordner, die noch gedruckt werden sollen, rührt das
-Aufräumen nie an. Zum Wiederherstellen schiebst du eine Datei einfach aus dem
-Papierkorb zurück.
+nie. Gezählt wird das Alter jeder einzelnen Datei: bei Scans ab dem Scan, bei
+gedruckten Dateien ab dem Drucken. Legst du selbst ältere Dateien in den
+Scan-Ordner, zählt ihr ursprüngliches Datum. Dateien im Druckordner, die noch
+gedruckt werden sollen, rührt das Aufräumen nie an. Zum Wiederherstellen
+schiebst du eine Datei einfach aus dem Papierkorb zurück.
 
 ## Druckerstatus in Home Assistant
 

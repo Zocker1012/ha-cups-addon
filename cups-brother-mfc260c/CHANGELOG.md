@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.16.1
+
+### Behoben
+
+- „Leere Seiten entfernen“ sicherer: Die Prüfung arbeitet jetzt in Farbe und
+  relativ zum Papierhintergrund. Vorher konnten Seiten mit nur hellem
+  Bleistift, Textmarker oder einem hellen farbigen Stempel als leer gelten.
+- Aufräumen: Gedruckte Dateien zählen ab dem Druck, nicht ab ihrem
+  ursprünglichen Dateidatum. Ein altes PDF, das heute gedruckt wird, landet
+  also nicht schon morgen im Papierkorb.
+
 ## 2.16.0
 
 ### Neu

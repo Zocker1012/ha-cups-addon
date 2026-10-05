@@ -222,14 +222,17 @@ if [[ "${#scanned[@]}" -gt 1 ]]; then
     raw="${work_dir}/raw.pdf"
 fi
 
-# 1b. Leere Seiten entfernen (nur bei mehreren Seiten, nie alle). Eine Seite
-#     gilt nur dann als leer, wenn sie praktisch keine dunklen Pixel hat –
-#     schon ein kurzes Wort oder eine Seitenzahl reicht, damit sie bleibt.
+# 1b. Leere Seiten entfernen (nur bei mehreren Seiten, nie alle). Geprüft wird
+#     in Farbe und relativ zum Papierhintergrund: Alles, was sich in einem
+#     Farbkanal deutlich vom Papier abhebt, zählt als Inhalt – auch heller
+#     Bleistift, Textmarker oder ein hellblauer Stempel. Im Zweifel bleibt die
+#     Seite erhalten. Die Prüfung erfolgt unabhängig von der Scan-Auflösung
+#     immer bei 150 dpi.
 if [[ "${SCAN_REMOVE_BLANK:-false}" == "true" ]]; then
     count=$(qpdf --show-npages "${raw}" 2> /dev/null || echo 0)
     if [[ "${count}" -gt 1 ]]; then
-        nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pgmraw -r150 \
-            -sOutputFile="${work_dir}/blank_%04d.pgm" "${raw}" > /dev/null 2>&1
+        nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=ppmraw -r150 \
+            -sOutputFile="${work_dir}/blank_%04d.ppm" "${raw}" > /dev/null 2>&1
         # Ausgabe: "keep 1,3,4" und "blank 2"
         result=$(python3 - "${work_dir}" "${count}" <<'PY'
 import re, sys
@@ -237,23 +240,31 @@ work, count = sys.argv[1], int(sys.argv[2])
 keep, blank = [], []
 for n in range(1, count + 1):
     try:
-        d = open(f"{work}/blank_{n:04d}.pgm", "rb").read()
-        m = re.match(rb"P5\s+(?:#[^\n]*\n\s*)*(\d+)\s+(\d+)\s+(\d+)\s", d)
+        d = open(f"{work}/blank_{n:04d}.ppm", "rb").read()
+        m = re.match(rb"P6\s+(?:#[^\n]*\n\s*)*(\d+)\s+(\d+)\s+(\d+)\s", d)
         w, h = int(m.group(1)), int(m.group(2))
         px = d[m.end():]
+        # Ränder (2 %) ignorieren: dort liegen oft Schatten vom Scanner
+        mx, my = w // 50, h // 50
+        inner = b"".join(px[(y * w + mx) * 3:((y + 1) * w - mx) * 3]
+                         for y in range(my, h - my))
+        marks = 0
+        for c in range(3):
+            channel = inner[c::3]
+            hist = [channel.count(bytes([v])) for v in range(256)]
+            # Papierhintergrund = Median des Kanals
+            half, acc, background = len(channel) // 2, 0, 255
+            for v in range(256):
+                acc += hist[v]
+                if acc >= half:
+                    background = v
+                    break
+            # Inhalt = deutlich (> 30 Stufen) dunkler als das Papier
+            marks += sum(hist[:max(0, background - 30)])
     except Exception:
         keep.append(n)  # im Zweifel behalten
         continue
-    # Ränder (2 %) ignorieren: dort liegen oft Schatten vom Scanner
-    mx, my = w // 50, h // 50
-    dark = 0
-    dark_values = bytes(range(160))
-    for y in range(my, h - my):
-        row = px[y * w + mx:(y + 1) * w - mx]
-        dark += len(row) - len(row.translate(None, dark_values))
-    # Bei 150 dpi hat schon "Seite 3" in 10 pt rund 100 dunkle Pixel, eine
-    # leere Seite mit Staubkorn nur wenige – im Zweifel bleibt die Seite.
-    (blank if dark <= 20 else keep).append(n)
+    (blank if marks <= 60 else keep).append(n)
 if not keep:  # nie alle Seiten entfernen
     keep, blank = blank, []
 print("keep " + ",".join(map(str, keep)))
