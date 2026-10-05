@@ -216,5 +216,5 @@ pushen, Workflow abwarten, dann in HA updaten.
 Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
 Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL)
-sowie Ghostscript, SANE,
-Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das CUPS-Logo ist eine Marke von OpenPrinting/Apple.
+sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das
+CUPS-Logo ist eine Marke von OpenPrinting/Apple.
