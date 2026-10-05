@@ -1,5 +1,5 @@
 name: "CUPS Addon (Brother MFC-260C)"
-version: "2.14.1"
+version: "2.15.0"
 slug: cups-brother-mfc260c
 description: >
   Druck- und Scanserver für den Brother MFC-260C: Drucken per AirPrint/IPP
@@ -83,7 +83,7 @@ options:
     resolution: "150"
     color: color
     ocr: false
-    compress: false
+    compress: true
   folder_printing:
     enabled: false
     path: /share/print

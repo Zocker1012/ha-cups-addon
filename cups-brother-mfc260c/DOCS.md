@@ -64,7 +64,7 @@ Menüpunkt, alles andere stellst du im Add-on ein:
 | Datei | PDF, 300 dpi, Farbe | einstellbar, aus |
 | Bild | JPEG, 300 dpi, Farbe | – |
 | Text | PDF, 300 dpi, Graustufen | einstellbar, an |
-| E-Mail | PDF, 150 dpi, Farbe (kleine Datei) | einstellbar, aus |
+| E-Mail | PDF, 150 dpi, Farbe, verkleinert (kleine Datei) | einstellbar, aus |
 
 Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
@@ -165,7 +165,7 @@ scan_email:               # Menüpunkt "E-Mail"
   resolution: "150"
   color: color
   ocr: false
-  compress: false
+  compress: true
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media

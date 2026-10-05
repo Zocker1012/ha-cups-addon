@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.15.0
+
+### Geändert
+
+- Menüpunkt „E-Mail“: „Verkleinern“ ist jetzt standardmäßig an (etwa
+  0,25 statt 2,3 MB pro Farbseite mit 150 dpi). Gilt auch für bestehende
+  Installationen, in denen der Schalter noch nie gespeichert wurde.
+
 ## 2.14.1
 
 ### Geändert

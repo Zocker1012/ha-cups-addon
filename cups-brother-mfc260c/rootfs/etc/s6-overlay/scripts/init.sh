@@ -222,15 +222,17 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
     {
         printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
         # Menüpunkt (Name im Skript, Gruppe), Standard für Format, Auflösung,
-        # Farbe und Texterkennung
-        for entry in "FILE:scan_file:pdf:300:color:false" "IMAGE:scan_image:jpeg:300:color:false" \
-            "TEXT:scan_text:pdf:300:gray:true" "EMAIL:scan_email:pdf:150:color:false"; do
-            IFS=: read -r name group def_format def_res def_color def_ocr <<< "${entry}"
+        # Farbe, Texterkennung und Verkleinern
+        for entry in "FILE:scan_file:pdf:300:color:false:false" \
+            "IMAGE:scan_image:jpeg:300:color:false:false" \
+            "TEXT:scan_text:pdf:300:gray:true:false" \
+            "EMAIL:scan_email:pdf:150:color:false:true"; do
+            IFS=: read -r name group def_format def_res def_color def_ocr def_compress <<< "${entry}"
             printf 'SCAN_%s_FORMAT=%q\n' "${name}" "$(bashio::config "${group}.format" "${def_format}")"
             printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "${group}.resolution" "${def_res}")"
             printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "${group}.color" "${def_color}")"
             printf 'SCAN_%s_OCR=%q\n' "${name}" "$(bashio::config "${group}.ocr" "${def_ocr}")"
-            printf 'SCAN_%s_COMPRESS=%q\n' "${name}" "$(bashio::config "${group}.compress" 'false')"
+            printf 'SCAN_%s_COMPRESS=%q\n' "${name}" "$(bashio::config "${group}.compress" "${def_compress}")"
         done
         printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_menu.language' 'deu_eng')"
         printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_menu.rotate' 'true')"
