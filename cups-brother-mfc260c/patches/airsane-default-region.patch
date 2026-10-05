@@ -1,0 +1,20 @@
+diff --git a/server/scanjob.cpp b/server/scanjob.cpp
+index 7f74303..69661ea 100644
+--- a/server/scanjob.cpp
++++ b/server/scanjob.cpp
+@@ -250,10 +250,13 @@ ScanJob::Private::init(const ScanSettingsXml& settings, bool autoselectFormat, c
+   mHeight_px = height * px_per_unit;
+   mRes_dpi = res_dpi;
+ 
++  // Without a scan region, scan the whole area: the maximum is given in
++  // pixels at 300 dpi and must be scaled to the requested resolution
++  // (otherwise e.g. 600 dpi only covers the top left quarter).
+   if (std::isnan(mWidth_px))
+-    mWidth_px = mpScanner->maxWidthPx300dpi();
++    mWidth_px = mpScanner->maxWidthPx300dpi() * res_dpi / 300.0;
+   if (std::isnan(mHeight_px))
+-    mHeight_px = mpScanner->maxHeightPx300dpi();
++    mHeight_px = mpScanner->maxHeightPx300dpi() * res_dpi / 300.0;
+ 
+   mBitDepth = 0;
+ 

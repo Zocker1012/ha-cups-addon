@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.10.3
+
+### Behoben
+
+- Scan-Menü am Gerät über 300 dpi (z. B. 600 dpi): Es wurde nur das obere
+  linke Viertel der Seite gescannt. Ursache war ein Fehler in AirSane, das
+  ohne Bereichsangabe die volle Fläche immer für 300 dpi berechnet hat –
+  behoben per Patch (`patches/airsane-default-region.patch`).
+- Während eines Scans ist wieder die `.part`-Datei im Scan-Ordner zu sehen.
+
 ## 2.10.2
 
 ### Geändert

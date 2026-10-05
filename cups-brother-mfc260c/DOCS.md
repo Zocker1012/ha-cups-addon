@@ -190,5 +190,5 @@ pushen, Workflow abwarten, dann in HA updaten.
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
 Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
-Anpassung in `patches/`), Tesseract (Apache 2.0) sowie Ghostscript, SANE,
+Anpassungen in `patches/`), Tesseract (Apache 2.0) sowie Ghostscript, SANE,
 Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das CUPS-Logo ist eine Marke von OpenPrinting/Apple.

@@ -83,9 +83,10 @@ if compgen -G "${SCAN_FOLDER}/${base}*" > /dev/null; then
     base="${base}_$$"
 fi
 
-# Arbeitsordner für den Scan und Zwischenschritte (wird am Ende gelöscht)
+# Arbeitsordner für Zwischenschritte (wird am Ende gelöscht). Der Scan selbst
+# landet als .part-Datei im Scan-Ordner – so sieht man, dass er läuft.
 work_dir=$(mktemp -d /tmp/scan.XXXXXX)
-trap 'rm -rf "${work_dir}"' EXIT
+trap 'rm -rf "${work_dir}"; rm -f "${SCAN_FOLDER}/.${base}"_*.pdf.part' EXIT
 scanned=()
 saved=()
 
@@ -104,8 +105,8 @@ wait_ready() {
     return 1
 }
 
-# Einen Scan-Auftrag über AirSane ausführen und die PDF-Dokumente im
-# Arbeitsordner ablegen. $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Einzug)
+# Einen Scan-Auftrag über AirSane ausführen und die PDF-Dokumente als
+# .part-Dateien im Scan-Ordner ablegen. $1: eSCL-Quelle (Platen = Vorlagenglas, Feeder = Einzug)
 scan_from() {
     local input="$1" extra="" settings job file status
     if [[ "${input}" == "Feeder" ]]; then
@@ -140,7 +141,7 @@ scan_from() {
     job="/${job#/}"
 
     while true; do
-        file="${work_dir}/scan_$(( ${#scanned[@]} + 1 )).pdf"
+        file="${SCAN_FOLDER}/.${base}_$(( ${#scanned[@]} + 1 )).pdf.part"
         status=$(curl -s --max-time 900 -o "${file}" -w '%{http_code}' \
             "http://127.0.0.1:8090${job}/NextDocument") || status="000"
 
@@ -226,10 +227,11 @@ rotate_page() {
 }
 
 if [[ "${format}" == "pdf" && "${ocr}" != "true" ]]; then
-    # PDF direkt übernehmen
+    # PDF direkt übernehmen (nur umbenennen)
     n=1
     for doc in "${scanned[@]}"; do
-        file=$(publish "${doc}" "$(name_for "${n}" pdf)") && saved+=("${file}")
+        file="${SCAN_FOLDER}/$(name_for "${n}" pdf)"
+        mv "${doc}" "${file}" && saved+=("${file}")
         n=$((n + 1))
     done
 else
