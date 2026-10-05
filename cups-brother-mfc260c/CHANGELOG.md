@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.17.0
+
+### Geändert
+
+- Alle Brother-Treiber liegen jetzt im Repo (`drivers/`): Der Build lädt
+  nichts mehr von Brother und prüft alle vier Pakete per Prüfsumme. Das
+  Scan-Key-Tool ist fest Version 0.3.5 – die Version, die bisher schon lief.
+- Ohne Treiber baut das Image gar nicht erst. Deshalb entfallen die Hinweise
+  „Treiber fehlt im Image“, die Unterstützung für das alte Scan-Key-Tool 0.2.x
+  und der Build-Schalter `REQUIRE_SCAN_DRIVERS` aus 2.16.3.
+- Lizenzhinweise mit den Texten von Brothers Download-Seite.
+
 ## 2.16.3
 
 ### Behoben

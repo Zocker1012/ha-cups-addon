@@ -43,10 +43,10 @@ RUN git clone --depth 1 --branch "${AIRSANE_VERSION}" \
     && install -Dm644 /src/airsane/etc/ignore.conf /out/etc/airsane/ignore.conf
 
 # ==============================================================================
-# Brother-Scannertreiber (brscan2) und Scan-Tasten-Tool (brscan-skey)
-# Offizielle Pakete von Brother, per Prüfsumme kontrolliert. Liegen passende
-# Dateien in drivers/, werden diese verwendet. Fehlt ein Paket, wird ohne die
-# jeweilige Funktion weitergebaut – das Add-on meldet das beim Start.
+# Brother-Scannertreiber (brscan2) und Scan-Key-Tool (brscan-skey) aus
+# drivers/: offizielle Pakete von Brother, unverändert und per Prüfsumme
+# kontrolliert. Sie werden nur ausgepackt – Brothers Installationsskripte
+# laufen nicht, die Einrichtung übernimmt das Dockerfile.
 # ==============================================================================
 FROM ${BUILD_FROM} AS brother-scan
 
@@ -54,41 +54,19 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates coreutils cpio curl rpm2cpio \
+    && apt-get install -y --no-install-recommends cpio rpm2cpio \
     && rm -rf /var/lib/apt/lists/*
-
-COPY drivers/ /drivers/
 
 WORKDIR /tmp/pkg
 
-# fetch NAME URL HASH-PROGRAMM HASH ZIEL: lokal aus drivers/ oder Download, Hash prüfen
-# hadolint ignore=SC2016
-RUN fetch() { \
-        local name="$1" url="$2" hashprog="$3" hash="$4" target="$5"; \
-        if [ -f "/drivers/${name}" ]; then cp "/drivers/${name}" "${target}"; \
-        elif ! curl -fsSL --retry 3 -o "${target}" "${url}"; then \
-            echo "WARNUNG: ${name} nicht herunterladbar"; return 1; fi; \
-        if ! echo "${hash}  ${target}" | "${hashprog}" -c -; then \
-            echo "WARNUNG: Prüfsumme von ${name} falsch"; rm -f "${target}"; return 1; fi; \
-    }; \
-    mkdir -p /out; \
-    if fetch brscan2-0.2.5-1.x86_64.rpm \
-            https://download.brother.com/welcome/dlf006640/brscan2-0.2.5-1.x86_64.rpm \
-            sha256sum ab02c4e2292e9847a0338a225973735ccaec49c3d443f584004c8f91f5d6a8c9 \
-            brscan2.rpm; then \
-        rpm2cpio /tmp/pkg/brscan2.rpm | cpio -idm --quiet -D /out; \
-    fi; \
-    if fetch brscan-skey-0.2.4-1.x86_64.rpm \
-            https://download.brother.com/welcome/dlf006650/brscan-skey-0.2.4-1.x86_64.rpm \
-            sha256sum 2e034b37e282e44a6f94315d932eb8f34693007e4abd10ca10fb4ec468c9bb3d \
-            skey.rpm \
-        || fetch brscan-skey-0.3.5-0.x86_64.rpm \
-            https://download.brother.com/welcome/dlf006650/brscan-skey-0.3.5-0.x86_64.rpm \
-            b2sum 22498692f345da364d116b026314a7a9d29916102b571604435918fda80dfc624754bd1bd8e50c2d246cb5649ffc7850a3579aa2063cb5c44948d3f505c521df \
-            skey.rpm; then \
-        rpm2cpio /tmp/pkg/skey.rpm | cpio -idm --quiet -D /out; \
-    fi; \
-    find /out -maxdepth 4 | sort
+COPY drivers/brscan2-0.2.5-1.x86_64.rpm drivers/brscan-skey-0.3.5-0.x86_64.rpm ./
+
+RUN printf '%s  %s\n' \
+        ab02c4e2292e9847a0338a225973735ccaec49c3d443f584004c8f91f5d6a8c9 brscan2-0.2.5-1.x86_64.rpm \
+        01dc859f1978e645147ced5ec4b5448cc3e26b1c6d2f1104834f5891c0e17469 brscan-skey-0.3.5-0.x86_64.rpm \
+        | sha256sum -c - \
+    && mkdir -p /out \
+    && for rpm in ./*.rpm; do rpm2cpio "${rpm}" | cpio -idm --quiet -D /out; done
 
 # ==============================================================================
 # Add-on
@@ -144,13 +122,18 @@ RUN dpkg --add-architecture i386 \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Brother MFC-260C Treiber aus dem Repo installieren.
-# Das Postinst erzeugt PPD und CUPS-Filter. Es versucht außerdem, cupsd per
-# init-Skript neu zu starten und eine Queue anzulegen – das wird im Build
-# unterbunden (init-Skript kurz weg), die Fehlermeldung von lpadmin ist normal.
-COPY drivers/ /tmp/drivers/
+# Brother MFC-260C Druckertreiber aus drivers/ installieren (Prüfsumme wie beim
+# Scanner). Hier wird wirklich installiert: Das Postinst erzeugt PPD und
+# CUPS-Filter. Es versucht außerdem, cupsd per init-Skript neu zu starten und
+# eine Queue anzulegen – das wird im Build unterbunden (init-Skript kurz weg),
+# die Fehlermeldung von lpadmin ist normal.
+COPY drivers/mfc260clpr-1.0.1-1.i386.deb drivers/mfc260ccupswrapper-1.0.1-1.i386.deb /tmp/drivers/
 
-RUN mkdir -p /var/spool/lpd \
+RUN printf '%s  %s\n' \
+        95b919958db63e38ee8e47e8c8d7ace56d2608c21571e3f8947095bf28385296 /tmp/drivers/mfc260clpr-1.0.1-1.i386.deb \
+        5bd516315aebb1e876a165399215dfcecb863606d1d7f068375ef76a6f51822f /tmp/drivers/mfc260ccupswrapper-1.0.1-1.i386.deb \
+        | sha256sum -c - \
+    && mkdir -p /var/spool/lpd \
     && if [ -e /etc/init.d/cups ]; then mv /etc/init.d/cups /tmp/cups.init; fi \
     && dpkg -i \
         /tmp/drivers/mfc260clpr-1.0.1-1.i386.deb \
@@ -201,30 +184,22 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 COPY --from=airsane /out/ /
 COPY --from=brother-scan /out/ /
 
-# 1 = Build abbrechen, wenn die Brother-Scanpakete fehlen (für veröffentlichte
-# Images, damit nicht still ein Image ohne Scanner entsteht)
-ARG REQUIRE_SCAN_DRIVERS=0
-
+# Brother-Bibliotheken liegen in /usr/lib64 (Red-Hat-Pfad), SANE sucht in
+# /usr/lib/x86_64-linux-gnu/sane. Danach prüfen: MFC-260C bekannt, alle
+# Bibliotheken auflösbar, Scan-Key-Tool vorhanden.
 RUN set -e; \
-    if [ -e /usr/lib64/sane/libsane-brother2.so.1 ]; then \
-        echo /usr/lib64 > /etc/ld.so.conf.d/brother-scan.conf; \
-        ldconfig; \
-        sane_dir=/usr/lib/x86_64-linux-gnu/sane; \
-        ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so.1"; \
-        ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so"; \
-        grep -q '^0x01d6.*MFC-260C' /usr/local/Brother/sane/models2/ext1.ini; \
-        touch /usr/share/cups-addon-scan-driver; \
-    fi; \
+    echo /usr/lib64 > /etc/ld.so.conf.d/brother-scan.conf; \
+    ldconfig; \
+    sane_dir=/usr/lib/x86_64-linux-gnu/sane; \
+    ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so.1"; \
+    ln -sf /usr/lib64/sane/libsane-brother2.so.1 "${sane_dir}/libsane-brother2.so"; \
     # Nur den Brother-Treiber laden: schneller und kein Herumprobieren an anderen USB-Geräten
     echo brother2 > /etc/sane.d/dll.conf; \
-    if [ -f /opt/brother/scanner/brscan-skey/brscan-skey.config ] \
-        || ls /opt/brother/scanner/brscan-skey/brscan-skey-*.cfg > /dev/null 2>&1; then \
-        touch /usr/share/cups-addon-scan-button; \
-    fi; \
-    if [ "${REQUIRE_SCAN_DRIVERS}" = "1" ] && { [ ! -e /usr/share/cups-addon-scan-driver ] \
-        || [ ! -e /usr/share/cups-addon-scan-button ]; }; then \
-        echo "Brother-Scanpakete fehlen (brscan2/brscan-skey) – Build abgebrochen"; exit 1; \
-    fi
+    grep -q '^0x01d6.*MFC-260C' /usr/local/Brother/sane/models2/ext1.ini; \
+    test -f /opt/brother/scanner/brscan-skey/brscan-skey.config; \
+    for bin in "${sane_dir}/libsane-brother2.so.1" /opt/brother/scanner/brscan-skey/brscan-skey-exe; do \
+        if ldd "${bin}" | grep 'not found'; then echo "${bin}: Bibliothek fehlt"; exit 1; fi; \
+    done
 
 COPY rootfs /
 

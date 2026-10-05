@@ -275,14 +275,15 @@ auf GitHub auf **Public** und ergänze in `config.yaml`
 `image: "ghcr.io/zocker1012/{arch}-cups-brother-mfc260c"`. Danach gilt: erst
 pushen, Workflow abwarten, dann in HA updaten.
 
-**Scannertreiber:** `brscan2` und das Scan-Key-Tool lädt der Build von Brother
-(mit Prüfsumme). Liegen die `.rpm`-Dateien in `drivers/`, nimmt er diese – dann
-hängt der Build nicht mehr an Brothers Server. Ist Brother nicht erreichbar,
-baut HA das Add-on ohne Scanner (Hinweis im Log); der Workflow bricht dagegen
-ab, damit kein Image ohne Scanner veröffentlicht wird.
+**Brother-Treiber:** Alle vier Pakete (Drucker: LPR und CUPS-Wrapper als
+`.deb`, Scanner: `brscan2` und Scan-Key-Tool `brscan-skey` als `.rpm`) liegen
+unverändert in `drivers/`. Der Build prüft ihre Prüfsummen und lädt nichts von
+Brother. Die Scannerpakete werden nur ausgepackt, die Einrichtung übernimmt das
+Dockerfile.
 
 **Lizenzen:** Für private Nutzung musst du nichts beachten. Enthalten sind die
-Brother-Treiber (unverändert mit `drivers/LICENSE-Brother.txt` weitergebbar),
+Brother-Treiber (teils GPL, teils Brother-Lizenz, unverändert weitergebbar,
+siehe `drivers/LICENSE-Brother.txt`),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
 Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL)
 sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu (GPL/AGPL/LGPL/BSD). Das

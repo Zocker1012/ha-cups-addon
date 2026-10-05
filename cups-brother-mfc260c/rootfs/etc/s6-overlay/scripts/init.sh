@@ -208,11 +208,7 @@ fi
 # ------------------------------------------------------------------------------
 scanner=false
 if bashio::config.true 'scanning.enabled'; then
-    if [[ -e /usr/share/cups-addon-scan-driver ]]; then
-        scanner=true
-    else
-        bashio::log.warning "Scanner: Brother-Scannertreiber (brscan2) fehlt im Image – Scanner deaktiviert. Siehe Dokumentation."
-    fi
+    scanner=true
 fi
 printf '%s' "${scanner}" > "${RUN_DIR}/scanner_enabled"
 
