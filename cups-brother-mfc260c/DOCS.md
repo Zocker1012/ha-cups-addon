@@ -96,11 +96,31 @@ braucht je Seite einige Sekunden. Bei „Bild“ gibt es sie nicht – Fotos
 enthalten kaum Text, und das Drehen könnte sie falsch herum stellen.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
-einer Datei pro Seite. Mit **Leere Seiten entfernen** (Standard aus) fallen
-komplett leere Seiten weg, etwa leere Rückseiten – schon eine Seitenzahl oder
-ein einzelnes Wort zählt als Inhalt, und es bleibt immer mindestens eine
-Seite. Nach jedem Scan sendet das Add-on das Ereignis
-`cups_addon_scan` (`status`, `file`, `target` = `file`, `image`, `ocr` für Text oder `email`) an Home Assistant, z. B. für
+einer Datei pro Seite.
+
+**Leere Seiten entfernen** (Standard aus) lässt komplett leere Seiten weg,
+etwa leere Rückseiten aus dem Einzug. So arbeitet die Erkennung:
+
+- Sie greift nur bei Scans mit mehreren Seiten, und es bleibt immer
+  mindestens eine Seite – auch wenn alle leer wirken.
+- Jede Seite wird unabhängig von der Scan-Auflösung bei 150 dpi geprüft, und
+  zwar in Farbe: Rot, Grün und Blau einzeln.
+- Als Inhalt zählt alles, was sich deutlich vom Papierhintergrund abhebt –
+  auch heller Bleistift, Textmarker oder ein hellblauer Stempel. Leicht
+  getöntes Papier wird dabei als Hintergrund erkannt.
+- Ein schmaler Rand (2 %) wird ignoriert, weil dort oft Schatten vom Scanner
+  liegen.
+- Eine Seite gilt nur als leer, wenn praktisch nichts darauf ist (ein paar
+  Staubkörner). Schon eine kleine Seitenzahl reicht, damit sie bleibt – im
+  Zweifel wird nichts entfernt.
+
+Im Log steht, welche Seiten entfernt wurden (z. B. `Leere Seite(n) entfernt:
+2`). Sehr blasse Striche auf einer sonst leeren Seite können trotzdem als leer
+gelten; wer nichts riskieren will, lässt die Funktion aus.
+
+Nach jedem Scan sendet das Add-on das Ereignis `cups_addon_scan` (`status`,
+`file`, `target` = `file`, `image`, `ocr` für Text oder `email`) an Home
+Assistant, z. B. für
 eine Benachrichtigung:
 
 ```yaml

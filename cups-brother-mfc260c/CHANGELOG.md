@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.16.2
+
+### Geändert
+
+- Dokumentation: Funktionsweise von „Leere Seiten entfernen“ beschrieben.
+
 ## 2.16.1
 
 ### Behoben
