@@ -203,4 +203,7 @@ RUN set -e; \
 
 COPY rootfs /
 
+# Lizenzen der Brother-Treiber gehören zu jedem Image dazu
+COPY drivers/LICENSE-Brother.txt drivers/LICENSE-GPL-2.0.txt /usr/share/doc/brother-drivers/
+
 EXPOSE 631

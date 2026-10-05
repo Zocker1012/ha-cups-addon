@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.17.1
+
+### Geändert
+
+- Lizenzen der Brother-Treiber vervollständigt: GPL-2.0-Text beigelegt
+  (gilt für die Skripte des Druckertreibers und das SANE-Backend), Liste der
+  Anpassungen durch das Add-on ergänzt. Beide Lizenzdateien liegen jetzt auch
+  im Image unter `/usr/share/doc/brother-drivers/`.
+
 ## 2.17.0
 
 ### Geändert
