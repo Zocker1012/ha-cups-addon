@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # shellcheck shell=bash
 # ==============================================================================
 # Gemeinsame Umgebung für die Legacy Printer Application (Server und CLI)

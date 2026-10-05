@@ -1,4 +1,6 @@
 #!/command/with-contenv bashio
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # shellcheck shell=bash
 # ==============================================================================
 # Add-on initialisieren: Verzeichnisse, Anmeldung, Treiber-Debug, Ingress

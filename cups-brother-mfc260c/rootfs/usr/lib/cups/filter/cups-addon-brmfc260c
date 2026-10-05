@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # ==============================================================================
 # Vorschalt-Filter für den Brother-Treiber (Modus "printer_app")
 #

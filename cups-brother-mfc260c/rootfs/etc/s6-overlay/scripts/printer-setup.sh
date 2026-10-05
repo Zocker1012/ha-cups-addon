@@ -1,4 +1,6 @@
 #!/command/with-contenv bashio
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # shellcheck shell=bash
 # ==============================================================================
 # Automatische Einrichtung des Brother MFC-260C in der Legacy Printer Application

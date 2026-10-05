@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # yamllint-Regeln für config.yaml, Übersetzungen und Workflows
 extends: default
 rules:

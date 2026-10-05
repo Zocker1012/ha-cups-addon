@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.18.2
+
+### Geändert
+
+- Lizenzvermerk (SPDX) am Anfang jeder eigenen Datei. `cupsd.conf` beruht auf
+  der Standardkonfiguration von CUPS und ist als Apache-2.0 gekennzeichnet.
+
 ## 2.18.1
 
 ### Geändert

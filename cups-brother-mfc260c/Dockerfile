@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # Basis-Image (früher in build.yaml, das der Supervisor nicht mehr verwenden möchte)
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-ubuntu:26.04
 

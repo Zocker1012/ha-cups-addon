@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # USB-Quirks für den Brother MFC-260C (Vendor 0x04f9, Product 0x01d6)
 # Prüfen mit "lsusb" auf dem Home-Assistant-Host. Pro Gerät zählt nur eine
 # Zeile – mehrere Quirks werden durch Leerzeichen getrennt angegeben.

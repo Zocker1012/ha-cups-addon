@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # Ingress-Proxy: Home Assistant -> Weboberflächen des Add-ons
 #
 #   /          Startseite (Drucker, Scanner, Adressen)

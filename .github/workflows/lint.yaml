@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
 # Prüft Skripte, YAML-Dateien und Dockerfile bei jeder Änderung – dieselben
 # Prüfungen, die vor jedem Commit von Hand laufen. Dauert unter einer Minute.
 name: Prüfung
