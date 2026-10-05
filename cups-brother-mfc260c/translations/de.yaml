@@ -82,11 +82,11 @@ configuration:
           An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
           Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
-        name: Verkleinern
+        name: Verkleinern (aus = beste Qualität)
         description: >-
-          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
-          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
-          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
           Wirkung (immer verlustfrei).
   scan_image:
     name: "Scan-Menü: Bild"
@@ -102,11 +102,11 @@ configuration:
         name: Farbe
         description: color = Farbe, gray = Graustufen (kleinere Datei).
       compress:
-        name: Verkleinern
+        name: Verkleinern (aus = beste Qualität)
         description: >-
-          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
-          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
-          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
           Wirkung (immer verlustfrei).
   scan_text:
     name: "Scan-Menü: Text"
@@ -128,11 +128,11 @@ configuration:
           Textebene (durchsuchbar), bei jpeg/png kommt eine .txt-Datei dazu.
           Die Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
-        name: Verkleinern
+        name: Verkleinern (aus = beste Qualität)
         description: >-
-          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
-          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
-          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
           Wirkung (immer verlustfrei).
   scan_email:
     name: "Scan-Menü: E-Mail"
@@ -153,11 +153,11 @@ configuration:
           An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
           Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
       compress:
-        name: Verkleinern
+        name: Verkleinern (aus = beste Qualität)
         description: >-
-          An: Seiten als JPEG Qualität 75 – Farbseite als PDF z. B. 8 MB → 0,6
-          MB, JPEG etwa ein Drittel kleiner; kaum sichtbarer Verlust, ideal
-          für Dokumente. Aus: PDF verlustfrei, JPEG Qualität 90. Bei png ohne
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
           Wirkung (immer verlustfrei).
   folder_printing:
     name: Druckordner

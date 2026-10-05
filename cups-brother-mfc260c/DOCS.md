@@ -76,7 +76,7 @@ verschickt das Add-on nicht.
 |---|---|
 | Auflösung, Farbe | bestimmen die Datenmenge (Graustufen etwa ⅓) |
 | Format | PDF und PNG verlustfrei, JPEG Qualität 90 (JPEG ist immer verlustbehaftet) |
-| Verkleinern (Standard aus) | einziger Schalter mit Qualitätsverlust: Seiten als JPEG Qualität 75 |
+| Verkleinern (aus = beste Qualität, Standard) | an: Seiten als JPEG Qualität 75 – der einzige Schalter mit Qualitätsverlust |
 | Texterkennung | fügt nur Text hinzu, die Bildqualität bleibt gleich |
 
 Eine Farbseite mit 300 dpi hat als verlustfreies PDF etwa 8–10 MB, verkleinert

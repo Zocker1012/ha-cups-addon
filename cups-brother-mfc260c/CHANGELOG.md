@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.14.1
+
+### Geändert
+
+- Schalter „Verkleinern“ heißt jetzt „Verkleinern (aus = beste Qualität)“,
+  die Beschreibung trennt klar zwischen aus (PDF verlustfrei, JPEG Qualität
+  90) und an (JPEG Qualität 75).
+
 ## 2.14.0
 
 ### Geändert

@@ -82,11 +82,11 @@ configuration:
           On: searchable PDF or an extra .txt file, image quality is
           unchanged. A few seconds per page.
       compress:
-        name: Compress
+        name: Compress (off = best quality)
         description: >-
-          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
-          JPEG about a third smaller; hardly visible loss, ideal for
-          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
           (always lossless).
   scan_image:
     name: "Scan menu: Image"
@@ -102,11 +102,11 @@ configuration:
         name: Color
         description: color or gray (grayscale, smaller file).
       compress:
-        name: Compress
+        name: Compress (off = best quality)
         description: >-
-          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
-          JPEG about a third smaller; hardly visible loss, ideal for
-          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
           (always lossless).
   scan_text:
     name: "Scan menu: Text"
@@ -128,11 +128,11 @@ configuration:
           (searchable), jpeg/png get an extra .txt file. Image quality is
           unchanged. A few seconds per page.
       compress:
-        name: Compress
+        name: Compress (off = best quality)
         description: >-
-          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
-          JPEG about a third smaller; hardly visible loss, ideal for
-          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
           (always lossless).
   scan_email:
     name: "Scan menu: E-mail"
@@ -153,11 +153,11 @@ configuration:
           On: searchable PDF or an extra .txt file, image quality is
           unchanged. A few seconds per page.
       compress:
-        name: Compress
+        name: Compress (off = best quality)
         description: >-
-          On: pages as JPEG quality 75 – color page as PDF e.g. 8 MB → 0.6 MB,
-          JPEG about a third smaller; hardly visible loss, ideal for
-          documents. Off: PDF lossless, JPEG quality 90. No effect for png
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
           (always lossless).
   folder_printing:
     name: Print folder
