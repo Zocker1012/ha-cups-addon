@@ -32,8 +32,15 @@ log_line() {
 log() { log_line INFO "$*"; }
 log_warn() { log_line WARNING "$*"; }
 
+# shellcheck source=../../../usr/local/lib/cups-addon/mqtt.sh
+source /usr/local/lib/cups-addon/mqtt.sh
+
+# Ereignis an Home Assistant und – mit MQTT – Entität "Letzter Scan"
 notify() {
     local status="$1" file="$2"
+    mqtt_pub "${MQTT_BASE}/scan" "$(jq -cn --arg s "${status}" --arg f "${file##*/}" \
+        --arg p "${file}" --arg m "${label:-}" --arg t "$(date -Iseconds)" \
+        '{file: (if $f == "" then "Fehler" else $f end), path: $p, menu: $m, status: $s, time: $t}')"
     [[ -n "${SUPERVISOR_TOKEN:-}" ]] || return 0
     jq -n --arg s "${status}" --arg f "${file}" --arg t "${target}" \
         '{status: $s, file: $f, target: $t}' \

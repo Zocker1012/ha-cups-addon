@@ -244,6 +244,36 @@ if bashio::config.true 'folder_printing.enabled'; then
 fi
 
 # ------------------------------------------------------------------------------
+# MQTT: Gerät 'Brother MFC-260C' mit Entitäten in Home Assistant (Mosquitto)
+# ------------------------------------------------------------------------------
+# shellcheck source=../../../usr/local/lib/cups-addon/mqtt.sh
+source /usr/local/lib/cups-addon/mqtt.sh
+mqtt_host=""
+if bashio::services.available 'mqtt'; then
+    mqtt_host=$(bashio::services 'mqtt' 'host' || true)
+fi
+if [[ -n "${mqtt_host}" ]]; then
+    {
+        printf 'MQTT_HOST=%q\n' "${mqtt_host}"
+        printf 'MQTT_PORT=%q\n' "$(bashio::services 'mqtt' 'port')"
+        printf 'MQTT_USER=%q\n' "$(bashio::services 'mqtt' 'username')"
+        printf 'MQTT_PASSWORD=%q\n' "$(bashio::services 'mqtt' 'password')"
+    } > "${MQTT_ENV}"
+    if bashio::config.true 'mqtt.enabled'; then
+        mqtt_discovery_publish "$(bashio::addon.version)" \
+            "$(bashio::api.supervisor GET '/addons/self/info' false '.slug' || true)"
+        bashio::log.info "MQTT: Gerät 'Brother MFC-260C' mit Entitäten in Home Assistant angemeldet"
+    else
+        # Ausgeschaltet: früher angemeldete Entitäten wieder entfernen
+        mqtt_discovery_remove
+        rm -f "${MQTT_ENV}"
+        bashio::log.info "MQTT: ausgeschaltet – Entitäten entfernt"
+    fi
+elif bashio::config.true 'mqtt.enabled'; then
+    bashio::log.info "MQTT: kein Broker gefunden (Mosquitto-Add-on) – keine Entitäten"
+fi
+
+# ------------------------------------------------------------------------------
 # Startseite in der HA-Seitenleiste: Adressen und Ordner passend zu den
 # Einstellungen. IP = Adresse, über die der Rechner ins Netz geht.
 # ------------------------------------------------------------------------------

@@ -121,6 +121,8 @@ RUN dpkg --add-architecture i386 \
         tesseract-ocr-eng \
         # Druckordner
         inotify-tools \
+        # MQTT-Entitäten in Home Assistant
+        mosquitto-clients \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -167,7 +169,7 @@ RUN set -e; \
     test -s /usr/share/cups/model/brmfc260c.ppd; \
     test -x /usr/lib/cups/filter/brlpdwrappermfc260c; \
     test -x /usr/lib/cups/backend/usb; \
-    for cmd in gs pdf2ps file psnup a2ps tesseract jpegtran img2pdf qpdf; do command -v "${cmd}"; done; \
+    for cmd in gs pdf2ps file psnup a2ps tesseract jpegtran img2pdf qpdf mosquitto_pub; do command -v "${cmd}"; done; \
     tesseract --list-langs 2>&1 | grep -qx deu; \
     tesseract --list-langs 2>&1 | grep -qx osd; \
     rc=0; \

@@ -214,6 +214,16 @@ configuration:
       trash_days:
         name: Papierkorb leeren nach (Tagen)
         description: Endgültig löschen, wenn so lange im Papierkorb. 0 = nie.
+  mqtt:
+    name: MQTT-Entitäten
+    description: Gerät „Brother MFC-260C“ mit Entitäten in Home Assistant.
+    fields:
+      enabled:
+        name: Entitäten per MQTT
+        description: >-
+          An: Ein, Status, Druckaufträge und letzter Scan als Entitäten
+          (braucht das Mosquitto-Add-on, sonst ohne Wirkung). Aus: Entitäten
+          werden entfernt.
   log_level:
     name: Log-Level
     description: info für den Alltag, debug zur Fehlersuche (sehr ausführlich).

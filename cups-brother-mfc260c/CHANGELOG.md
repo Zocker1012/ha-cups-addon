@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.21.0
+
+### Neu
+
+- Entitäten per MQTT (mit dem Mosquitto-Add-on): Das Add-on meldet sich als
+  Gerät „Brother MFC-260C“ mit Eingeschaltet, Status, Druckaufträgen, letztem
+  Scan und Druckmodus an – in beiden Druckmodi gleich. Abschaltbar unter
+  „MQTT-Entitäten“; dann werden die Entitäten wieder entfernt. Ohne Broker
+  ändert sich nichts.
+
 ## 2.20.0
 
 ### Neu

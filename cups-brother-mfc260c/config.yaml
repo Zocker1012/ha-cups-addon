@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Zocker1012
 name: "CUPS Druck- & Scanserver (Brother MFC-260C)"
-version: "2.20.0"
+version: "2.21.0"
 slug: cups-brother-mfc260c
 description: >
   Drucken per AirPrint/IPP Everywhere und Scannen per AirScan/eSCL für den
@@ -43,6 +43,10 @@ auth_api: true
 
 # Ereignis "cups_addon_scan" an Home Assistant nach einem Scan per Taste
 homeassistant_api: true
+
+# MQTT-Broker (Mosquitto-Add-on), falls vorhanden: Gerät mit Entitäten
+services:
+  - mqtt:want
 
 # Druck- und Scanordner
 map:
@@ -105,6 +109,8 @@ options:
     printed_days: 30
     failed_days: 30
     trash_days: 30
+  mqtt:
+    enabled: true
   log_level: info
 
 schema:
@@ -160,4 +166,6 @@ schema:
     printed_days: int(0,3650)
     failed_days: int(0,3650)
     trash_days: int(0,3650)
+  mqtt:
+    enabled: bool
   log_level: list(debug|info|warning|error)

@@ -180,6 +180,38 @@ Die **IPP-Integration** findet den Drucker automatisch (Einstellungen →
 Geräte & Dienste) und zeigt seinen Status. Tintenstände meldet der
 Brother-Treiber nicht.
 
+**Entitäten per MQTT:** Läuft das Mosquitto-Add-on, meldet sich das Add-on als
+Gerät **Brother MFC-260C** an (Einstellungen → Geräte & Dienste → MQTT).
+Abschalten unter **MQTT-Entitäten** in den Add-on-Einstellungen. Die Entitäten
+sind in beiden Druckmodi gleich:
+
+| Entität | Inhalt |
+|---|---|
+| `binary_sensor.mfc260c_eingeschaltet` | Drucker an/aus (USB) |
+| `sensor.mfc260c_status` | Bereit, Druckt, Wartet auf Drucker, Aus |
+| `sensor.mfc260c_druckauftraege` | Zahl der wartenden Aufträge |
+| `sensor.mfc260c_letzter_scan` | Dateiname, dazu Pfad, Menüpunkt und Zeit als Attribute |
+| `sensor.mfc260c_druckmodus` | `printer_app` oder `cups` (Diagnose) |
+
+Beispiel für eine schaltbare Steckdose – an bei einem Auftrag, aus 15 Minuten
+nach dem letzten:
+
+```yaml
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.mfc260c_druckauftraege
+    above: 0
+    id: an
+  - trigger: state
+    entity_id: sensor.mfc260c_druckauftraege
+    to: "0"
+    for: "00:15:00"
+    id: aus
+actions:
+  - action: "switch.turn_{{ 'on' if trigger.id == 'an' else 'off' }}"
+    target: {entity_id: switch.drucker_steckdose}
+```
+
 Ist der Drucker aus, bleiben Aufträge in der Warteschlange und werden nach dem
 Einschalten gedruckt – in beiden Modi. Das Log meldet Ein/Aus und wartende
 Aufträge, und Home Assistant bekommt sofort das Ereignis `cups_addon_printer`:
@@ -191,8 +223,7 @@ Aufträge, und Home Assistant bekommt sofort das Ereignis `cups_addon_printer`:
 | `printer_on` / `printer_off` | Drucker eingeschaltet / ausgeschaltet (USB) |
 
 Dazu kommen `jobs` (Zahl der Aufträge) und `printer_on` (`true`/`false`).
-Beispiel für eine schaltbare Steckdose – an bei einem Auftrag, aus 15 Minuten
-nach dem letzten:
+Ohne MQTT lässt sich die Steckdose genauso über diese Ereignisse schalten:
 
 ```yaml
 mode: restart
@@ -218,8 +249,8 @@ actions:
             target: {entity_id: switch.drucker_steckdose}
 ```
 
-Kommt während der 15 Minuten ein neuer Auftrag, startet die Automation neu und
-der Drucker bleibt an. Zum Scannen muss der Drucker eingeschaltet sein.
+In beiden Beispielen bleibt der Drucker an, wenn während der 15 Minuten ein
+neuer Auftrag kommt. Zum Scannen muss der Drucker eingeschaltet sein.
 
 Statt der Ereignisse geht auch der Status der IPP-Integration (Abfrage etwa
 jede Minute): Wartet ein Auftrag auf den ausgeschalteten Drucker, zeigt sie im
@@ -284,6 +315,8 @@ cleanup:
   printed_days: 30
   failed_days: 30
   trash_days: 30          # Tage im Papierkorb bis zum Löschen
+mqtt:
+  enabled: true           # Entitäten per MQTT (mit Mosquitto)
 log_level: info           # debug | info | warning | error
 ```
 
@@ -340,7 +373,8 @@ Symbol, Doku) steht unter der GPL-3.0 oder später (`LICENSE` im Repository).
 Enthalten sind außerdem die Brother-Treiber (teils GPL-2.0, teils
 Brother-Lizenz, weitergeben erlaubt; je Paket in `drivers/LICENSE-Brother.txt`),
 CUPS, PAPPL und die Legacy Printer Application (Apache 2.0), AirSane (GPL-3.0,
-Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL-3.0)
+Anpassungen in `patches/`), Tesseract und qpdf (Apache 2.0), img2pdf (LGPL-3.0), Mosquitto-Clients
+(EPL-2.0/EDL-1.0)
 sowie Ghostscript, SANE, Avahi und nginx aus Ubuntu (AGPL/GPL/LGPL/BSD).
 
 **Marken:** CUPS und AirPrint sind Marken von Apple Inc., Brother und MFC-260C

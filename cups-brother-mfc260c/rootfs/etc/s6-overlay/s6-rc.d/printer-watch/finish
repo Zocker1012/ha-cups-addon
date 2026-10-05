@@ -1,0 +1,10 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Zocker1012
+# ==============================================================================
+# Drucker-Überwachung beendet: MQTT-Entitäten als "nicht verfügbar" markieren
+# ==============================================================================
+
+# shellcheck source=../../../usr/local/lib/cups-addon/mqtt.sh
+source /usr/local/lib/cups-addon/mqtt.sh
+mqtt_pub "${MQTT_BASE}/availability" "offline"

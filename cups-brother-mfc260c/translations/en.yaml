@@ -214,6 +214,15 @@ configuration:
       trash_days:
         name: Empty trash after (days)
         description: Delete for good after this long in the trash. 0 = never.
+  mqtt:
+    name: MQTT entities
+    description: Device "Brother MFC-260C" with entities in Home Assistant.
+    fields:
+      enabled:
+        name: Entities via MQTT
+        description: >-
+          On: power, status, print jobs and last scan as entities (needs the
+          Mosquitto add-on, otherwise no effect). Off: entities are removed.
   log_level:
     name: Log level
     description: info for everyday use, debug for troubleshooting (very verbose).

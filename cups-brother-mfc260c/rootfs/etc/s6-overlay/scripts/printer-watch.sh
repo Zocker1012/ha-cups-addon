@@ -14,6 +14,7 @@
 #     jobs_done    alle Aufträge sind erledigt
 #     printer_on   Drucker eingeschaltet / per USB verbunden
 #     printer_off  Drucker ausgeschaltet / USB getrennt
+# - Mit MQTT: Zustand für die Entitäten des Geräts "Brother MFC-260C".
 # Abgefragt wird alle paar Sekunden: Dateien im USB-Verzeichnis des Systems
 # und eine lokale IPP-Anfrage – kaum Last, kein Netzwerkverkehr nach außen.
 # ==============================================================================
@@ -24,6 +25,9 @@ readonly BROTHER_VENDOR_ID="04f9"
 readonly USB_SYSFS="${USB_SYSFS:-/sys/bus/usb/devices}"
 readonly STATE_TEST="/usr/share/cups-addon/ipptool/printer-state.test"
 readonly INTERVAL=5
+
+# shellcheck source=../../../usr/local/lib/cups-addon/mqtt.sh
+source /usr/local/lib/cups-addon/mqtt.sh
 
 # Ist ein Brother-Gerät am USB? (true/false, "unknown" ohne Zugriff)
 usb_state() {
@@ -74,6 +78,32 @@ notify() {
             "${SUPERVISOR_API:-http://supervisor}/core/api/events/cups_addon_printer" || true
 }
 
+# Zustand für die MQTT-Entitäten, nur bei Änderungen senden
+published=""
+publish_state() {
+    local power status payload
+    case "${on}" in
+        true) power="ON" ;;
+        false) power="OFF" ;;
+        *) power="None" ;;
+    esac
+    if [[ "${jobs}" -gt 0 && "${on}" == "false" ]]; then
+        status="Wartet auf Drucker"
+    elif [[ "${jobs}" -gt 0 ]]; then
+        status="Druckt"
+    elif [[ "${on}" == "false" ]]; then
+        status="Aus"
+    else
+        status="Bereit"
+    fi
+    payload=$(jq -cn --arg p "${power}" --argjson j "${jobs}" --arg s "${status}" --arg m "${MODE}" \
+        '{power: $p, jobs: $j, status: $s, mode: $m}')
+    if [[ "${payload}" != "${published}" ]]; then
+        mqtt_pub "${MQTT_BASE}/state" "${payload}"
+        published="${payload}"
+    fi
+}
+
 # Ausgangslage melden, aber kein Ereignis auslösen
 on=$(usb_state)
 case "${on}" in
@@ -84,6 +114,8 @@ esac
 jobs=$(queued_jobs)
 jobs="${jobs:-0}"
 waiting_reported=false
+mqtt_pub "${MQTT_BASE}/availability" "online"
+publish_state
 
 while true; do
     sleep "${INTERVAL}"
@@ -102,7 +134,8 @@ while true; do
     on="${new_on}"
 
     new_jobs=$(queued_jobs)
-    [[ -n "${new_jobs}" ]] || continue
+    # Nicht abfragbar (z. B. Server startet neu): letzten Stand behalten
+    new_jobs="${new_jobs:-${jobs}}"
     if [[ "${new_jobs}" -gt 0 && "${jobs}" -eq 0 ]]; then
         notify job_queued "${new_jobs}" "${on}"
     elif [[ "${new_jobs}" -eq 0 && "${jobs}" -gt 0 ]]; then
@@ -114,4 +147,5 @@ while true; do
         waiting_reported=true
     fi
     jobs="${new_jobs}"
+    publish_state
 done
