@@ -1,0 +1,13 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Debug-Log des Brother-Treibers ins Add-on-Log spiegeln (nur log_level: debug)
+# ==============================================================================
+
+if [[ "$(bashio::config 'log_level')" != "debug" ]]; then
+    s6-svc -O .
+    exit 0
+fi
+
+bashio::log.info "Brother-Treiber-Debug aktiv: /tmp/br_cupsfilter_debug_log"
+exec tail -F -n 0 /tmp/br_cupsfilter_debug_log 2>/dev/null

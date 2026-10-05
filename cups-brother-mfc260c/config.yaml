@@ -1,8 +1,9 @@
 name: "CUPS Addon (Brother MFC-260C)"
-version: "1.0.3"
+version: "2.17.2"
 slug: cups-brother-mfc260c
 description: >
-  CUPS print server with Avahi/AirPrint support for the Brother MFC-260C.
+  Druck- und Scanserver für den Brother MFC-260C: Drucken per AirPrint/IPP
+  Everywhere (CUPS-3-Stil oder klassisches CUPS), Scannen per AirScan/eSCL.
 
 url: "https://github.com/Zocker1012/ha-cups-addon"
 
@@ -13,38 +14,143 @@ startup: services
 boot: auto
 init: false
 
-# Schutzmechanismen deaktivieren
-protection_mode: false
-apparmor: false
-
-# Netzwerk
+# Netzwerk: nötig für mDNS/AirPrint und IPP auf Port 631
 host_network: true
 
 webui: "http://[HOST]:[PORT:631]/"
 
-# Ingress (HA UI Zugriff)
-#ingress: true
-#ingress_port: 8080
+# Supervisor-Watchdog: Add-on neu starten, wenn Port 631 nicht mehr antwortet
+watchdog: "tcp://[HOST]:[PORT:631]"
 
+# Web-Oberfläche in der HA-Seitenleiste
+ingress: true
+ingress_port: 0
 panel_icon: mdi:printer
-panel_title: CUPS
+panel_title: Drucker
 
-# USB Zugriff
+# USB-Zugriff auf den Drucker
 usb: true
-devices:
-  - /dev/bus/usb
-  - /dev/usb
 
-# Dateisystem Zugriff
+# Anmeldung mit Home-Assistant-Benutzerkonten (Option auth: homeassistant)
+auth_api: true
+
+# Ereignis "cups_addon_scan" an Home Assistant nach einem Scan per Taste
+homeassistant_api: true
+
+# Druck- und Scanordner
 map:
-  - config:rw
   - share:rw
-  - ssl:rw
+  - media:rw
 
-# Erweiterte Rechte (für Treiber / Avahi / CUPS Backend)
-privileged:
-  - SYS_ADMIN
-  - SYS_RAWIO
-  - NET_ADMIN
-  - SYS_NICE
-  - DAC_READ_SEARCH
+# Optionen in Gruppen (in HA aufklappbar). Die Gruppen heißen bewusst anders
+# als die Optionen bis 2.4.x (z. B. "scanner"), damit alte gespeicherte Werte
+# den Start nicht blockieren – init.sh übernimmt sie einmalig.
+# Neue Felder in einer Gruppe immer optional ("?") anlegen: Gespeicherte
+# Gruppen ersetzen die Standardwerte komplett.
+options:
+  printer:
+    mode: printer_app
+    auto_setup: true
+  login:
+    method: homeassistant
+  scanning:
+    enabled: true
+    max_resolution: "600"
+  scan_menu:
+    enabled: true
+    folder: /share/scans
+    subfolders: true
+    remove_blank: false
+    language: deu_eng
+    rotate: true
+  scan_file:
+    format: pdf
+    resolution: "300"
+    color: color
+    ocr: false
+    compress: false
+  scan_image:
+    format: jpeg
+    resolution: "300"
+    color: color
+    compress: false
+  scan_text:
+    format: pdf
+    resolution: "300"
+    color: gray
+    ocr: true
+    compress: false
+  scan_email:
+    format: pdf
+    resolution: "150"
+    color: color
+    ocr: false
+    compress: true
+  folder_printing:
+    enabled: false
+    path: /share/print
+    paper: a4
+    color: color
+    quality: normal
+  cleanup:
+    enabled: false
+    scans_days: 30
+    printed_days: 30
+    failed_days: 30
+    trash_days: 30
+  log_level: info
+
+schema:
+  printer:
+    mode: list(printer_app|cups)
+    auto_setup: bool
+  login:
+    method: list(homeassistant|manual)
+    username: str?
+    password: password?
+  scanning:
+    enabled: bool
+    max_resolution: list(600|1200)
+  scan_menu:
+    enabled: bool
+    folder: match(^/(share|media)(/.*)?$)
+    subfolders: bool?
+    remove_blank: bool?
+    language: list(deu_eng|deu|eng)?
+    rotate: bool?
+  scan_file:
+    format: list(pdf|jpeg|png)
+    resolution: list(100|150|200|300|600)
+    color: list(color|gray)
+    ocr: bool?
+    compress: bool?
+  scan_image:
+    format: list(pdf|jpeg|png)
+    resolution: list(100|150|200|300|600)
+    color: list(color|gray)
+    compress: bool?
+  scan_text:
+    format: list(pdf|jpeg|png)
+    resolution: list(100|150|200|300|600)
+    color: list(color|gray)
+    ocr: bool
+    compress: bool?
+  scan_email:
+    format: list(pdf|jpeg|png)
+    resolution: list(100|150|200|300|600)
+    color: list(color|gray)
+    ocr: bool?
+    compress: bool?
+  folder_printing:
+    enabled: bool
+    path: match(^/(share|media)(/.*)?$)
+    paper: list(a4|a5|a6|letter|legal|photo_10x15|photo_13x18|photo_9x13)?
+    color: list(color|gray)?
+    quality: list(draft|normal|fine)?
+  cleanup:
+    enabled: bool
+    scans_days: int(0,3650)
+    printed_days: int(0,3650)
+    failed_days: int(0,3650)
+    trash_days: int(0,3650)
+  log_level: list(debug|info|warning|error)

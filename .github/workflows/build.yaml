@@ -1,0 +1,68 @@
+# Baut das Add-on-Image und lädt es nach ghcr.io (GitHub Packages).
+# Home Assistant nutzt es erst, wenn in config.yaml "image:" eingetragen ist –
+# siehe DOCS.md, Abschnitt "Fertige Images".
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cups-brother-mfc260c/**"
+      - ".github/workflows/build.yaml"
+  pull_request:
+    paths:
+      - "cups-brother-mfc260c/**"
+      - ".github/workflows/build.yaml"
+  workflow_dispatch:
+
+env:
+  ADDON: cups-brother-mfc260c
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        arch: [amd64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version und Image-Name bestimmen
+        id: info
+        run: |
+          version=$(yq -r '.version' "${ADDON}/config.yaml")
+          owner=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "image=ghcr.io/${owner}/${{ matrix.arch }}-${ADDON}" >> "${GITHUB_OUTPUT}"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Bei ghcr.io anmelden
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bauen (und auf main hochladen)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.ADDON }}
+          platforms: linux/${{ matrix.arch }}
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base-ubuntu:26.04
+          labels: |
+            io.hass.type=addon
+            io.hass.arch=${{ matrix.arch }}
+            io.hass.version=${{ steps.info.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.info.outputs.image }}:${{ steps.info.outputs.version }}
+            ${{ steps.info.outputs.image }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

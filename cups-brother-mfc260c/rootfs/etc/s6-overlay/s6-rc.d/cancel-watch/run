@@ -1,0 +1,12 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Abbrechen von Druckaufträgen durchsetzen (nur Modus "printer_app")
+# ==============================================================================
+
+if [[ "$(bashio::config 'printer.mode')" != "printer_app" ]]; then
+    s6-svc -O .
+    exit 0
+fi
+
+exec /etc/s6-overlay/scripts/cancel-watch.sh

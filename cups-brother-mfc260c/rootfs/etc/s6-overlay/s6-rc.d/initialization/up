@@ -1,2 +1,1 @@
-#!/bin/bash
-mkdir -p /run/dbus
+/etc/s6-overlay/scripts/init.sh

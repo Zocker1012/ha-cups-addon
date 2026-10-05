@@ -1,0 +1,34 @@
+diff --git a/server/scanner.cpp b/server/scanner.cpp
+index 3f78643..1765bf6 100644
+--- a/server/scanner.cpp
++++ b/server/scanner.cpp
+@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ #include <algorithm>
+ #include <cmath>
++#include <cstdlib>
+ #include <cstring>
+ #include <mutex>
+ #include <set>
+@@ -498,7 +499,21 @@ Scanner::Private::init2(const OptionsFile& optionsfile)
+   mMinResDpi = resolution.min();
+   mMaxResDpi = resolution.max();
+   mResStepDpi = resolution.quant();
++  // Optional cap for the advertised resolution (environment variable
++  // AIRSANE_MAX_RESOLUTION): drivers often list interpolated resolutions
++  // far beyond what the device and the server's memory can handle.
++  int maxResLimit = 0;
++  if (const char* limit = std::getenv("AIRSANE_MAX_RESOLUTION"))
++    maxResLimit = std::atoi(limit);
++  if (maxResLimit > 0 && mMaxResDpi > maxResLimit)
++    mMaxResDpi = std::max(mMinResDpi, maxResLimit);
+   mDiscreteResolutions = resolution.allowed_numeric_values();
++  if (maxResLimit > 0)
++    mDiscreteResolutions.erase(
++      std::remove_if(mDiscreteResolutions.begin(),
++                     mDiscreteResolutions.end(),
++                     [maxResLimit](double r) { return r > maxResLimit; }),
++      mDiscreteResolutions.end());
+   if (mDiscreteResolutions
+         .empty()) // mopria client assumes discrete resolutions
+     mDiscreteResolutions =

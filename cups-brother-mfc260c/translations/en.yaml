@@ -1,0 +1,219 @@
+configuration:
+  printer:
+    name: Printer
+    description: Print server and automatic setup.
+    fields:
+      mode:
+        name: Mode
+        description: >-
+          printer_app = recommended (CUPS 3 style). cups = classic CUPS server,
+          only if printer_app causes problems.
+      auto_setup:
+        name: Automatic setup
+        description: >-
+          On: the printer is added as soon as it is connected via USB and
+          switched on (paper A4). Off: add it yourself in the web interface.
+          printer_app mode only.
+  login:
+    name: Login
+    description: Who may use the printer administration in the browser.
+    fields:
+      method:
+        name: Method
+        description: >-
+          homeassistant = with a HA account (printer_app: only via the HA
+          sidebar). manual = with the username and password from here.
+      username:
+        name: Username
+        description: Only for manual in cups mode. Empty = print.
+      password:
+        name: Password
+        description: Only for manual. Empty = random password, shown in the log.
+  scanning:
+    name: Scanner
+    description: Network scanning (Windows, macOS, Android, Linux, HA).
+    fields:
+      enabled:
+        name: Provide scanner
+        description: >-
+          On: scan from PCs, phones and the HA sidebar. Off: scanner switched
+          off completely, including the scan menu on the device.
+      max_resolution:
+        name: Maximum resolution (dpi)
+        description: >-
+          Limit for all programs. 600 = the device's real resolution, 1200 =
+          interpolated and very slow.
+  scan_menu:
+    name: Scan menu on the device
+    description: '"Scan" key on the MFC-260C, targets File, Image, Text, E-mail.'
+    fields:
+      enabled:
+        name: Use scan menu
+        description: >-
+          On: a scan from the "Scan" menu on the device is saved to the folder
+          below. Off: the device stays at "PC connection" after selecting.
+      folder:
+        name: Folder
+        description: Target for all menu items, below /share or /media.
+      subfolders:
+        name: Subfolder per menu item
+        description: >-
+          On: scans are saved to Datei/, Bild/, Text/ or E-Mail/ in the folder
+          above. Off: all directly in the folder.
+      remove_blank:
+        name: Remove blank pages
+        description: >-
+          On: completely blank pages are left out when scanning several pages
+          from the feeder. A page number or a single word counts as content;
+          at least one page always remains.
+      language:
+        name: Text recognition – language
+        description: For all menu items with text recognition. deu_eng = German and English.
+      rotate:
+        name: Text recognition – rotate pages automatically
+        description: >-
+          On: upside-down or sideways pages are straightened before text
+          recognition (lossless).
+  scan_file:
+    name: "Scan menu: File"
+    description: Settings for the "File" menu item.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
+        description: >-
+          On: searchable PDF or an extra .txt file, image quality is
+          unchanged. A few seconds per page.
+      compress:
+        name: Compress (off = best quality)
+        description: >-
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
+          (always lossless).
+  scan_image:
+    name: "Scan menu: Image"
+    description: Settings for the "Image" menu item.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: >-
+          300 is enough for viewing, 600 (device maximum) for photos you want
+          to enlarge or print.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+      compress:
+        name: Compress (off = best quality)
+        description: >-
+          Off: best quality – PDF lossless (like PNG), JPEG quality 90. On:
+          JPEG quality 75, about a third smaller. Better left off for photos –
+          fine color gradients suffer first. No effect for png.
+  scan_text:
+    name: "Scan menu: Text"
+    description: '"Text" menu item – with text recognition.'
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
+        description: >-
+          On: the text is recognized – a PDF gets an invisible text layer
+          (searchable), jpeg/png get an extra .txt file. Image quality is
+          unchanged. A few seconds per page.
+      compress:
+        name: Compress (off = best quality)
+        description: >-
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
+          (always lossless).
+  scan_email:
+    name: "Scan menu: E-mail"
+    description: '"E-mail" menu item – only saves to the folder, sends no mail.'
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg or png.
+      resolution:
+        name: Resolution (dpi)
+        description: 300 is enough for documents, 600 is the device maximum.
+      color:
+        name: Color
+        description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
+        description: >-
+          On: searchable PDF or an extra .txt file, image quality is
+          unchanged. A few seconds per page.
+      compress:
+        name: Compress (off = best quality)
+        description: >-
+          Off: best quality – PDF lossless (like PNG, color page approx. 9 MB),
+          JPEG quality 90. On: pages as JPEG quality 75 – PDF approx. 1 MB,
+          JPEG about a third smaller, ideal for documents. No effect for png
+          (always lossless).
+  folder_printing:
+    name: Print folder
+    description: Files placed in this folder are printed automatically.
+    fields:
+      enabled:
+        name: Use print folder
+        description: >-
+          On: every file (PDF, PostScript, JPEG, PNG) in the folder is printed
+          and then moved to "gedruckt/", failures to "fehler/".
+      path:
+        name: Folder
+        description: Below /share or /media.
+      paper:
+        name: Paper size
+        description: Default a4. Photo sizes in cm (10x15, 13x18, 9x13).
+      color:
+        name: Color
+        description: color or gray (black ink only).
+      quality:
+        name: Quality
+        description: draft saves ink, fine is slower.
+  cleanup:
+    name: Cleanup
+    description: Old files go to a trash folder first, deleted later.
+    fields:
+      enabled:
+        name: Use cleanup
+        description: >-
+          On: once a day, old files are moved to the "Papierkorb" (trash)
+          folder (in the scan or print folder) and deleted there later. Files
+          still waiting to be printed are never touched.
+      scans_days:
+        name: Move scans to trash after (days)
+        description: All scans in the scan folder. 0 = never.
+      printed_days:
+        name: Move printed files to trash after (days)
+        description: Print folder, subfolder "gedruckt". 0 = never.
+      failed_days:
+        name: Move failed files to trash after (days)
+        description: Print folder, subfolder "fehler". 0 = never.
+      trash_days:
+        name: Empty trash after (days)
+        description: Delete for good after this long in the trash. 0 = never.
+  log_level:
+    name: Log level
+    description: info for everyday use, debug for troubleshooting (very verbose).

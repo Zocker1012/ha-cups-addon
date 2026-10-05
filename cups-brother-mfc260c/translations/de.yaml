@@ -1,0 +1,219 @@
+configuration:
+  printer:
+    name: Drucker
+    description: Druckserver und automatische Einrichtung.
+    fields:
+      mode:
+        name: Modus
+        description: >-
+          printer_app = empfohlen (CUPS-3-Weg). cups = klassischer CUPS-Server,
+          nur falls printer_app Probleme macht.
+      auto_setup:
+        name: Automatisch einrichten
+        description: >-
+          An: Der Drucker wird angelegt, sobald er per USB verbunden und
+          eingeschaltet ist (Papier A4). Aus: in der Weboberfläche selbst
+          anlegen. Nur Modus printer_app.
+  login:
+    name: Anmeldung
+    description: Wer die Druckerverwaltung im Browser bedienen darf.
+    fields:
+      method:
+        name: Art
+        description: >-
+          homeassistant = mit einem HA-Konto (bei printer_app nur über die
+          HA-Seitenleiste). manual = mit Benutzername und Passwort von hier.
+      username:
+        name: Benutzername
+        description: Nur bei manual im Modus cups. Leer = print.
+      password:
+        name: Passwort
+        description: Nur bei manual. Leer = zufälliges Passwort, steht im Log.
+  scanning:
+    name: Scanner
+    description: Scannen im Netzwerk (Windows, macOS, Android, Linux, HA).
+    fields:
+      enabled:
+        name: Scanner bereitstellen
+        description: >-
+          An: Scannen per PC, Handy und HA-Seitenleiste. Aus: Scanner ganz
+          abgeschaltet, auch das Scan-Menü am Gerät.
+      max_resolution:
+        name: Höchste Auflösung (dpi)
+        description: >-
+          Grenze für alle Programme. 600 = echte Auflösung des Geräts, 1200 =
+          hochgerechnet und sehr langsam.
+  scan_menu:
+    name: Scan-Menü am Gerät
+    description: Taste „Scan“ am MFC-260C, Ziele Datei, Bild, Text, E-Mail.
+    fields:
+      enabled:
+        name: Scan-Menü nutzen
+        description: >-
+          An: Ein Scan über das Menü „Scan“ am Gerät landet im Ordner unten.
+          Aus: Das Gerät bleibt nach der Auswahl bei „PC-Anschluss“ stehen.
+      folder:
+        name: Ordner
+        description: Ziel für alle Menüpunkte, unter /share oder /media.
+      subfolders:
+        name: Unterordner je Menüpunkt
+        description: >-
+          An: Scans landen in Datei/, Bild/, Text/ bzw. E-Mail/ im Ordner oben.
+          Aus: alle direkt im Ordner.
+      remove_blank:
+        name: Leere Seiten entfernen
+        description: >-
+          An: Bei mehreren Seiten aus dem Einzug werden komplett leere Seiten
+          weggelassen. Schon eine Seitenzahl oder ein Wort zählt als Inhalt;
+          es bleibt immer mindestens eine Seite.
+      language:
+        name: Texterkennung – Sprache
+        description: Für alle Menüpunkte mit Texterkennung. deu_eng = Deutsch und Englisch.
+      rotate:
+        name: Texterkennung – Seiten automatisch drehen
+        description: >-
+          An: Verkehrt herum oder quer eingelegte Seiten werden vor der
+          Texterkennung gerade gedreht (verlustfrei).
+  scan_file:
+    name: "Scan-Menü: Datei"
+    description: Einstellungen für den Menüpunkt „Datei“.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg oder png.
+      resolution:
+        name: Auflösung (dpi)
+        description: 300 reicht für Dokumente, 600 ist das Maximum des Geräts.
+      color:
+        name: Farbe
+        description: color = Farbe, gray = Graustufen (kleinere Datei).
+      ocr:
+        name: Texterkennung
+        description: >-
+          An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
+          Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
+      compress:
+        name: Verkleinern (aus = beste Qualität)
+        description: >-
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
+          Wirkung (immer verlustfrei).
+  scan_image:
+    name: "Scan-Menü: Bild"
+    description: Einstellungen für den Menüpunkt „Bild“.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg oder png.
+      resolution:
+        name: Auflösung (dpi)
+        description: >-
+          300 reicht zum Ansehen, 600 (Maximum des Geräts) für Fotos, die
+          vergrößert oder gedruckt werden sollen.
+      color:
+        name: Farbe
+        description: color = Farbe, gray = Graustufen (kleinere Datei).
+      compress:
+        name: Verkleinern (aus = beste Qualität)
+        description: >-
+          Aus: beste Qualität – PDF verlustfrei (wie PNG), JPEG Qualität 90.
+          An: JPEG Qualität 75, etwa ein Drittel kleiner. Für Fotos besser aus
+          lassen – feine Farbverläufe leiden zuerst. Bei png ohne Wirkung.
+  scan_text:
+    name: "Scan-Menü: Text"
+    description: Menüpunkt „Text“ – mit Texterkennung.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg oder png.
+      resolution:
+        name: Auflösung (dpi)
+        description: 300 reicht für Dokumente, 600 ist das Maximum des Geräts.
+      color:
+        name: Farbe
+        description: color = Farbe, gray = Graustufen (kleinere Datei).
+      ocr:
+        name: Texterkennung
+        description: >-
+          An: Der Text wird erkannt – ein PDF bekommt eine unsichtbare
+          Textebene (durchsuchbar), bei jpeg/png kommt eine .txt-Datei dazu.
+          Die Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
+      compress:
+        name: Verkleinern (aus = beste Qualität)
+        description: >-
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
+          Wirkung (immer verlustfrei).
+  scan_email:
+    name: "Scan-Menü: E-Mail"
+    description: Menüpunkt „E-Mail“ – speichert nur im Ordner, verschickt keine Mail.
+    fields:
+      format:
+        name: Format
+        description: pdf, jpeg oder png.
+      resolution:
+        name: Auflösung (dpi)
+        description: 300 reicht für Dokumente, 600 ist das Maximum des Geräts.
+      color:
+        name: Farbe
+        description: color = Farbe, gray = Graustufen (kleinere Datei).
+      ocr:
+        name: Texterkennung
+        description: >-
+          An: PDF wird durchsuchbar bzw. eine .txt-Datei kommt dazu, die
+          Bildqualität ändert sich nicht. Ein paar Sekunden je Seite.
+      compress:
+        name: Verkleinern (aus = beste Qualität)
+        description: >-
+          Aus: beste Qualität – PDF verlustfrei (wie PNG, Farbseite ca. 9 MB),
+          JPEG Qualität 90. An: Seiten als JPEG Qualität 75 – PDF ca. 1 MB,
+          JPEG etwa ein Drittel kleiner, ideal für Dokumente. Bei png ohne
+          Wirkung (immer verlustfrei).
+  folder_printing:
+    name: Druckordner
+    description: Dateien in diesem Ordner werden automatisch gedruckt.
+    fields:
+      enabled:
+        name: Druckordner nutzen
+        description: >-
+          An: Jede Datei (PDF, PostScript, JPEG, PNG) im Ordner wird gedruckt
+          und danach nach „gedruckt/“ verschoben, Fehler nach „fehler/“.
+      path:
+        name: Ordner
+        description: Unter /share oder /media.
+      paper:
+        name: Papierformat
+        description: Standard a4. Fotoformate in cm (10x15, 13x18, 9x13).
+      color:
+        name: Farbe
+        description: color = Farbe, gray = nur schwarze Tinte.
+      quality:
+        name: Qualität
+        description: draft spart Tinte, fine ist langsamer.
+  cleanup:
+    name: Aufräumen
+    description: Alte Dateien erst in den Papierkorb, später löschen.
+    fields:
+      enabled:
+        name: Aufräumen nutzen
+        description: >-
+          An: Einmal täglich wandern alte Dateien in den Ordner „Papierkorb“
+          (im Scan- bzw. Druckordner) und werden dort später gelöscht.
+          Dateien, die noch gedruckt werden sollen, bleiben unberührt.
+      scans_days:
+        name: Scans in den Papierkorb nach (Tagen)
+        description: Alle Scans im Scan-Ordner. 0 = nie.
+      printed_days:
+        name: Gedruckte Dateien in den Papierkorb nach (Tagen)
+        description: Druckordner, Unterordner „gedruckt“. 0 = nie.
+      failed_days:
+        name: Fehlgeschlagene Dateien in den Papierkorb nach (Tagen)
+        description: Druckordner, Unterordner „fehler“. 0 = nie.
+      trash_days:
+        name: Papierkorb leeren nach (Tagen)
+        description: Endgültig löschen, wenn so lange im Papierkorb. 0 = nie.
+  log_level:
+    name: Log-Level
+    description: info für den Alltag, debug zur Fehlersuche (sehr ausführlich).

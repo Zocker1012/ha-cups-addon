@@ -1,7 +1,14 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# D-Bus (wird von Avahi benötigt)
+# ==============================================================================
 
-ulimit -n 524288
+# Sehr hohe fd-Limits (Docker-Default) begrenzen, falls möglich
+ulimit -n 524288 2>/dev/null || true
+
+dbus-uuidgen --ensure
+rm -f /run/dbus/pid
 
 bashio::log.info "D-Bus-Daemon wird gestartet"
-
 exec dbus-daemon --system --nofork

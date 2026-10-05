@@ -1,0 +1,12 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Druckordner: Dateien, die dort abgelegt werden, automatisch drucken
+# ==============================================================================
+
+if ! bashio::config.true 'folder_printing.enabled'; then
+    s6-svc -O .
+    exit 0
+fi
+
+exec /etc/s6-overlay/scripts/print-folder.sh

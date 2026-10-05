@@ -1,0 +1,34 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Scan-Menü am Gerät (Brother Scan-Key-Tool brscan-skey)
+# Menü "Scan" am MFC-260C -> Scan landet im eingestellten Ordner
+# ==============================================================================
+
+readonly SKEY_DIR="/opt/brother/scanner/brscan-skey"
+readonly CONFIG="${SKEY_DIR}/brscan-skey.config"
+readonly SCRIPT="/usr/local/lib/cups-addon/scan-button.sh"
+
+if [[ "$(</run/cups-addon/scanner_enabled)" != "true" ]] || ! bashio::config.true 'scan_menu.enabled'; then
+    s6-svc -O .
+    exit 0
+fi
+
+# ------------------------------------------------------------------------------
+# Alle Ziele des Scan-Menüs auf unser Skript lenken (Brothers eigene Skripte
+# laufen dann nie). Das Tool nennt sie FILE, IMAGE, OCR und EMAIL – am Gerät
+# heißen sie Datei, Bild, Text und E-Mail.
+# ------------------------------------------------------------------------------
+for target in FILE IMAGE OCR EMAIL; do
+    if grep -qE "^[[:space:]]*${target}[[:space:]]*=" "${CONFIG}"; then
+        sed -i -E "s|^[[:space:]]*${target}[[:space:]]*=.*|${target}=\"bash ${SCRIPT} ${target,,}\"|" "${CONFIG}"
+    else
+        echo "${target}=\"bash ${SCRIPT} ${target,,}\"" >> "${CONFIG}"
+    fi
+done
+bashio::log.debug "$(grep -E '^(FILE|IMAGE|OCR|EMAIL)=' "${CONFIG}")"
+
+bashio::log.info "Scan-Menü am Gerät wird überwacht (Ziel: $(bashio::config 'scan_menu.folder'))"
+
+# Im Vordergrund (-f), damit s6 das Tool überwacht und bei Bedarf neu startet
+exec "${SKEY_DIR}/brscan-skey-exe" -f

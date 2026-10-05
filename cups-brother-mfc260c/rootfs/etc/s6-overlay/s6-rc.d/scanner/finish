@@ -1,0 +1,21 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# AirSane beendet: Grund ins Log schreiben (s6 startet den Dienst neu)
+# $1 = Exit-Code (256 = durch Signal beendet), $2 = Signal
+# ==============================================================================
+
+if [[ "${1}" -eq 256 ]]; then
+    case "${2}" in
+        15) exit 0 ;; # normales Beenden (Add-on stoppt)
+        11) reason="Absturz (Speicherzugriffsfehler, Signal 11)" ;;
+        6) reason="Absturz (abgebrochen, Signal 6)" ;;
+        *) reason="durch Signal ${2} beendet" ;;
+    esac
+elif [[ "${1}" -ne 0 ]]; then
+    reason="mit Fehlercode ${1} beendet"
+else
+    exit 0
+fi
+
+bashio::log.warning "Scanner (AirSane) ${reason} – wird neu gestartet. Zeigt das Gerät noch \"PC-Anschluss\", dort Stopp drücken."
