@@ -81,6 +81,12 @@ configuration:
         description: >-
           An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
           Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
+      compress:
+        name: Verkleinern
+        description: >-
+          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
+          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
+          Auflösung bleibt. Nur bei pdf und jpeg.
   scan_image:
     name: "Scan-Menü: Bild"
     description: Einstellungen für den Menüpunkt „Bild“.
@@ -94,6 +100,12 @@ configuration:
       color:
         name: Farbe
         description: color = Farbe, gray = Graustufen (kleinere Datei).
+      compress:
+        name: Verkleinern
+        description: >-
+          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
+          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
+          Auflösung bleibt. Nur bei pdf und jpeg.
   scan_text:
     name: "Scan-Menü: Text"
     description: Menüpunkt „Text“ – mit Texterkennung.
@@ -113,6 +125,12 @@ configuration:
           An: Der Text wird erkannt – ein PDF wird durchsuchbar, bei jpeg/png
           kommt eine .txt-Datei dazu (ein paar Sekunden je Seite). Aus:
           normaler Scan.
+      compress:
+        name: Verkleinern
+        description: >-
+          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
+          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
+          Auflösung bleibt. Nur bei pdf und jpeg.
   scan_email:
     name: "Scan-Menü: E-Mail"
     description: Menüpunkt „E-Mail“ – speichert nur im Ordner, verschickt keine Mail.
@@ -131,6 +149,12 @@ configuration:
         description: >-
           An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
           Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
+      compress:
+        name: Verkleinern
+        description: >-
+          An: Datei wird viel kleiner (Farbseite als PDF z. B. 26 MB → 0,6 MB,
+          JPEG etwa ein Drittel kleiner), kaum sichtbarer Qualitätsverlust,
+          Auflösung bleibt. Nur bei pdf und jpeg.
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.

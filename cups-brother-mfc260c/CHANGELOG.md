@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.13.0
+
+### Neu
+
+- Scan-Menü am Gerät: Schalter „Verkleinern“ für jeden Menüpunkt (Standard
+  aus). PDFs werden mit JPEG-Kompression neu gespeichert (Farbseite 300 dpi:
+  etwa 26 MB → 0,6 MB), JPEGs mit Qualität 75 und optimiert. Die Auflösung
+  bleibt gleich; bei PNG ohne Wirkung.
+
 ## 2.12.0
 
 ### Neu

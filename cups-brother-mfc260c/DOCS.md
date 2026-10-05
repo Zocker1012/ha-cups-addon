@@ -70,6 +70,12 @@ Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
 verschickt das Add-on nicht.
 
+**Verkleinern** (je Menüpunkt, Standard aus): Ein PDF vom Scanner enthält die
+Seiten unkomprimiert – eine Farbseite mit 300 dpi hat rund 26 MB. Verkleinert
+sind es etwa 0,6 MB, bei kaum sichtbarem Qualitätsverlust und gleicher
+Auflösung. JPEGs werden etwa ein Drittel kleiner. Bei PNG hat der Schalter
+keine Wirkung.
+
 **Texterkennung:** Als PDF bekommst du ein durchsuchbares PDF – du kannst
 darin Text suchen und kopieren, und z. B. Paperless findet den Inhalt. Das PDF
 ist dabei meist deutlich kleiner als ohne. Bei JPEG/PNG kommt der erkannte
@@ -135,20 +141,24 @@ scan_file:                # Menüpunkt "Datei"
   resolution: "300"       # 100 | 150 | 200 | 300 | 600
   color: color            # color | gray
   ocr: false              # Texterkennung
-scan_image:               # Menüpunkt "Bild" (Felder wie oben)
+  compress: false         # Verkleinern (pdf, jpeg)
+scan_image:               # Menüpunkt "Bild" (ohne Texterkennung)
   format: jpeg
   resolution: "300"
   color: color
+  compress: false
 scan_text:                # Menüpunkt "Text"
   format: pdf
   resolution: "300"
   color: gray
   ocr: true
+  compress: false
 scan_email:               # Menüpunkt "E-Mail"
   format: pdf
   resolution: "150"
   color: color
   ocr: false
+  compress: false
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media

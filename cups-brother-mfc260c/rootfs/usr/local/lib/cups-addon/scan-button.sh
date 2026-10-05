@@ -61,6 +61,14 @@ if [[ "${target}" != "image" && "${!var:-false}" == "true" ]]; then
     ocr=true
 fi
 
+# Verkleinern (PDF und JPEG): Seiten als JPEG mit Qualität 75 statt 90 bzw.
+# statt unkomprimiert, Auflösung bleibt gleich
+compress=false
+var="${prefix}_COMPRESS"
+[[ "${!var:-false}" == "true" ]] && compress=true
+jpeg_quality=90
+[[ "${compress}" == "true" ]] && jpeg_quality=75
+
 case "${format}" in
     jpeg | png) ;;
     *) format="pdf" ;;
@@ -127,7 +135,7 @@ scan_from() {
   <pwg:DocumentFormat>application/pdf</pwg:DocumentFormat>
 </scan:ScanSettings>"
 
-    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung"), Quelle ${input}"
+    log "Scanne (${label}): ${resolution} dpi, ${mode}, ${format}$([[ "${ocr}" == "true" ]] && echo ", Texterkennung")$([[ "${compress}" == "true" && "${format}" != "png" ]] && echo ", verkleinert"), Quelle ${input}"
 
     # Scan-Auftrag anlegen; die Antwort enthält den Auftragspfad im Location-Header
     job=$(curl -s --max-time 30 -D - -o /dev/null -X POST \
@@ -205,7 +213,7 @@ render_pages() {
         *) device="jpeg"; ext="jpg" ;;
     esac
     nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE="${device}" \
-        -dJPEGQ=90 -r"${resolution}" \
+        -dJPEGQ="${jpeg_quality}" -r"${resolution}" \
         -sOutputFile="${work_dir}/page_%04d.${ext}" "${scanned[@]}" > /dev/null 2>&1 \
         || return 1
     compgen -G "${work_dir}/page_*.${ext}"
@@ -227,12 +235,31 @@ rotate_page() {
     fi
 }
 
+# PDF verkleinern: Bilder als JPEG (Qualität ca. 75) neu einbetten,
+# ohne die Auflösung zu verringern
+compress_pdf() {
+    local src="$1" dst="$2" q="/QFactor 0.76 /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2]"
+    nice -n 10 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
+        -dAutoFilterColorImages=false -dColorImageFilter=/DCTEncode -dDownsampleColorImages=false \
+        -dAutoFilterGrayImages=false -dGrayImageFilter=/DCTEncode -dDownsampleGrayImages=false \
+        -sOutputFile="${dst}" \
+        -c "<< /ColorACSImageDict << ${q} >> /GrayACSImageDict << ${q} >>
+              /ColorImageDict << ${q} >> /GrayImageDict << ${q} >> >> setdistillerparams" \
+        -f "${src}" > /dev/null 2>&1 && [[ -s "${dst}" ]]
+}
+
 if [[ "${format}" == "pdf" && "${ocr}" != "true" ]]; then
-    # PDF direkt übernehmen (nur umbenennen)
+    # PDF übernehmen (umbenennen), auf Wunsch vorher verkleinern
     n=1
     for doc in "${scanned[@]}"; do
-        file="${SCAN_FOLDER}/$(name_for "${n}" pdf)"
-        mv "${doc}" "${file}" && saved+=("${file}")
+        name=$(name_for "${n}" pdf)
+        if [[ "${compress}" == "true" ]] && compress_pdf "${doc}" "${work_dir}/${name}"; then
+            file=$(publish "${work_dir}/${name}" "${name}") && saved+=("${file}")
+        else
+            [[ "${compress}" == "true" ]] && log "Verkleinern fehlgeschlagen – PDF bleibt unverändert"
+            file="${SCAN_FOLDER}/${name}"
+            mv "${doc}" "${file}" && saved+=("${file}")
+        fi
         n=$((n + 1))
     done
 else
@@ -241,6 +268,14 @@ else
     [[ "${kind}" == "pdf" ]] && kind="jpeg"
     mapfile -t pages < <(render_pages "${kind}" | sort)
     [[ "${#pages[@]}" -gt 0 ]] || fail "Umwandlung der Seiten fehlgeschlagen"
+
+    # Verkleinern: JPEG-Seiten zusätzlich verlustfrei optimieren
+    if [[ "${compress}" == "true" && "${kind}" == "jpeg" ]]; then
+        for page in "${pages[@]}"; do
+            jpegtran -copy all -optimize -outfile "${page}.opt" "${page}" \
+                && mv "${page}.opt" "${page}"
+        done
+    fi
 
     if [[ "${ocr}" == "true" ]]; then
         case "${SCAN_OCR_LANG:-deu_eng}" in
@@ -259,6 +294,7 @@ else
     if [[ "${format}" == "pdf" ]]; then
         # Alle Seiten in ein durchsuchbares PDF (Bild + unsichtbarer Text)
         printf '%s\n' "${pages[@]}" > "${work_dir}/pages.txt"
+        # Tesseract übernimmt die JPEG-Seiten unverändert ins PDF
         if nice -n 10 tesseract "${work_dir}/pages.txt" "${work_dir}/${base}" \
                 -l "${lang}" pdf > /dev/null 2>&1 \
             && file=$(publish "${work_dir}/${base}.pdf" "${base}.pdf"); then
