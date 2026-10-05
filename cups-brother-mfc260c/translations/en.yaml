@@ -55,6 +55,14 @@ configuration:
       folder:
         name: Folder
         description: Target for all menu items, below /share or /media.
+      language:
+        name: Text recognition – language
+        description: For all menu items with text recognition. deu_eng = German and English.
+      rotate:
+        name: Text recognition – rotate pages automatically
+        description: >-
+          On: upside-down or sideways pages are straightened before text
+          recognition (not for png).
   scan_file:
     name: "Scan menu: File"
     description: Settings for the "File" menu item.
@@ -68,6 +76,11 @@ configuration:
       color:
         name: Color
         description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
+        description: >-
+          On: searchable PDF or an extra .txt file (a few seconds per page,
+          PDF usually smaller). Off: plain scan.
   scan_image:
     name: "Scan menu: Image"
     description: Settings for the "Image" menu item.
@@ -98,16 +111,7 @@ configuration:
         name: Text recognition
         description: >-
           On: the text is recognized – a PDF becomes searchable, jpeg/png get
-          an extra .txt file (a few seconds per page). Off: plain scan like
-          "File".
-      language:
-        name: Recognition language
-        description: deu_eng = German and English.
-      rotate:
-        name: Rotate pages automatically
-        description: >-
-          On: upside-down or sideways pages are straightened. Only with text
-          recognition, not for png.
+          an extra .txt file (a few seconds per page). Off: plain scan.
   scan_email:
     name: "Scan menu: E-mail"
     description: '"E-mail" menu item – only saves to the folder, sends no mail.'
@@ -121,6 +125,11 @@ configuration:
       color:
         name: Color
         description: color or gray (grayscale, smaller file).
+      ocr:
+        name: Text recognition
+        description: >-
+          On: searchable PDF or an extra .txt file (a few seconds per page,
+          PDF usually smaller). Off: plain scan.
   folder_printing:
     name: Print folder
     description: Files placed in this folder are printed automatically.

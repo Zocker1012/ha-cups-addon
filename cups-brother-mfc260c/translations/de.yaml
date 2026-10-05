@@ -55,6 +55,14 @@ configuration:
       folder:
         name: Ordner
         description: Ziel für alle Menüpunkte, unter /share oder /media.
+      language:
+        name: Texterkennung – Sprache
+        description: Für alle Menüpunkte mit Texterkennung. deu_eng = Deutsch und Englisch.
+      rotate:
+        name: Texterkennung – Seiten automatisch drehen
+        description: >-
+          An: Verkehrt herum oder quer eingelegte Seiten werden vor der
+          Texterkennung gerade gedreht (nicht bei png).
   scan_file:
     name: "Scan-Menü: Datei"
     description: Einstellungen für den Menüpunkt „Datei“.
@@ -68,6 +76,11 @@ configuration:
       color:
         name: Farbe
         description: color = Farbe, gray = Graustufen (kleinere Datei).
+      ocr:
+        name: Texterkennung
+        description: >-
+          An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
+          Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
   scan_image:
     name: "Scan-Menü: Bild"
     description: Einstellungen für den Menüpunkt „Bild“.
@@ -99,15 +112,7 @@ configuration:
         description: >-
           An: Der Text wird erkannt – ein PDF wird durchsuchbar, bei jpeg/png
           kommt eine .txt-Datei dazu (ein paar Sekunden je Seite). Aus:
-          normaler Scan wie bei „Datei“.
-      language:
-        name: Sprache der Texterkennung
-        description: deu_eng = Deutsch und Englisch.
-      rotate:
-        name: Seiten automatisch drehen
-        description: >-
-          An: Verkehrt herum oder quer eingelegte Seiten werden gerade gedreht.
-          Nur mit Texterkennung, nicht bei png.
+          normaler Scan.
   scan_email:
     name: "Scan-Menü: E-Mail"
     description: Menüpunkt „E-Mail“ – speichert nur im Ordner, verschickt keine Mail.
@@ -121,6 +126,11 @@ configuration:
       color:
         name: Farbe
         description: color = Farbe, gray = Graustufen (kleinere Datei).
+      ocr:
+        name: Texterkennung
+        description: >-
+          An: durchsuchbares PDF bzw. zusätzliche .txt-Datei (ein paar
+          Sekunden je Seite, PDF meist kleiner). Aus: normaler Scan.
   folder_printing:
     name: Druckordner
     description: Dateien in diesem Ordner werden automatisch gedruckt.

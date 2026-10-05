@@ -30,7 +30,8 @@ mkdir -m 700 "${RUN_DIR}"
 # ------------------------------------------------------------------------------
 # Ältere Einstellungen einmalig ins aktuelle Format übernehmen:
 #   2.4.x (flach) -> Gruppen (2.5.0), Scan-Menü in einer Gruppe -> je
-#   Menüpunkt eine Gruppe (2.11.0). Werte bleiben erhalten, auch "aus" (false).
+#   Menüpunkt eine Gruppe (2.11.0), Sprache/Drehen der Texterkennung ins
+#   Scan-Menü (2.12.0). Werte bleiben erhalten, auch "aus" (false).
 # ------------------------------------------------------------------------------
 migrate_options() {
     local old new
@@ -86,6 +87,16 @@ migrate_options() {
                              resolution: pick($m; "email_resolution"; "150"),
                              color: pick($m; "email_color"; "color")}
               }' <<< "${new}") || return 0
+    fi
+
+    # 2.11.0 -> 2.12.0: Sprache und Drehen gelten für alle Menüpunkte
+    if jq -e '(.scan_text // {}) | has("language") or has("rotate")' <<< "${new}" > /dev/null; then
+        new=$(jq -c '
+            .scan_menu = ((.scan_menu // {}) + {
+                language: (.scan_text.language // "deu_eng"),
+                rotate: (if .scan_text | has("rotate") then .scan_text.rotate else true end)
+              })
+            | .scan_text |= del(.language, .rotate)' <<< "${new}") || return 0
     fi
 
     [[ "${new}" != "${old}" ]] || return 0
@@ -210,17 +221,18 @@ if [[ "${scanner}" == "true" ]] && bashio::config.true 'scan_menu.enabled'; then
     mkdir -p "${scan_folder}"
     {
         printf 'SCAN_FOLDER=%q\n' "${scan_folder}"
-        # Menüpunkt (Name im Skript, Gruppe), Standard für Format, Auflösung, Farbe
-        for entry in "FILE:scan_file:pdf:300:color" "IMAGE:scan_image:jpeg:300:color" \
-            "OCR:scan_text:pdf:300:gray" "EMAIL:scan_email:pdf:150:color"; do
-            IFS=: read -r name group def_format def_res def_color <<< "${entry}"
+        # Menüpunkt (Name im Skript, Gruppe), Standard für Format, Auflösung,
+        # Farbe und Texterkennung
+        for entry in "FILE:scan_file:pdf:300:color:false" "IMAGE:scan_image:jpeg:300:color:false" \
+            "TEXT:scan_text:pdf:300:gray:true" "EMAIL:scan_email:pdf:150:color:false"; do
+            IFS=: read -r name group def_format def_res def_color def_ocr <<< "${entry}"
             printf 'SCAN_%s_FORMAT=%q\n' "${name}" "$(bashio::config "${group}.format" "${def_format}")"
             printf 'SCAN_%s_RESOLUTION=%q\n' "${name}" "$(bashio::config "${group}.resolution" "${def_res}")"
             printf 'SCAN_%s_MODE=%q\n' "${name}" "$(bashio::config "${group}.color" "${def_color}")"
+            printf 'SCAN_%s_OCR=%q\n' "${name}" "$(bashio::config "${group}.ocr" "${def_ocr}")"
         done
-        printf 'SCAN_OCR_TEXT=%q\n' "$(bashio::config 'scan_text.ocr' 'true')"
-        printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_text.language' 'deu_eng')"
-        printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_text.rotate' 'true')"
+        printf 'SCAN_OCR_LANG=%q\n' "$(bashio::config 'scan_menu.language' 'deu_eng')"
+        printf 'SCAN_OCR_ROTATE=%q\n' "$(bashio::config 'scan_menu.rotate' 'true')"
     } > "${RUN_DIR}/scan.env"
 fi
 

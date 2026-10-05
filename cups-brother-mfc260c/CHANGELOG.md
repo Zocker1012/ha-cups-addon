@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.12.0
+
+### Neu
+
+- Texterkennung auch für die Menüpunkte „Datei“ und „E-Mail“ einschaltbar
+  (Standard aus; bei „Text“ Standard an). Sprache und automatisches Drehen
+  gelten für alle und stehen jetzt unter „Scan-Menü am Gerät“ – bisherige
+  Werte werden übernommen.
+
 ## 2.11.0
 
 ### Geändert

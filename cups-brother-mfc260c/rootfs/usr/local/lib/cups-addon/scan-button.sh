@@ -46,7 +46,7 @@ fail() {
 # email (E-Mail).
 case "${target}" in
     image) prefix="SCAN_IMAGE"; label="Bild" ;;
-    ocr) prefix="SCAN_OCR"; label="Text" ;;
+    ocr) prefix="SCAN_TEXT"; label="Text" ;;
     email) prefix="SCAN_EMAIL"; label="E-Mail" ;;
     *) prefix="SCAN_FILE"; label="Datei" ;;
 esac
@@ -54,9 +54,10 @@ var="${prefix}_FORMAT" && format="${!var:-pdf}"
 var="${prefix}_MODE" && mode="${!var:-color}"
 var="${prefix}_RESOLUTION" && resolution="${!var:-300}"
 
-# Texterkennung nur beim Menüpunkt "Text" und wenn eingeschaltet
+# Texterkennung, wenn für den Menüpunkt eingeschaltet (nicht bei "Bild")
 ocr=false
-if [[ "${target}" == "ocr" && "${SCAN_OCR_TEXT:-false}" == "true" ]]; then
+var="${prefix}_OCR"
+if [[ "${target}" != "image" && "${!var:-false}" == "true" ]]; then
     ocr=true
 fi
 

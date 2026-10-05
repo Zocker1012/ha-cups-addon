@@ -59,23 +59,25 @@ Ist **Scan-Menü am Gerät → Scan-Menü nutzen** an (Standard), speichert das 
 per Samba unter „share“ erreichbar). Das Gerät meldet nur den gewählten
 Menüpunkt, alles andere stellst du im Add-on ein:
 
-| Menüpunkt | Standard (Format, Auflösung, Farbe) |
-|---|---|
-| Datei | PDF, 300 dpi, Farbe |
-| Bild | JPEG, 300 dpi, Farbe |
-| Text | PDF, 300 dpi, Graustufen, mit Texterkennung |
-| E-Mail | PDF, 150 dpi, Farbe (kleine Datei) |
+| Menüpunkt | Standard (Format, Auflösung, Farbe) | Texterkennung |
+|---|---|---|
+| Datei | PDF, 300 dpi, Farbe | einstellbar, aus |
+| Bild | JPEG, 300 dpi, Farbe | – |
+| Text | PDF, 300 dpi, Graustufen | einstellbar, an |
+| E-Mail | PDF, 150 dpi, Farbe (kleine Datei) | einstellbar, aus |
 
 Jeden Menüpunkt kannst du frei auf PDF, JPEG oder PNG, 100–600 dpi und
 Farbe oder Graustufen einstellen. „E-Mail“ speichert nur in den Ordner, Mails
 verschickt das Add-on nicht.
 
-**Texterkennung bei „Text“** (Standard an, Deutsch und Englisch): Als PDF
-bekommst du ein durchsuchbares PDF – du kannst darin Text suchen und
-kopieren, und z. B. Paperless findet den Inhalt. Bei JPEG/PNG kommt der
-erkannte Text als `.txt`-Datei dazu. Verkehrt herum oder quer eingelegte
-Seiten dreht das Add-on vorher automatisch (bei PDF und JPEG). Die Erkennung
-braucht je Seite etwa eine bis ein paar Sekunden.
+**Texterkennung:** Als PDF bekommst du ein durchsuchbares PDF – du kannst
+darin Text suchen und kopieren, und z. B. Paperless findet den Inhalt. Das PDF
+ist dabei meist deutlich kleiner als ohne. Bei JPEG/PNG kommt der erkannte
+Text als `.txt`-Datei dazu. Verkehrt herum oder quer eingelegte Seiten dreht
+das Add-on vorher automatisch (nicht bei PNG). Sprache und Drehen stellst du
+einmal unter **Scan-Menü am Gerät** ein. Die Erkennung braucht je Seite etwa
+eine bis ein paar Sekunden. Bei „Bild“ gibt es sie nicht – Fotos enthalten
+kaum Text, und das Drehen könnte sie falsch herum stellen.
 
 Mehrere Seiten aus dem Einzug landen als PDF in einer Datei, als JPEG/PNG in
 einer Datei pro Seite. Nach jedem Scan sendet das Add-on das Ereignis
@@ -126,10 +128,13 @@ scanning:
 scan_menu:
   enabled: true
   folder: /share/scans    # unter /share oder /media
+  language: deu_eng       # Texterkennung: deu_eng | deu | eng
+  rotate: true            # Texterkennung: Seiten automatisch drehen
 scan_file:                # Menüpunkt "Datei"
   format: pdf             # pdf | jpeg | png
   resolution: "300"       # 100 | 150 | 200 | 300 | 600
   color: color            # color | gray
+  ocr: false              # Texterkennung
 scan_image:               # Menüpunkt "Bild" (Felder wie oben)
   format: jpeg
   resolution: "300"
@@ -138,13 +143,12 @@ scan_text:                # Menüpunkt "Text"
   format: pdf
   resolution: "300"
   color: gray
-  ocr: true               # Texterkennung
-  language: deu_eng       # deu_eng | deu | eng
-  rotate: true            # Seiten automatisch drehen
+  ocr: true
 scan_email:               # Menüpunkt "E-Mail"
   format: pdf
   resolution: "150"
   color: color
+  ocr: false
 folder_printing:
   enabled: false
   path: /share/print      # unter /share oder /media
