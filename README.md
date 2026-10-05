@@ -66,7 +66,8 @@ Ausgenommen sind Bestandteile anderer mit eigener Lizenz:
   (`/usr/share/doc/brother-drivers/`).
 - **AirSane-Patches** in `cups-brother-mfc260c/patches/`: GPL-3.0 wie AirSane.
 - **`cupsd.conf`** (Modus `cups`): beruht auf der Standardkonfiguration von
-  CUPS und steht daher unter deren Lizenz Apache-2.0.
+  CUPS und steht daher unter deren Lizenz
+  [Apache-2.0](LICENSES/Apache-2.0.txt).
 
 Jede eigene Datei trägt am Anfang einen kurzen Lizenzvermerk
 (`SPDX-License-Identifier`).
