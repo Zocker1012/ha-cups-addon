@@ -40,7 +40,7 @@ jobs:
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "image=ghcr.io/${owner}/${{ matrix.arch }}-${ADDON}" >> "${GITHUB_OUTPUT}"
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Bei ghcr.io anmelden
         if: github.event_name != 'pull_request'
